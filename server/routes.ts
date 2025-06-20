@@ -227,6 +227,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get bot info
+  app.get('/api/bot/info', async (req, res) => {
+    try {
+      // Get bot info from Telegram API
+      const botToken = process.env.TELEGRAM_BOT_TOKEN;
+      if (!botToken) {
+        return res.status(500).json({ message: 'Bot token not configured' });
+      }
+
+      const response = await fetch(`https://api.telegram.org/bot${botToken}/getMe`);
+      const data = await response.json();
+      
+      if (data.ok) {
+        res.json({
+          username: data.result.username,
+          name: data.result.first_name
+        });
+      } else {
+        // Fallback
+        res.json({
+          username: 'karmics_diary_bot',
+          name: 'Кармічний Щоденник'
+        });
+      }
+    } catch (error) {
+      console.error('Error getting bot info:', error);
+      res.json({
+        username: 'karmics_diary_bot',
+        name: 'Кармічний Щоденник'
+      });
+    }
+  });
+
   // Test reminder endpoint (for development)
   app.post('/api/test/reminder/:userId', async (req, res) => {
     try {
