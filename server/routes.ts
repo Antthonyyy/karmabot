@@ -1,16 +1,91 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage.js";
-import { authenticateToken, optionalAuth, handleTelegramAuth, type AuthRequest } from "./auth.js";
+import { authenticateToken, optionalAuth, handleTelegramAuth, type AuthRequest, generateToken } from "./auth.js";
 import { telegramService } from "./services/telegramService.js";
 import { reminderService } from "./services/reminderService.js";
 import { insertJournalEntrySchema } from "@shared/schema.js";
+import { createSession, checkSession, deleteSession } from "./auth-sessions.js";
+import "./telegram-bot.js"; // Import to start the bot
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize principles data
   await initializePrinciples();
 
-  // Auth routes
+  // Auth routes - Session-based Telegram authentication
+  app.post('/api/auth/telegram/start-session', (req, res) => {
+    try {
+      const sessionId = createSession();
+      res.json({ sessionId });
+    } catch (error) {
+      console.error('Error creating session:', error);
+      res.status(500).json({ error: 'Failed to create session' });
+    }
+  });
+
+  app.get('/api/auth/check-session/:sessionId', async (req, res) => {
+    try {
+      const { sessionId } = req.params;
+      const session = checkSession(sessionId);
+      
+      if (!session || !session.authorized) {
+        return res.json({ authorized: false });
+      }
+      
+      // Find or create user in database
+      if (!session.userData) {
+        return res.status(400).json({ error: 'Session userData missing' });
+      }
+      
+      let user = await storage.getUserByTelegramId(session.userData.telegramId);
+      let isNewUser = false;
+      
+      if (!user) {
+        // Create new user
+        user = await storage.createUser({
+          firstName: session.userData.firstName,
+          lastName: session.userData.lastName,
+          username: session.userData.username,
+          telegramId: session.userData.telegramId,
+          telegramChatId: session.userData.telegramId,
+          currentPrinciple: 1,
+          notificationType: 'daily',
+          language: 'uk',
+          timezoneOffset: 0
+        });
+        isNewUser = true;
+        
+        // Initialize user stats
+        await storage.initializeUserStats(user.id);
+      }
+      
+      // Generate JWT token
+      const token = generateToken(user);
+      
+      // Delete used session
+      deleteSession(sessionId);
+      
+      res.json({
+        authorized: true,
+        token,
+        user: {
+          id: user.id,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          username: user.username,
+          currentPrinciple: user.currentPrinciple,
+          telegramConnected: true,
+          telegramId: user.telegramId
+        },
+        isNewUser
+      });
+    } catch (error) {
+      console.error('Error checking session:', error);
+      res.status(500).json({ error: 'Failed to check session' });
+    }
+  });
+
+  // Keep old callback for compatibility
   app.post('/api/auth/telegram/callback', async (req, res) => {
     try {
       const telegramData = req.body;

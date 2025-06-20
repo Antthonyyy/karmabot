@@ -7,14 +7,35 @@ async function throwIfResNotOk(res: Response) {
   }
 }
 
+// Функция для получения заголовков с токеном
+function getAuthHeaders(additionalHeaders?: HeadersInit): HeadersInit {
+  const token = localStorage.getItem("karma_token");
+  const headers: Record<string, string> = {};
+
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
+  // Добавляем дополнительные заголовки
+  if (additionalHeaders) {
+    Object.assign(headers, additionalHeaders);
+  }
+
+  return headers;
+}
+
 export async function apiRequest(
   method: string,
   url: string,
   data?: unknown | undefined,
 ): Promise<Response> {
+  const headers = getAuthHeaders(
+    data ? { "Content-Type": "application/json" } : undefined,
+  );
+
   const res = await fetch(url, {
     method,
-    headers: data ? { "Content-Type": "application/json" } : {},
+    headers,
     body: data ? JSON.stringify(data) : undefined,
     credentials: "include",
   });
@@ -24,12 +45,16 @@ export async function apiRequest(
 }
 
 type UnauthorizedBehavior = "returnNull" | "throw";
+
 export const getQueryFn: <T>(options: {
   on401: UnauthorizedBehavior;
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
+    const headers = getAuthHeaders();
+
     const res = await fetch(queryKey[0] as string, {
+      headers,
       credentials: "include",
     });
 
