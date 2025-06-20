@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 
@@ -15,7 +14,7 @@ export default function TelegramLoginButton({ onAuthSuccess }: TelegramLoginButt
     setIsLoading(true);
     
     try {
-      // For demo purposes, create a test user
+      // Create demo user data for testing
       const mockUser = {
         id: Date.now(),
         first_name: "Користувач",
@@ -24,23 +23,39 @@ export default function TelegramLoginButton({ onAuthSuccess }: TelegramLoginButt
         hash: "demo_hash_123"
       };
 
-      const response = await apiRequest("POST", "/api/auth/telegram/callback", mockUser);
-      const data = await response.json();
-      
-      localStorage.setItem("karma_token", data.token);
-      localStorage.setItem("karma_user", JSON.stringify(data.user));
-      
-      toast({
-        title: "Успішна авторизація!",
-        description: "Ласкаво просимо до Кармічного щоденника!",
+      const response = await fetch("/api/auth/telegram/callback", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(mockUser),
       });
       
-      onAuthSuccess();
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      if (data.token && data.user) {
+        localStorage.setItem("karma_token", data.token);
+        localStorage.setItem("karma_user", JSON.stringify(data.user));
+        
+        toast({
+          title: "Успішна авторизація!",
+          description: `Ласкаво просимо, ${data.user.firstName}!`,
+        });
+        
+        onAuthSuccess();
+      } else {
+        throw new Error("Invalid response from server");
+      }
     } catch (error) {
       console.error("Auth error:", error);
       toast({
         title: "Помилка авторизації",
-        description: "Спробуйте ще раз.",
+        description: error instanceof Error ? error.message : "Спробуйте ще раз.",
         variant: "destructive",
       });
     } finally {
