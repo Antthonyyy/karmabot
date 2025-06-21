@@ -37,7 +37,12 @@ export default function CustomScheduleEditor({ schedule, onChange }: CustomSched
     onChange(newSchedule);
   };
   
-  const principleReminders = schedule.filter(s => s.type === 'principle' && s.enabled).length;
+  // Сортировка по времени для отображения
+  const sortedSchedule = [...schedule].sort((a, b) => a.time.localeCompare(b.time));
+  
+  // Подсчет принципов для информации
+  const principleCount = schedule.filter(s => s.type === 'principle' && s.enabled).length;
+  const reflectionCount = schedule.filter(s => s.type === 'reflection' && s.enabled).length;
   
   return (
     <Card>
