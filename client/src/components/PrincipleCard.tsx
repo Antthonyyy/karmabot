@@ -1,4 +1,4 @@
-import { Card, CardContent, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ExternalLink, Lightbulb, Target, ArrowRight, BookOpen, Plus, Heart } from "lucide-react";
@@ -25,9 +25,9 @@ export default function PrincipleCard({ principle, isCurrent = false, onOpenDiar
           <div className="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
             <span className="text-2xl font-bold text-blue-600">{principle.number}</span>
           </div>
-          <CardTitle className="text-2xl text-gray-900 mb-2">
+          <div className="text-2xl font-semibold text-gray-900 mb-2">
             Принцип {principle.number}: {principle.title}
-          </CardTitle>
+          </div>
           <p className="text-gray-600 text-lg mb-6">{principle.description}</p>
 
           <div className="flex flex-col sm:flex-row gap-4 items-center justify-center">
