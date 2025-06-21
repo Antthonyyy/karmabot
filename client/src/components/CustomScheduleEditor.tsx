@@ -123,7 +123,7 @@ export default function CustomScheduleEditor({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="principle">Новий принцип</SelectItem>
-                  <SelectItem value="reflection">Рефлексія</SelectItem>
+                  <SelectItem value="reflection">Вечірня рефлексія</SelectItem>
                 </SelectContent>
               </Select>
               

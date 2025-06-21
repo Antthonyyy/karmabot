@@ -101,10 +101,20 @@ export default function ReminderModeSelector({ selectedMode, onModeSelect }: Rem
                 <div className="space-y-2">
                   <div className="flex items-center gap-2 text-sm">
                     <Clock className="h-4 w-4 text-gray-400" />
-                    <span className="font-medium">{mode.principlesPerDay} принципи щодня</span>
+                    <span className="font-medium">
+                      {mode.principlesPerDay} принципи + вечірня рефлексія
+                    </span>
                   </div>
-                  <div className="text-xs text-gray-500">
-                    Час: {mode.schedule.map(s => s.time).join(', ')}
+                  <div className="space-y-1">
+                    {mode.schedule.map((item, idx) => (
+                      <div key={idx} className="text-xs text-gray-500 flex items-center gap-2">
+                        <span>{item.time}</span>
+                        <span>•</span>
+                        <span>
+                          {item.type === 'principle' ? 'Новий принцип' : 'Вечірня рефлексія'}
+                        </span>
+                      </div>
+                    ))}
                   </div>
                 </div>
               )}

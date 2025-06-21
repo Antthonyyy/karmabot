@@ -105,10 +105,10 @@ export default function SettingsPage() {
   // Отображение текущего режима
   const getModeDisplay = () => {
     const modes = {
-      intensive: { name: 'Інтенсивний', principles: 4, color: 'bg-red-100 text-red-700' },
-      balanced: { name: 'Збалансований', principles: 3, color: 'bg-green-100 text-green-700' },
-      light: { name: 'Легкий', principles: 2, color: 'bg-blue-100 text-blue-700' },
-      custom: { name: 'Власний', principles: principlesCount, color: 'bg-purple-100 text-purple-700' },
+      intensive: { name: 'Інтенсивний', principles: 4, color: 'bg-red-100 text-red-700', description: '4 принципи + вечірня рефлексія' },
+      balanced: { name: 'Збалансований', principles: 3, color: 'bg-green-100 text-green-700', description: '3 принципи + вечірня рефлексія' },
+      light: { name: 'Легкий', principles: 2, color: 'bg-blue-100 text-blue-700', description: '2 принципи + вечірня рефлексія' },
+      custom: { name: 'Власний', principles: principlesCount, color: 'bg-purple-100 text-purple-700', description: `${principlesCount} принципи + власний розклад` },
     };
     
     return modes[reminderMode] || modes.balanced;
@@ -183,7 +183,7 @@ export default function SettingsPage() {
                   {currentMode.name}
                 </Badge>
                 <span className="text-sm text-gray-600">
-                  {currentMode.principles} принципи щодня
+                  {currentMode.description}
                 </span>
               </div>
               
@@ -200,7 +200,7 @@ export default function SettingsPage() {
                           <span>{schedule.time}</span>
                           <span className="text-gray-400">•</span>
                           <span>
-                            {schedule.type === 'principle' ? 'Новий принцип' : 'Рефлексія'}
+                            {schedule.type === 'principle' ? 'Новий принцип' : 'Вечірня рефлексія'}
                           </span>
                         </div>
                       ))}
