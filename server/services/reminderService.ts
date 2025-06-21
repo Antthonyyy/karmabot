@@ -43,6 +43,165 @@ export class ReminderService {
     }
   }
 
+  private async shouldSendReminderNow(reminder: any, now: Date): Promise<boolean> {
+    const user = reminder.user;
+    
+    // Check if user has Telegram connected
+    if (!user.telegramChatId) {
+      return false;
+    }
+
+    // Calculate user's local time based on timezone
+    const userTime = this.getUserLocalTime(user, now);
+    const currentTimeString = this.formatTime(userTime);
+    
+    // Check if current time matches reminder time
+    if (!this.isTimeMatch(currentTimeString, reminder.time)) {
+      return false;
+    }
+
+    // Check if we haven't already sent this type of reminder today
+    return await this.shouldSendAtThisTime(user, reminder.type);
+  }
+
+  private getUserLocalTime(user: any, utcTime: Date): Date {
+    // Default to Kiev timezone if not specified
+    const timezone = user.timezone || 'Europe/Kiev';
+    
+    try {
+      // Convert UTC time to user's timezone
+      return new Date(utcTime.toLocaleString('en-US', { timeZone: timezone }));
+    } catch (error) {
+      console.error(`Invalid timezone ${timezone}, using Kiev time`);
+      return new Date(utcTime.toLocaleString('en-US', { timeZone: 'Europe/Kiev' }));
+    }
+  }
+
+  private formatTime(date: Date): string {
+    return date.toTimeString().slice(0, 5); // HH:MM format
+  }
+
+  private isTimeMatch(currentTime: string, targetTime: string): boolean {
+    // Allow 1-minute window for matching
+    const current = this.timeToMinutes(currentTime);
+    const target = this.timeToMinutes(targetTime);
+    
+    return Math.abs(current - target) <= 1;
+  }
+
+  private timeToMinutes(timeString: string): number {
+    const [hours, minutes] = timeString.split(':').map(Number);
+    return hours * 60 + minutes;
+  }
+
+  private async shouldSendAtThisTime(user: any, reminderType: string): Promise<boolean> {
+    // For principle reminders, check if we haven't sent too many today
+    if (reminderType === 'principle') {
+      const today = new Date().toISOString().split('T')[0];
+      
+      // Count how many principles sent today
+      const sentToday = await storage.getPrinciplesSentToday(user.id, today);
+      
+      // Don't send more than user's daily limit
+      if (sentToday >= (user.dailyPrinciplesCount || 2)) {
+        return false;
+      }
+    }
+    
+    // For reflection reminders, check if we haven't already sent today
+    if (reminderType === 'reflection') {
+      if (user.lastReminderSent) {
+        const lastSent = new Date(user.lastReminderSent);
+        const userTime = this.getUserLocalTime(user, new Date());
+        
+        // If we sent a reminder today, don't send another reflection
+        if (lastSent.toDateString() === userTime.toDateString()) {
+          return false;
+        }
+      }
+    }
+
+    return true;
+  }
+
+  private async sendScheduledReminder(reminder: any): Promise<void> {
+    try {
+      const user = reminder.user;
+      const userTime = this.getUserLocalTime(user, new Date());
+      const currentTimeString = this.formatTime(userTime);
+      
+      if (reminder.type === 'principle') {
+        await this.sendPrincipleReminder(user, currentTimeString);
+      } else if (reminder.type === 'reflection') {
+        await this.sendReflectionReminder(user, currentTimeString);
+      }
+    } catch (error) {
+      console.error(`Error sending scheduled reminder:`, error);
+    }
+  }
+
+  private async sendPrincipleReminder(user: any, timeString: string): Promise<void> {
+    try {
+      // Get next principle for user
+      const principle = await storage.getNextPrincipleForUser(user.id);
+      if (!principle) {
+        console.error(`No principle found for user ${user.id}`);
+        return;
+      }
+
+      // Get today's date
+      const today = new Date().toISOString().split('T')[0];
+      
+      // Count existing principles for today
+      const existingCount = await storage.getPrinciplesSentToday(user.id, today);
+      const principleOrder = existingCount + 1;
+
+      // Send reminder via Telegram
+      const success = await telegramService.sendPrincipleReminder(
+        user.telegramChatId,
+        principle,
+        user.firstName,
+        'principle'
+      );
+
+      if (success) {
+        // Create user principle record
+        await storage.createUserPrinciple({
+          userId: user.id,
+          principleId: principle.id,
+          date: today,
+          principleOrder,
+          reminderTime: timeString,
+          completed: false,
+        });
+
+        // Update last reminder sent timestamp
+        await storage.updateUserLastSent(user.id, new Date());
+        console.log(`Principle reminder sent to user ${user.id} (${user.firstName}) at ${timeString}`);
+      }
+    } catch (error) {
+      console.error(`Error sending principle reminder:`, error);
+    }
+  }
+
+  private async sendReflectionReminder(user: any, timeString: string): Promise<void> {
+    try {
+      // Send reflection reminder via Telegram
+      const success = await telegramService.sendReflectionReminder(
+        user.telegramChatId,
+        user.firstName
+      );
+
+      if (success) {
+        // Update last reminder sent timestamp
+        await storage.updateUserLastSent(user.id, new Date());
+        console.log(`Reflection reminder sent to user ${user.id} (${user.firstName}) at ${timeString}`);
+      }
+    } catch (error) {
+      console.error(`Error sending reflection reminder:`, error);
+    }
+  }
+
   private async shouldSendReminder(user: any, currentHour: number): Promise<boolean> {
     // Check user's timezone and notification preferences
     const userHour = (currentHour + (user.timezoneOffset || 0)) % 24;

@@ -518,6 +518,157 @@ export class DatabaseStorage implements IStorage {
       .returning();
     return updated;
   }
+
+  // Reminder methods
+  async getUserReminderSchedules(userId: number): Promise<ReminderSchedule[]> {
+    return await db
+      .select()
+      .from(reminderSchedules)
+      .where(eq(reminderSchedules.userId, userId))
+      .orderBy(reminderSchedules.time);
+  }
+
+  async createReminderSchedule(schedule: InsertReminderSchedule): Promise<ReminderSchedule> {
+    const [created] = await db
+      .insert(reminderSchedules)
+      .values(schedule)
+      .returning();
+    return created;
+  }
+
+  async deleteUserReminderSchedules(userId: number): Promise<void> {
+    await db
+      .delete(reminderSchedules)
+      .where(eq(reminderSchedules.userId, userId));
+  }
+
+  async setupUserReminders(userId: number, config: {
+    reminderMode: string;
+    dailyPrinciplesCount: number;
+    customSchedule?: Array<{ time: string; type: 'principle' | 'reflection'; enabled: boolean }>;
+  }): Promise<User> {
+    // Transaction to ensure data consistency
+    return await db.transaction(async (tx) => {
+      // Update user profile
+      const [updatedUser] = await tx
+        .update(users)
+        .set({
+          reminderMode: config.reminderMode,
+          dailyPrinciplesCount: config.dailyPrinciplesCount,
+          updatedAt: new Date(),
+        })
+        .where(eq(users.id, userId))
+        .returning();
+
+      // Delete old reminder schedules
+      await tx
+        .delete(reminderSchedules)
+        .where(eq(reminderSchedules.userId, userId));
+
+      // Create new reminder schedules
+      if (config.reminderMode === 'custom' && config.customSchedule) {
+        for (const item of config.customSchedule) {
+          if (item.enabled) {
+            await tx
+              .insert(reminderSchedules)
+              .values({
+                userId,
+                time: item.time,
+                type: item.type,
+                enabled: item.enabled,
+              });
+          }
+        }
+      } else {
+        // Use predefined schedule
+        const { getDefaultScheduleForMode } = await import('./config/reminderModes.js');
+        const defaultSchedule = getDefaultScheduleForMode(config.reminderMode);
+        
+        for (const item of defaultSchedule) {
+          await tx
+            .insert(reminderSchedules)
+            .values({
+              userId,
+              time: item.time,
+              type: item.type,
+              enabled: true,
+            });
+        }
+      }
+
+      return updatedUser;
+    });
+  }
+
+  // User Principles methods
+  async getUserPrincipleForDate(userId: number, date: string, order: number): Promise<UserPrinciple | undefined> {
+    const [userPrinciple] = await db
+      .select()
+      .from(userPrinciples)
+      .where(
+        and(
+          eq(userPrinciples.userId, userId),
+          eq(userPrinciples.date, date),
+          eq(userPrinciples.principleOrder, order)
+        )
+      );
+    return userPrinciple || undefined;
+  }
+
+  async createUserPrinciple(userPrinciple: InsertUserPrinciple): Promise<UserPrinciple> {
+    const [created] = await db
+      .insert(userPrinciples)
+      .values(userPrinciple)
+      .returning();
+    return created;
+  }
+
+  async getActiveReminders(): Promise<Array<ReminderSchedule & { user: User }>> {
+    return await db
+      .select({
+        id: reminderSchedules.id,
+        userId: reminderSchedules.userId,
+        time: reminderSchedules.time,
+        type: reminderSchedules.type,
+        enabled: reminderSchedules.enabled,
+        createdAt: reminderSchedules.createdAt,
+        updatedAt: reminderSchedules.updatedAt,
+        user: users,
+      })
+      .from(reminderSchedules)
+      .innerJoin(users, eq(reminderSchedules.userId, users.id))
+      .where(
+        and(
+          eq(reminderSchedules.enabled, true),
+          eq(users.remindersEnabled, true),
+          eq(users.isActive, true)
+        )
+      );
+  }
+
+  async getNextPrincipleForUser(userId: number): Promise<Principle | undefined> {
+    // Get user's current principle
+    const user = await this.getUser(userId);
+    if (!user) return undefined;
+
+    // Get next principle in sequence (1-10, cycling)
+    const nextNumber = (user.currentPrinciple % 10) + 1;
+    return await this.getPrincipleByNumber(nextNumber);
+  }
+
+  async getPrinciplesSentToday(userId: number, date: string): Promise<number> {
+    const sentToday = await db
+      .select({ count: count() })
+      .from(userPrinciples)
+      .where(
+        and(
+          eq(userPrinciples.userId, userId),
+          eq(userPrinciples.date, date)
+        )
+      );
+    
+    return sentToday[0]?.count || 0;
+  }
 }
 
 export const storage = new DatabaseStorage();
