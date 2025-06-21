@@ -28,6 +28,17 @@ export interface IStorage {
   initializeUserStats(userId: number): Promise<UserStats>;
   updateUserStats(userId: number): Promise<UserStats>;
   
+  // Analytics methods
+  getDailyStats(userId: number, date: string): Promise<DailyStats | undefined>;
+  getWeeklyStats(userId: number, weekStart: string): Promise<WeeklyStats | undefined>;
+  getUserAnalytics(userId: number): Promise<any>;
+  getMoodTrends(userId: number, days: number): Promise<any[]>;
+  getEnergyTrends(userId: number, days: number): Promise<any[]>;
+  getPrincipleProgress(userId: number): Promise<any[]>;
+  getStreakAnalytics(userId: number): Promise<any>;
+  updateDailyStats(userId: number, date: string): Promise<DailyStats>;
+  updateWeeklyStats(userId: number, weekStart: string): Promise<WeeklyStats>;
+  
   // Principle methods
   getAllPrinciples(): Promise<Principle[]>;
   getPrincipleByNumber(number: number): Promise<Principle | undefined>;
@@ -111,10 +122,9 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateUserStats(userId: number): Promise<UserStats> {
-    // Get current stats
-    let stats = await this.getUserStats(userId);
+    const stats = await this.getUserStats(userId);
     if (!stats) {
-      stats = await this.initializeUserStats(userId);
+      return await this.initializeUserStats(userId);
     }
 
     // Get total entries count
@@ -123,26 +133,272 @@ export class DatabaseStorage implements IStorage {
       .from(journalEntries)
       .where(eq(journalEntries.userId, userId));
 
-    // Calculate streak (simplified - just check if entry exists today)
-    const today = new Date().toISOString().split('T')[0];
-    const todayEntries = await db
-      .select()
-      .from(journalEntries)
-      .where(sql`${journalEntries.userId} = ${userId} AND DATE(${journalEntries.createdAt}) = ${today}`);
+    // Calculate current streak
+    const streakData = await this.getStreakAnalytics(userId);
+    const currentStreak = streakData.currentStreak;
+    const longestStreak = Math.max(streakData.longestStreak, currentStreak);
 
-    const streakDays = todayEntries.length > 0 ? (stats.streakDays || 0) + 1 : (stats.streakDays || 0);
+    // Calculate average mood and energy
+    const [moodEnergyData] = await db
+      .select({
+        avgMood: avg(journalEntries.mood),
+        avgEnergy: avg(journalEntries.energyLevel)
+      })
+      .from(journalEntries)
+      .where(eq(journalEntries.userId, userId));
+
+    // Calculate principle progress
+    const principleCompletions = await this.getPrincipleProgress(userId);
 
     const [updatedStats] = await db
       .update(userStats)
       .set({
         totalEntries: count,
-        streakDays,
-        lastEntryDate: new Date()
+        streakDays: currentStreak,
+        longestStreak,
+        averageMood: moodEnergyData.avgMood ? Number(moodEnergyData.avgMood) : null,
+        averageEnergy: moodEnergyData.avgEnergy ? Number(moodEnergyData.avgEnergy) : null,
+        principleCompletions: JSON.stringify(principleCompletions),
+        lastEntryDate: new Date(),
+        updatedAt: new Date()
       })
       .where(eq(userStats.userId, userId))
       .returning();
 
     return updatedStats;
+  }
+
+  async getDailyStats(userId: number, date: string): Promise<DailyStats | undefined> {
+    const [dailyStat] = await db
+      .select()
+      .from(dailyStats)
+      .where(and(eq(dailyStats.userId, userId), eq(dailyStats.date, date)));
+    return dailyStat || undefined;
+  }
+
+  async getWeeklyStats(userId: number, weekStart: string): Promise<WeeklyStats | undefined> {
+    const [weeklyStat] = await db
+      .select()
+      .from(weeklyStats)
+      .where(and(eq(weeklyStats.userId, userId), eq(weeklyStats.weekStart, weekStart)));
+    return weeklyStat || undefined;
+  }
+
+  async updateDailyStats(userId: number, date: string): Promise<DailyStats> {
+    // Get entries for the day
+    const entries = await db
+      .select()
+      .from(journalEntries)
+      .where(sql`${journalEntries.userId} = ${userId} AND DATE(${journalEntries.createdAt}) = ${date}`);
+
+    const entriesCount = entries.length;
+    const avgMood = entries.length > 0 ? entries.reduce((sum, e) => sum + (Number(e.mood) || 0), 0) / entries.length : null;
+    const avgEnergy = entries.length > 0 ? entries.reduce((sum, e) => sum + (Number(e.energyLevel) || 0), 0) / entries.length : null;
+    
+    const principlesWorked = [...new Set(entries.map(e => e.principleId))];
+
+    const existing = await this.getDailyStats(userId, date);
+    
+    if (existing) {
+      const [updated] = await db
+        .update(dailyStats)
+        .set({
+          entriesCount,
+          averageMood: avgMood,
+          averageEnergy: avgEnergy,
+          principlesWorked: JSON.stringify(principlesWorked),
+        })
+        .where(eq(dailyStats.id, existing.id))
+        .returning();
+      return updated;
+    } else {
+      const [created] = await db
+        .insert(dailyStats)
+        .values({
+          userId,
+          date,
+          entriesCount,
+          averageMood: avgMood,
+          averageEnergy: avgEnergy,
+          principlesWorked: JSON.stringify(principlesWorked),
+        })
+        .returning();
+      return created;
+    }
+  }
+
+  async getUserAnalytics(userId: number): Promise<any> {
+    const stats = await this.getUserStats(userId);
+    const streakAnalytics = await this.getStreakAnalytics(userId);
+    const principleProgress = await this.getPrincipleProgress(userId);
+    const moodTrends = await this.getMoodTrends(userId, 30);
+    const energyTrends = await this.getEnergyTrends(userId, 30);
+
+    return {
+      overview: {
+        totalEntries: stats?.totalEntries || 0,
+        currentStreak: streakAnalytics.currentStreak,
+        longestStreak: streakAnalytics.longestStreak,
+        averageMood: stats?.averageMood || 0,
+        averageEnergy: stats?.averageEnergy || 0,
+        currentCycle: stats?.currentCycle || 1,
+      },
+      streaks: streakAnalytics,
+      principleProgress,
+      trends: {
+        mood: moodTrends,
+        energy: energyTrends,
+      },
+      goals: {
+        weekly: stats?.weeklyGoal || 7,
+        monthly: stats?.monthlyGoal || 30,
+      }
+    };
+  }
+
+  async getMoodTrends(userId: number, days: number): Promise<any[]> {
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
+    
+    const trends = await db
+      .select({
+        date: sql<string>`DATE(${journalEntries.createdAt})`,
+        avgMood: avg(journalEntries.mood),
+        count: count(journalEntries.id)
+      })
+      .from(journalEntries)
+      .where(
+        and(
+          eq(journalEntries.userId, userId),
+          gte(journalEntries.createdAt, startDate)
+        )
+      )
+      .groupBy(sql`DATE(${journalEntries.createdAt})`)
+      .orderBy(sql`DATE(${journalEntries.createdAt})`);
+
+    return trends.map(t => ({
+      date: t.date,
+      mood: Number(t.avgMood) || 0,
+      entries: Number(t.count)
+    }));
+  }
+
+  async getEnergyTrends(userId: number, days: number): Promise<any[]> {
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
+    
+    const trends = await db
+      .select({
+        date: sql<string>`DATE(${journalEntries.createdAt})`,
+        avgEnergy: avg(journalEntries.energyLevel),
+        count: count(journalEntries.id)
+      })
+      .from(journalEntries)
+      .where(
+        and(
+          eq(journalEntries.userId, userId),
+          gte(journalEntries.createdAt, startDate)
+        )
+      )
+      .groupBy(sql`DATE(${journalEntries.createdAt})`)
+      .orderBy(sql`DATE(${journalEntries.createdAt})`);
+
+    return trends.map(t => ({
+      date: t.date,
+      energy: Number(t.avgEnergy) || 0,
+      entries: Number(t.count)
+    }));
+  }
+
+  async getPrincipleProgress(userId: number): Promise<any[]> {
+    const principleStats = await db
+      .select({
+        principleId: journalEntries.principleId,
+        count: count(journalEntries.id),
+        avgMood: avg(journalEntries.mood),
+        avgEnergy: avg(journalEntries.energyLevel),
+        lastEntry: sql<string>`MAX(${journalEntries.createdAt})`
+      })
+      .from(journalEntries)
+      .where(eq(journalEntries.userId, userId))
+      .groupBy(journalEntries.principleId);
+
+    const allPrinciples = await this.getAllPrinciples();
+    
+    return allPrinciples.map(principle => {
+      const stats = principleStats.find(s => s.principleId === principle.id);
+      return {
+        principleId: principle.id,
+        principleNumber: principle.number,
+        principleTitle: principle.title,
+        entriesCount: stats?.count || 0,
+        averageMood: Number(stats?.avgMood) || 0,
+        averageEnergy: Number(stats?.avgEnergy) || 0,
+        lastEntry: stats?.lastEntry || null,
+        completionRate: ((stats?.count || 0) / Math.max(1, principleStats.reduce((sum, s) => sum + Number(s.count), 0))) * 100
+      };
+    });
+  }
+
+  async getStreakAnalytics(userId: number): Promise<any> {
+    const entries = await db
+      .select({
+        date: sql<string>`DATE(${journalEntries.createdAt})`
+      })
+      .from(journalEntries)
+      .where(eq(journalEntries.userId, userId))
+      .groupBy(sql`DATE(${journalEntries.createdAt})`)
+      .orderBy(desc(sql`DATE(${journalEntries.createdAt})`));
+
+    if (entries.length === 0) {
+      return { currentStreak: 0, longestStreak: 0, streakDates: [] };
+    }
+
+    const dates = entries.map(e => new Date(e.date));
+    let currentStreak = 0;
+    let longestStreak = 0;
+    
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    // Check current streak
+    for (let i = 0; i < dates.length; i++) {
+      const entryDate = new Date(dates[i]);
+      entryDate.setHours(0, 0, 0, 0);
+      
+      const expectedDate = new Date(today);
+      expectedDate.setDate(today.getDate() - i);
+      
+      if (entryDate.getTime() === expectedDate.getTime()) {
+        currentStreak++;
+      } else {
+        break;
+      }
+    }
+
+    // Calculate longest streak
+    let consecutiveDays = 1;
+    for (let i = 1; i < dates.length; i++) {
+      const currentDate = new Date(dates[i-1]);
+      const nextDate = new Date(dates[i]);
+      
+      const dayDiff = (currentDate.getTime() - nextDate.getTime()) / (1000 * 60 * 60 * 24);
+      
+      if (dayDiff === 1) {
+        consecutiveDays++;
+      } else {
+        longestStreak = Math.max(longestStreak, consecutiveDays);
+        consecutiveDays = 1;
+      }
+    }
+    longestStreak = Math.max(longestStreak, consecutiveDays);
+
+    return {
+      currentStreak,
+      longestStreak,
+      totalDaysWithEntries: entries.length,
+      streakDates: dates.slice(0, currentStreak).map(d => d.toISOString().split('T')[0])
+    };
   }
 
   async getAllPrinciples(): Promise<Principle[]> {

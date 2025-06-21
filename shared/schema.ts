@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, varchar, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, varchar, jsonb, real, date } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -45,10 +45,44 @@ export const userStats = pgTable("user_stats", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").references(() => users.id).notNull(),
   streakDays: integer("streak_days").default(0),
+  longestStreak: integer("longest_streak").default(0),
   totalEntries: integer("total_entries").default(0),
   currentCycle: integer("current_cycle").default(1),
   lastEntryDate: timestamp("last_entry_date"),
   principleProgress: jsonb("principle_progress"),
+  weeklyGoal: integer("weekly_goal").default(7),
+  monthlyGoal: integer("monthly_goal").default(30),
+  averageMood: real("average_mood"),
+  averageEnergy: real("average_energy"),
+  totalReflectionTime: integer("total_reflection_time").default(0), // in minutes
+  principleCompletions: jsonb("principle_completions"), // track completions per principle
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const dailyStats = pgTable("daily_stats", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  date: date("date").notNull(),
+  entriesCount: integer("entries_count").default(0),
+  averageMood: real("average_mood"),
+  averageEnergy: real("average_energy"),
+  principlesWorked: jsonb("principles_worked"), // array of principle IDs
+  reflectionTime: integer("reflection_time").default(0), // minutes spent
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const weeklyStats = pgTable("weekly_stats", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  weekStart: date("week_start").notNull(),
+  weekEnd: date("week_end").notNull(),
+  totalEntries: integer("total_entries").default(0),
+  averageMood: real("average_mood"),
+  averageEnergy: real("average_energy"),
+  principlesProgress: jsonb("principles_progress"),
+  goalCompletion: real("goal_completion"), // percentage
+  createdAt: timestamp("created_at").defaultNow(),
 });
 
 // Relations
@@ -78,6 +112,20 @@ export const userStatsRelations = relations(userStats, ({ one }) => ({
   }),
 }));
 
+export const dailyStatsRelations = relations(dailyStats, ({ one }) => ({
+  user: one(users, {
+    fields: [dailyStats.userId],
+    references: [users.id],
+  }),
+}));
+
+export const weeklyStatsRelations = relations(weeklyStats, ({ one }) => ({
+  user: one(users, {
+    fields: [weeklyStats.userId],
+    references: [users.id],
+  }),
+}));
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -102,3 +150,5 @@ export type JournalEntry = typeof journalEntries.$inferSelect;
 export type InsertJournalEntry = z.infer<typeof insertJournalEntrySchema>;
 export type Principle = typeof principles.$inferSelect;
 export type UserStats = typeof userStats.$inferSelect;
+export type DailyStats = typeof dailyStats.$inferSelect;
+export type WeeklyStats = typeof weeklyStats.$inferSelect;
