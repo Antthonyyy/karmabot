@@ -143,6 +143,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get today's plan for dashboard
+  app.get('/api/dashboard/today-plan', authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const user = req.user!;
+      const today = new Date().toISOString().split('T')[0];
+      
+      // Get user's reminder schedules for today
+      const userSchedules = await storage.getUserReminderSchedules(user.id);
+      
+      // Calculate which principles are scheduled for today
+      const todaysPrinciples = [];
+      let currentPrinciple = user.currentPrinciple || 1;
+      
+      // Count principle reminders in schedule
+      const principleReminders = userSchedules.filter(s => s.type === 'principle' && s.enabled);
+      
+      for (let i = 0; i < principleReminders.length; i++) {
+        const principleNumber = ((currentPrinciple - 1 + i) % 10) + 1;
+        const principle = await storage.getPrincipleByNumber(principleNumber);
+        
+        if (principle) {
+          // Check if user has journal entries for this principle today
+          const todaysEntries = await storage.getUserJournalEntries(user.id, 50, 0);
+          const hasEntryToday = todaysEntries.some(entry => 
+            entry.principleId === principle.id && 
+            entry.createdAt.toISOString().split('T')[0] === today
+          );
+          
+          todaysPrinciples.push({
+            ...principle,
+            completed: hasEntryToday,
+            scheduledTime: principleReminders[i]?.time || '12:00'
+          });
+        }
+      }
+      
+      const completed = todaysPrinciples.filter(p => p.completed).length;
+      const total = todaysPrinciples.length;
+      
+      res.json({
+        principles: todaysPrinciples,
+        progress: {
+          completed,
+          total,
+          percentage: total > 0 ? Math.round((completed / total) * 100) : 0
+        },
+        date: today
+      });
+    } catch (error) {
+      console.error('Error fetching today\'s plan:', error);
+      res.status(500).json({ error: 'Failed to fetch today\'s plan' });
+    }
+  });
+
   app.patch('/api/user/settings', authenticateToken, async (req: AuthRequest, res) => {
     try {
       const user = req.user!;

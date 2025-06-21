@@ -9,6 +9,7 @@ import PrincipleCard from "@/components/PrincipleCard";
 import DiaryForm from "@/components/DiaryForm";
 import ProgressChart from "@/components/ProgressChart";
 import SettingsPanel from "@/components/SettingsPanel";
+import TodaysPlan from "@/components/TodaysPlan";
 import { User } from "@/lib/types";
 import { 
   Home, 
@@ -233,6 +234,11 @@ export default function DashboardPage() {
                   Щодня застосовуйте один з 10 кармічних принципів, ведіть щоденник рефлексій 
                   та отримуйте персоналізовані нагадування для духовного зростання
                 </p>
+              </div>
+
+              {/* Today's Plan Section */}
+              <div className="mb-12">
+                <TodaysPlan />
               </div>
 
               {/* Current Principle */}
