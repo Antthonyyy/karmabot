@@ -4,42 +4,66 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { ArrowLeft, Clock, Bell, Save } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { ArrowLeft, Bell, Clock, Settings, Save, Plus, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import ReminderModeSelector from "@/components/ReminderModeSelector";
+import CustomScheduleEditor from "@/components/CustomScheduleEditor";
+
+interface Schedule {
+  id?: number;
+  time: string;
+  type: 'principle' | 'reflection';
+  enabled: boolean;
+}
 
 export default function SettingsPage() {
-  const [, setLocation] = useLocation();
+  const [, navigate] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
   const [remindersEnabled, setRemindersEnabled] = useState(true);
-  const [morningTime, setMorningTime] = useState("09:00");
-  const [eveningTime, setEveningTime] = useState("21:00");
+  const [reminderMode, setReminderMode] = useState('balanced');
+  const [customSchedule, setCustomSchedule] = useState<Schedule[]>([]);
+  const [principlesCount, setPrinciplesCount] = useState(2);
+  const [showModeSelector, setShowModeSelector] = useState(false);
   
+  // Загружаем пользователя
   const { data: user } = useQuery({
-    queryKey: ['/api/user/me'],
-    enabled: true,
+    queryKey: ["/api/user/me"],
   });
-
+  
+  // Загружаем настройки напоминаний
+  const { data: reminderSettings, isLoading } = useQuery({
+    queryKey: ["/api/user/reminder-settings"],
+    enabled: !!user,
+  });
+  
+  // Загружаем текущие настройки
   useEffect(() => {
-    if (user) {
-      setRemindersEnabled(user.remindersEnabled ?? true);
-      setMorningTime(user.morningReminderTime || "09:00");
-      setEveningTime(user.eveningReminderTime || "21:00");
+    if (reminderSettings) {
+      setRemindersEnabled(reminderSettings.remindersEnabled ?? true);
+      setReminderMode(reminderSettings.reminderMode || 'balanced');
+      setPrinciplesCount(reminderSettings.dailyPrinciplesCount || 2);
+      
+      if (reminderSettings.schedule && reminderSettings.schedule.length > 0) {
+        setCustomSchedule(reminderSettings.schedule);
+      }
     }
-  }, [user]);
-
-  const updateSettingsMutation = useMutation({
-    mutationFn: (settings: any) => apiRequest("PUT", "/api/user/settings", settings),
+  }, [reminderSettings]);
+  
+  const setupRemindersMutation = useMutation({
+    mutationFn: (data: any) => apiRequest("POST", "/api/user/setup-reminders", data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/user/me'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/user/me"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/user/reminder-settings"] });
       toast({
         title: "Налаштування збережено",
-        description: "Час нагадувань оновлено успішно",
+        description: "Розклад нагадувань оновлено успішно",
       });
+      setShowModeSelector(false);
     },
     onError: () => {
       toast({
@@ -49,66 +73,91 @@ export default function SettingsPage() {
       });
     },
   });
-
+  
   const testReminderMutation = useMutation({
-    mutationFn: () => apiRequest("POST", "/api/reminders/test", {}),
+    mutationFn: () => apiRequest("POST", "/api/reminders/test"),
     onSuccess: () => {
       toast({
-        title: "Тестове нагадування надіслано",
-        description: "Перевірте ваш Telegram",
+        title: "Тестове нагадування відправлено",
+        description: "Перевірте Telegram",
       });
     },
     onError: () => {
       toast({
         title: "Помилка",
-        description: "Не вдалося надіслати тестове нагадування",
+        description: "Не вдалося відправити тестове нагадування",
         variant: "destructive",
       });
     },
   });
   
-  const handleSave = () => {
-    updateSettingsMutation.mutate({
-      remindersEnabled,
-      morningReminderTime: morningTime,
-      eveningReminderTime: eveningTime,
-      timezone: 'Europe/Kiev',
+  const handleSave = async () => {
+    setupRemindersMutation.mutate({
+      reminderMode,
+      dailyPrinciplesCount: principlesCount,
+      customSchedule: reminderMode === 'custom' ? customSchedule : undefined,
     });
   };
-
-  const handleTestReminder = () => {
+  
+  const sendTestReminder = () => {
     testReminderMutation.mutate();
   };
   
+  // Отображение текущего режима
+  const getModeDisplay = () => {
+    const modes = {
+      intensive: { name: 'Інтенсивний', principles: 4, color: 'bg-red-100 text-red-700' },
+      balanced: { name: 'Збалансований', principles: 3, color: 'bg-green-100 text-green-700' },
+      light: { name: 'Легкий', principles: 2, color: 'bg-blue-100 text-blue-700' },
+      custom: { name: 'Власний', principles: principlesCount, color: 'bg-purple-100 text-purple-700' },
+    };
+    
+    return modes[reminderMode] || modes.balanced;
+  };
+  
+  const currentMode = getModeDisplay();
+  
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+      </div>
+    );
+  }
+  
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-      <div className="max-w-2xl mx-auto p-4">
+      <div className="max-w-4xl mx-auto p-4">
         <Button
           variant="ghost"
-          onClick={() => setLocation("/")}
+          onClick={() => navigate("/dashboard")}
           className="mb-6"
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
           Назад
         </Button>
         
-        <Card>
+        {/* Основная карточка настроек */}
+        <Card className="mb-6">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Bell className="h-6 w-6" />
               Налаштування нагадувань
             </CardTitle>
             <CardDescription>
-              Налаштуйте час отримання нагадувань про кармічні принципи
+              Керуйте розкладом отримання кармічних принципів
             </CardDescription>
           </CardHeader>
           
           <CardContent className="space-y-6">
-            {/* Включення/виключення нагадувань */}
-            <div className="flex items-center justify-between">
-              <Label htmlFor="reminders-enabled" className="flex items-center gap-2">
+            {/* Включение/выключение напоминаний */}
+            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+              <Label htmlFor="reminders-enabled" className="flex items-center gap-2 cursor-pointer">
                 <Bell className="h-4 w-4" />
-                Отримувати нагадування
+                <div>
+                  <div className="font-medium">Отримувати нагадування</div>
+                  <div className="text-sm text-gray-500">Щоденні нагадування про кармічні принципи</div>
+                </div>
               </Label>
               <Switch
                 id="reminders-enabled"
@@ -117,45 +166,111 @@ export default function SettingsPage() {
               />
             </div>
             
-            {/* Час ранкового нагадування */}
-            <div className="space-y-2">
-              <Label htmlFor="morning-time" className="flex items-center gap-2">
-                <Clock className="h-4 w-4" />
-                Ранкове нагадування
-              </Label>
-              <Input
-                id="morning-time"
-                type="time"
-                value={morningTime}
-                onChange={(e) => setMorningTime(e.target.value)}
-                disabled={!remindersEnabled}
-                className="max-w-xs"
-              />
-              <p className="text-sm text-muted-foreground">
-                Отримайте принцип для роздумів на початку дня
-              </p>
+            {/* Текущий режим */}
+            <div className="p-4 border rounded-lg">
+              <div className="flex items-center justify-between mb-3">
+                <Label className="text-base font-medium">Поточний режим</Label>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowModeSelector(!showModeSelector)}
+                  disabled={!remindersEnabled}
+                >
+                  <Settings className="h-4 w-4 mr-1" />
+                  Змінити
+                </Button>
+              </div>
+              
+              <div className="flex items-center gap-3">
+                <Badge className={currentMode.color}>
+                  {currentMode.name}
+                </Badge>
+                <span className="text-sm text-gray-600">
+                  {currentMode.principles} принципи щодня
+                </span>
+              </div>
+              
+              {/* Показываем расписание для текущего режима */}
+              {!showModeSelector && customSchedule.length > 0 && (
+                <div className="mt-4 space-y-2">
+                  <p className="text-sm font-medium text-gray-700">Розклад нагадувань:</p>
+                  <div className="space-y-1">
+                    {customSchedule
+                      .filter(s => s.enabled)
+                      .map((schedule, index) => (
+                        <div key={index} className="flex items-center gap-2 text-sm text-gray-600">
+                          <Clock className="h-3 w-3" />
+                          <span>{schedule.time}</span>
+                          <span className="text-gray-400">•</span>
+                          <span>
+                            {schedule.type === 'principle' ? 'Новий принцип' : 'Рефлексія'}
+                          </span>
+                        </div>
+                      ))}
+                  </div>
+                </div>
+              )}
             </div>
             
-            {/* Час вечірнього нагадування */}
-            <div className="space-y-2">
-              <Label htmlFor="evening-time" className="flex items-center gap-2">
-                <Clock className="h-4 w-4" />
-                Вечірнє нагадування
-              </Label>
-              <Input
-                id="evening-time"
-                type="time"
-                value={eveningTime}
-                onChange={(e) => setEveningTime(e.target.value)}
-                disabled={!remindersEnabled}
-                className="max-w-xs"
-              />
-              <p className="text-sm text-muted-foreground">
-                Підведіть підсумки дня та оцініть виконання принципу
-              </p>
-            </div>
+            {/* Селектор режимов (показывается при нажатии "Изменить") */}
+            {showModeSelector && (
+              <div className="space-y-6 p-4 bg-gray-50 rounded-lg">
+                <ReminderModeSelector
+                  selectedMode={reminderMode}
+                  onModeSelect={setReminderMode}
+                />
+                
+                {/* Кастомный редактор (если выбран custom режим) */}
+                {reminderMode === 'custom' && (
+                  <CustomScheduleEditor
+                    schedule={customSchedule}
+                    onChange={setCustomSchedule}
+                    principlesCount={principlesCount}
+                    onPrinciplesCountChange={setPrinciplesCount}
+                  />
+                )}
+                
+                {/* Кнопки сохранения/отмены */}
+                <div className="flex gap-3">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setShowModeSelector(false);
+                      // Восстанавливаем исходные настройки
+                      if (reminderSettings) {
+                        setReminderMode(reminderSettings.reminderMode || 'balanced');
+                        setPrinciplesCount(reminderSettings.dailyPrinciplesCount || 2);
+                        if (reminderSettings.schedule) {
+                          setCustomSchedule(reminderSettings.schedule);
+                        }
+                      }
+                    }}
+                    className="flex-1"
+                  >
+                    Скасувати
+                  </Button>
+                  <Button
+                    onClick={handleSave}
+                    disabled={setupRemindersMutation.isPending}
+                    className="flex-1"
+                  >
+                    {setupRemindersMutation.isPending ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                        Збереження...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="mr-2 h-4 w-4" />
+                        Зберегти зміни
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            )}
             
-            {/* Інформація про часовий пояс */}
+            {/* Информация о часовом поясе */}
             <div className="p-4 bg-blue-50 rounded-lg">
               <p className="text-sm text-blue-800">
                 <strong>Часовий пояс:</strong> Київський час (UTC+2)
@@ -165,36 +280,17 @@ export default function SettingsPage() {
               </p>
             </div>
             
-            {/* Кнопка збереження */}
-            <Button
-              onClick={handleSave}
-              disabled={updateSettingsMutation.isPending}
-              className="w-full"
-            >
-              {updateSettingsMutation.isPending ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
-                  Збереження...
-                </>
-              ) : (
-                <>
-                  <Save className="mr-2 h-4 w-4" />
-                  Зберегти налаштування
-                </>
-              )}
-            </Button>
-
-            {/* Кнопка тестового нагадування */}
+            {/* Кнопка тестового напоминания */}
             <Button
               variant="outline"
-              onClick={handleTestReminder}
-              disabled={testReminderMutation.isPending || !user?.telegramConnected}
+              onClick={sendTestReminder}
+              disabled={!remindersEnabled || testReminderMutation.isPending}
               className="w-full"
             >
               {testReminderMutation.isPending ? (
                 <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600 mr-2" />
-                  Відправка...
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900 mr-2" />
+                  Відправляємо...
                 </>
               ) : (
                 <>
@@ -203,17 +299,11 @@ export default function SettingsPage() {
                 </>
               )}
             </Button>
-            
-            {!user?.telegramConnected && (
-              <p className="text-sm text-red-600 text-center">
-                Підключіть Telegram для тестування нагадувань
-              </p>
-            )}
           </CardContent>
         </Card>
         
-        {/* Попередження */}
-        <Card className="mt-4">
+        {/* Информационная карточка */}
+        <Card>
           <CardContent className="pt-6">
             <p className="text-sm text-muted-foreground">
               <strong>Важливо:</strong> Для отримання нагадувань переконайтеся, що ви запустили бота @karmics_diary_bot в Telegram та не заблокували його.
