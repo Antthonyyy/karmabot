@@ -3,12 +3,22 @@ import {
   principles, 
   journalEntries, 
   userStats,
+  dailyStats,
+  weeklyStats,
+  reminderSchedules,
+  userPrinciples,
   type User, 
   type InsertUser,
   type Principle,
   type JournalEntry,
   type InsertJournalEntry,
-  type UserStats
+  type UserStats,
+  type DailyStats,
+  type WeeklyStats,
+  type ReminderSchedule,
+  type InsertReminderSchedule,
+  type UserPrinciple,
+  type InsertUserPrinciple
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, sql } from "drizzle-orm";
@@ -49,6 +59,22 @@ export interface IStorage {
   getJournalEntry(id: number): Promise<JournalEntry | undefined>;
   createJournalEntry(entry: InsertJournalEntry): Promise<JournalEntry>;
   updateJournalEntry(id: number, updates: Partial<JournalEntry>): Promise<JournalEntry>;
+  
+  // Reminder methods
+  getUserReminderSchedules(userId: number): Promise<ReminderSchedule[]>;
+  createReminderSchedule(schedule: InsertReminderSchedule): Promise<ReminderSchedule>;
+  deleteUserReminderSchedules(userId: number): Promise<void>;
+  setupUserReminders(userId: number, config: {
+    reminderMode: string;
+    dailyPrinciplesCount: number;
+    customSchedule?: Array<{ time: string; type: 'principle' | 'reflection'; enabled: boolean }>;
+  }): Promise<User>;
+  
+  // User Principles methods
+  getUserPrincipleForDate(userId: number, date: string, order: number): Promise<UserPrinciple | undefined>;
+  createUserPrinciple(userPrinciple: InsertUserPrinciple): Promise<UserPrinciple>;
+  getActiveReminders(): Promise<Array<ReminderSchedule & { user: User }>>;
+  getNextPrincipleForUser(userId: number): Promise<Principle | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {

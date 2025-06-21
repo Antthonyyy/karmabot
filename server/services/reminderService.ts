@@ -10,8 +10,8 @@ export class ReminderService {
   }
 
   private setupScheduler(): void {
-    // Run every hour to check for reminders
-    cron.schedule('0 * * * *', async () => {
+    // Run every minute to check for reminders (more precise timing)
+    cron.schedule('* * * * *', async () => {
       if (this.isRunning) return;
       
       this.isRunning = true;
@@ -29,16 +29,13 @@ export class ReminderService {
 
   private async processReminders(): Promise<void> {
     try {
-      const users = await storage.getActiveUsers();
-      const currentHour = new Date().getHours();
+      // Get all active reminder schedules with user data
+      const activeReminders = await storage.getActiveReminders();
+      const now = new Date();
       
-      for (const user of users) {
-        if (!user.telegramChatId) continue;
-        
-        const shouldSendReminder = await this.shouldSendReminder(user, currentHour);
-        
-        if (shouldSendReminder) {
-          await this.sendReminderToUser(user);
+      for (const reminder of activeReminders) {
+        if (await this.shouldSendReminderNow(reminder, now)) {
+          await this.sendScheduledReminder(reminder);
         }
       }
     } catch (error) {

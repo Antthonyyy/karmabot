@@ -374,6 +374,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get reminder modes
+  app.get('/api/reminders/modes', async (req, res) => {
+    try {
+      const { reminderModes } = await import('./config/reminderModes.js');
+      res.json(reminderModes);
+    } catch (error) {
+      console.error('Error getting reminder modes:', error);
+      res.status(500).json({ message: 'Failed to get reminder modes' });
+    }
+  });
+
+  // Setup user reminders
+  app.post('/api/user/setup-reminders', authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const user = req.user!;
+      const { reminderMode, dailyPrinciplesCount, customSchedule } = req.body;
+
+      // Validate reminder mode
+      const validModes = ['intensive', 'balanced', 'light', 'custom'];
+      if (!validModes.includes(reminderMode)) {
+        return res.status(400).json({ error: 'Invalid reminder mode' });
+      }
+
+      // Validate principles count
+      if (dailyPrinciplesCount < 2 || dailyPrinciplesCount > 6) {
+        return res.status(400).json({ error: 'Daily principles count must be between 2 and 6' });
+      }
+
+      // Setup reminders in transaction
+      const result = await storage.setupUserReminders(user.id, {
+        reminderMode,
+        dailyPrinciplesCount,
+        customSchedule: reminderMode === 'custom' ? customSchedule : undefined,
+      });
+
+      res.json(result);
+    } catch (error) {
+      console.error('Error setting up reminders:', error);
+      res.status(500).json({ error: 'Failed to setup reminders' });
+    }
+  });
+
   // Trigger manual reminder check (for testing)
   app.post('/api/reminders/trigger', authenticateToken, async (req: AuthRequest, res) => {
     try {

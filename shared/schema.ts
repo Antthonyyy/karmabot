@@ -16,10 +16,10 @@ export const users = pgTable("users", {
   customTimes: jsonb("custom_times"),
   language: varchar("language").default("uk"),
   isActive: boolean("is_active").default(true),
-  morningReminderTime: text("morning_reminder_time").default("09:00"),
-  eveningReminderTime: text("evening_reminder_time").default("21:00"),
-  remindersEnabled: boolean("reminders_enabled").default(true),
+  reminderMode: text("reminder_mode").default("balanced"), // 'intensive', 'balanced', 'light', 'custom'
+  dailyPrinciplesCount: integer("daily_principles_count").default(2),
   timezone: text("timezone").default("Europe/Kiev"),
+  remindersEnabled: boolean("reminders_enabled").default(true),
   lastReminderSent: timestamp("last_reminder_sent"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -90,6 +90,28 @@ export const weeklyStats = pgTable("weekly_stats", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+export const reminderSchedules = pgTable("reminder_schedules", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  time: text("time").notNull(), // Time in HH:MM format
+  type: text("type").notNull(), // 'principle' or 'reflection'
+  enabled: boolean("enabled").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const userPrinciples = pgTable("user_principles", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  principleId: integer("principle_id").notNull().references(() => principles.id),
+  date: text("date").notNull(), // YYYY-MM-DD format
+  principleOrder: integer("principle_order").default(1), // Order of principle in the day
+  reminderTime: text("reminder_time"), // Time when reminder was sent
+  completed: boolean("completed").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many, one }) => ({
   journalEntries: many(journalEntries),
@@ -97,6 +119,8 @@ export const usersRelations = relations(users, ({ many, one }) => ({
     fields: [users.id],
     references: [userStats.userId],
   }),
+  reminderSchedules: many(reminderSchedules),
+  userPrinciples: many(userPrinciples),
 }));
 
 export const journalEntriesRelations = relations(journalEntries, ({ one }) => ({
@@ -131,6 +155,24 @@ export const weeklyStatsRelations = relations(weeklyStats, ({ one }) => ({
   }),
 }));
 
+export const reminderSchedulesRelations = relations(reminderSchedules, ({ one }) => ({
+  user: one(users, {
+    fields: [reminderSchedules.userId],
+    references: [users.id],
+  }),
+}));
+
+export const userPrinciplesRelations = relations(userPrinciples, ({ one }) => ({
+  user: one(users, {
+    fields: [userPrinciples.userId],
+    references: [users.id],
+  }),
+  principle: one(principles, {
+    fields: [userPrinciples.principleId],
+    references: [principles.id],
+  }),
+}));
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -157,3 +199,7 @@ export type Principle = typeof principles.$inferSelect;
 export type UserStats = typeof userStats.$inferSelect;
 export type DailyStats = typeof dailyStats.$inferSelect;
 export type WeeklyStats = typeof weeklyStats.$inferSelect;
+export type ReminderSchedule = typeof reminderSchedules.$inferSelect;
+export type InsertReminderSchedule = typeof reminderSchedules.$inferInsert;
+export type UserPrinciple = typeof userPrinciples.$inferSelect;
+export type InsertUserPrinciple = typeof userPrinciples.$inferInsert;
