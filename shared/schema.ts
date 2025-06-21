@@ -112,6 +112,14 @@ export const userPrinciples = pgTable("user_principles", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+export const principleHistory = pgTable("principle_history", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  principleId: integer("principle_id").notNull(),
+  assignedAt: timestamp("assigned_at").defaultNow(),
+  completed: boolean("completed").default(false),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many, one }) => ({
   journalEntries: many(journalEntries),
@@ -173,6 +181,13 @@ export const userPrinciplesRelations = relations(userPrinciples, ({ one }) => ({
   }),
 }));
 
+export const principleHistoryRelations = relations(principleHistory, ({ one }) => ({
+  user: one(users, {
+    fields: [principleHistory.userId],
+    references: [users.id],
+  }),
+}));
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -203,3 +218,5 @@ export type ReminderSchedule = typeof reminderSchedules.$inferSelect;
 export type InsertReminderSchedule = typeof reminderSchedules.$inferInsert;
 export type UserPrinciple = typeof userPrinciples.$inferSelect;
 export type InsertUserPrinciple = typeof userPrinciples.$inferInsert;
+export type PrincipleHistory = typeof principleHistory.$inferSelect;
+export type InsertPrincipleHistory = typeof principleHistory.$inferInsert;

@@ -293,17 +293,46 @@ ${process.env.FRONTEND_URL || 'http://localhost:5000'}
   }
 
   private async handleDiaryEntry(chatId: string, text: string, telegramId: number): Promise<void> {
-    // This would need to save the diary entry to database
-    const confirmMessage = `
-✅ <b>Запис збережено!</b>
+    try {
+      // Find user by telegram ID
+      const user = await storage.getUserByTelegramId(telegramId.toString());
+      if (!user) {
+        await this.sendMessage(chatId, 
+          'Будь ласка, спочатку зареєструйтеся у веб-додатку: ' + process.env.REPLIT_DOMAINS?.split(',')[0] || 'https://your-app.replit.app'
+        );
+        return;
+      }
 
-Ваші думки додано до щоденника. 
+      // Get user's current principle (sequential practice)
+      const currentPrincipleNumber = user.currentPrinciple || 1;
+      const currentPrinciple = await storage.getPrincipleByNumber(currentPrincipleNumber);
+      
+      if (!currentPrinciple) {
+        await this.sendMessage(chatId, 'Не вдалося знайти поточний принцип. Спробуйте пізніше.');
+        return;
+      }
 
-📖 Переглянути всі записи можна у веб-додатку:
-${process.env.FRONTEND_URL || 'http://localhost:5000'}
-    `.trim();
+      // Create diary entry with current principle
+      const entry = await storage.createJournalEntry({
+        userId: user.id,
+        principleId: currentPrinciple.id,
+        content: text,
+        mood: null,
+        energyLevel: null
+      });
 
-    await this.sendMessage(chatId, confirmMessage);
+      // Send confirmation with current principle info
+      await this.sendMessage(chatId, 
+        `✅ *Запис збережено!*\n\n` +
+        `📝 Ваш запис автоматично прив'язано до *Принципу ${currentPrincipleNumber}: ${currentPrinciple.title}* (ваш поточний принцип у послідовній практиці)\n\n` +
+        `Якщо ваші роздуми стосувалися іншого принципу, ви можете змінити це у веб-додатку.`,
+        { parse_mode: 'Markdown' }
+      );
+
+    } catch (error) {
+      console.error('Error handling diary entry:', error);
+      await this.sendMessage(chatId, 'Виникла помилка при збереженні запису. Спробуйте пізніше.');
+    }
   }
 }
 

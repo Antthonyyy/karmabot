@@ -143,6 +143,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // New endpoint for practice state
+  app.get('/api/user/practice-state', authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const user = req.user!;
+      const currentPrinciple = user.currentPrinciple || 1;
+      const nextPrinciple = currentPrinciple === 10 ? 1 : currentPrinciple + 1;
+      const history = await storage.getUserPrincipleHistory(user.id, 5);
+
+      res.json({
+        currentPrinciple,
+        practiceMode: user.practiceMode || 'sequential',
+        nextPrinciple,
+        history
+      });
+    } catch (error) {
+      console.error('Error fetching practice state:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+
   // Get today's plan for dashboard
   app.get('/api/dashboard/today-plan', authenticateToken, async (req: AuthRequest, res) => {
     try {

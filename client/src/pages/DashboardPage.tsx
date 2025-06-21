@@ -10,6 +10,7 @@ import DiaryForm from "@/components/DiaryForm";
 import ProgressChart from "@/components/ProgressChart";
 import SettingsPanel from "@/components/SettingsPanel";
 import TodaysPlan from "@/components/TodaysPlan";
+import NextPrincipleCard from "@/components/NextPrincipleCard";
 import { User } from "@/lib/types";
 import { 
   Home, 
@@ -52,6 +53,12 @@ export default function DashboardPage() {
   const { data: currentPrinciple } = useQuery({
     queryKey: ["/api/principles", user?.currentPrinciple],
     enabled: !!user?.currentPrinciple,
+  });
+
+  // Fetch practice state
+  const { data: practiceState } = useQuery({
+    queryKey: ['/api/user/practice-state'],
+    enabled: !!user,
   });
 
   const handleLogout = () => {
@@ -284,6 +291,36 @@ export default function DashboardPage() {
               <div className="mb-12">
                 <TodaysPlan />
               </div>
+
+              {/* Sequential Practice Cards */}
+              {practiceState && principles && (
+                <div className="grid md:grid-cols-2 gap-8 mb-12">
+                  {/* Current Principle */}
+                  {currentPrinciple && (
+                    <div>
+                      <h2 className="text-xl font-bold text-gray-900 mb-4 text-center">
+                        Поточний принцип у фокусі
+                      </h2>
+                      <PrincipleCard 
+                        principle={currentPrinciple} 
+                        isCurrent={true}
+                        onOpenDiary={() => setShowDiaryForm(true)}
+                      />
+                    </div>
+                  )}
+                  
+                  {/* Next Principle */}
+                  <div>
+                    <h2 className="text-xl font-bold text-gray-900 mb-4 text-center">
+                      Готується наступним
+                    </h2>
+                    <NextPrincipleCard 
+                      currentPrinciple={practiceState.currentPrinciple}
+                      principles={principles}
+                    />
+                  </div>
+                </div>
+              )}
 
               
             </div>

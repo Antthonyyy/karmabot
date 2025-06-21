@@ -7,6 +7,7 @@ import {
   weeklyStats,
   reminderSchedules,
   userPrinciples,
+  principleHistory,
   type User, 
   type InsertUser,
   type Principle,
@@ -18,7 +19,9 @@ import {
   type ReminderSchedule,
   type InsertReminderSchedule,
   type UserPrinciple,
-  type InsertUserPrinciple
+  type InsertUserPrinciple,
+  type PrincipleHistory,
+  type InsertPrincipleHistory
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, sql, and, gte, lte, count } from "drizzle-orm";
@@ -668,6 +671,51 @@ export class DatabaseStorage implements IStorage {
       );
     
     return sentToday[0]?.count || 0;
+  }
+
+  async createPrincipleHistory(history: InsertPrincipleHistory): Promise<PrincipleHistory> {
+    const [created] = await db
+      .insert(principleHistory)
+      .values(history)
+      .returning();
+    return created;
+  }
+
+  async getUserPrincipleHistory(userId: number, limit = 10): Promise<PrincipleHistory[]> {
+    return await db
+      .select()
+      .from(principleHistory)
+      .where(eq(principleHistory.userId, userId))
+      .orderBy(desc(principleHistory.assignedAt))
+      .limit(limit);
+  }
+
+  async advanceUserToNextPrinciple(userId: number): Promise<User> {
+    const user = await this.getUser(userId);
+    if (!user) throw new Error('User not found');
+
+    const currentPrinciple = user.currentPrinciple || 1;
+    const nextPrinciple = currentPrinciple === 10 ? 1 : currentPrinciple + 1;
+
+    // Record current principle in history
+    await this.createPrincipleHistory({
+      userId: userId,
+      principleId: currentPrinciple,
+      assignedAt: new Date(),
+      completed: false
+    });
+
+    // Update user to next principle
+    const [updatedUser] = await db
+      .update(users)
+      .set({ 
+        currentPrinciple: nextPrinciple,
+        updatedAt: new Date()
+      })
+      .where(eq(users.id, userId))
+      .returning();
+
+    return updatedUser;
   }
 }
 
