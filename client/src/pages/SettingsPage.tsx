@@ -45,7 +45,6 @@ export default function SettingsPage() {
     if (reminderSettings) {
       setRemindersEnabled(reminderSettings.remindersEnabled ?? true);
       setReminderMode(reminderSettings.reminderMode || 'balanced');
-      setPrinciplesCount(reminderSettings.dailyPrinciplesCount || 2);
       
       if (reminderSettings.schedule && reminderSettings.schedule.length > 0) {
         setCustomSchedule(reminderSettings.schedule);

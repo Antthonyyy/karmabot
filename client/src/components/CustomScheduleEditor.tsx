@@ -17,12 +17,7 @@ interface CustomScheduleEditorProps {
   onChange: (schedule: ScheduleItem[]) => void;
 }
 
-export default function CustomScheduleEditor({ 
-  schedule, 
-  onChange, 
-  principlesCount,
-  onPrinciplesCountChange 
-}: CustomScheduleEditorProps) {
+export default function CustomScheduleEditor({ schedule, onChange }: CustomScheduleEditorProps) {
   const addScheduleItem = () => {
     const newItem: ScheduleItem = {
       time: '12:00',
