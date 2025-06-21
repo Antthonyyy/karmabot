@@ -19,7 +19,8 @@ import {
   Menu, 
   X,
   LogOut,
-  Plus
+  Plus,
+  Compass
 } from "lucide-react";
 
 export default function DashboardPage() {
@@ -104,6 +105,14 @@ export default function DashboardPage() {
               </Button>
               <Button
                 variant="ghost"
+                onClick={() => setActiveTab("principles")}
+                className={activeTab === "principles" ? "text-blue-600" : ""}
+              >
+                <Compass className="w-4 h-4 mr-2" />
+                Принципи
+              </Button>
+              <Button
+                variant="ghost"
                 onClick={() => setActiveTab("diary")}
                 className={activeTab === "diary" ? "text-blue-600" : ""}
               >
@@ -170,6 +179,17 @@ export default function DashboardPage() {
               >
                 <Home className="w-4 h-4 mr-2" />
                 Головна
+              </Button>
+              <Button
+                variant="ghost"
+                className="w-full justify-start"
+                onClick={() => {
+                  setActiveTab("principles");
+                  setMobileMenuOpen(false);
+                }}
+              >
+                <Compass className="w-4 h-4 mr-2" />
+                Принципи
               </Button>
               <Button
                 variant="ghost"
@@ -244,6 +264,9 @@ export default function DashboardPage() {
               {/* Current Principle */}
               {currentPrinciple && (
                 <div className="mb-12">
+                  <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">
+                    Поточний принцип у фокусі
+                  </h2>
                   <PrincipleCard 
                     principle={currentPrinciple} 
                     isCurrent={true}
@@ -251,21 +274,43 @@ export default function DashboardPage() {
                   />
                 </div>
               )}
+            </div>
+          </TabsContent>
 
-              {/* All Principles Grid */}
+          {/* Principles Tab */}
+          <TabsContent value="principles" className="py-8">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="text-center mb-12">
+                <h2 className="text-4xl font-bold text-gray-900 mb-4">
+                  10 кармічних принципів
+                </h2>
+                <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+                  Вивчайте та практикуйте універсальні життєві принципи, що ведуть до внутрішньої гармонії та духовного зростання
+                </p>
+              </div>
+
               {principles && (
-                <div className="mb-12">
-                  <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">
-                    10 кармічних принципів
-                  </h2>
-                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {principles.map((principle: any) => (
-                      <PrincipleCard
-                        key={principle.id}
-                        principle={principle}
-                        isCurrent={principle.number === user.currentPrinciple}
-                      />
-                    ))}
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {principles.map((principle: any) => (
+                    <PrincipleCard
+                      key={principle.id}
+                      principle={principle}
+                      isCurrent={principle.number === user.currentPrinciple}
+                      onOpenDiary={() => setShowDiaryForm(true)}
+                    />
+                  ))}
+                </div>
+              )}
+
+              {!principles && (
+                <div className="text-center py-12">
+                  <div className="animate-pulse space-y-4">
+                    <div className="h-8 bg-gray-200 rounded w-1/3 mx-auto"></div>
+                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {[...Array(10)].map((_, i) => (
+                        <div key={i} className="h-48 bg-gray-200 rounded-lg"></div>
+                      ))}
+                    </div>
                   </div>
                 </div>
               )}
