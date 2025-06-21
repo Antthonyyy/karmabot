@@ -20,6 +20,7 @@ export const users = pgTable("users", {
   eveningReminderTime: text("evening_reminder_time").default("21:00"),
   remindersEnabled: boolean("reminders_enabled").default(true),
   timezone: text("timezone").default("Europe/Kiev"),
+  lastReminderSent: timestamp("last_reminder_sent"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

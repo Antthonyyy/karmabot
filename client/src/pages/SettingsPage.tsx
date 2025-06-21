@@ -49,13 +49,35 @@ export default function SettingsPage() {
       });
     },
   });
+
+  const testReminderMutation = useMutation({
+    mutationFn: () => apiRequest("POST", "/api/reminders/test", {}),
+    onSuccess: () => {
+      toast({
+        title: "Тестове нагадування надіслано",
+        description: "Перевірте ваш Telegram",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Помилка",
+        description: "Не вдалося надіслати тестове нагадування",
+        variant: "destructive",
+      });
+    },
+  });
   
   const handleSave = () => {
     updateSettingsMutation.mutate({
       remindersEnabled,
       morningReminderTime: morningTime,
       eveningReminderTime: eveningTime,
+      timezone: 'Europe/Kiev',
     });
+  };
+
+  const handleTestReminder = () => {
+    testReminderMutation.mutate();
   };
   
   return (
@@ -161,6 +183,32 @@ export default function SettingsPage() {
                 </>
               )}
             </Button>
+
+            {/* Кнопка тестового нагадування */}
+            <Button
+              variant="outline"
+              onClick={handleTestReminder}
+              disabled={testReminderMutation.isPending || !user?.telegramConnected}
+              className="w-full"
+            >
+              {testReminderMutation.isPending ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600 mr-2" />
+                  Відправка...
+                </>
+              ) : (
+                <>
+                  <Bell className="mr-2 h-4 w-4" />
+                  Надіслати тестове нагадування
+                </>
+              )}
+            </Button>
+            
+            {!user?.telegramConnected && (
+              <p className="text-sm text-red-600 text-center">
+                Підключіть Telegram для тестування нагадувань
+              </p>
+            )}
           </CardContent>
         </Card>
         

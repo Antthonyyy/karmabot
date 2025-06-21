@@ -335,6 +335,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Settings endpoints
+  app.put('/api/user/settings', authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const user = req.user!;
+      const { remindersEnabled, morningReminderTime, eveningReminderTime, timezone } = req.body;
+      
+      // Validate time format
+      const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
+      if (!timeRegex.test(morningReminderTime) || !timeRegex.test(eveningReminderTime)) {
+        return res.status(400).json({ error: 'Invalid time format' });
+      }
+      
+      // Update user settings
+      const updatedUser = await storage.updateUser(user.id, {
+        remindersEnabled,
+        morningReminderTime,
+        eveningReminderTime,
+        timezone: timezone || 'Europe/Kiev',
+      });
+      
+      res.json(updatedUser);
+    } catch (error) {
+      console.error('Error updating settings:', error);
+      res.status(500).json({ error: 'Failed to update settings' });
+    }
+  });
+
+  // Test reminder endpoint
+  app.post('/api/reminders/test', authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const user = req.user!;
+      const success = await reminderService.sendTestReminder(user.id);
+      res.json({ success, message: success ? 'Test reminder sent' : 'Failed to send test reminder' });
+    } catch (error) {
+      console.error('Error sending test reminder:', error);
+      res.status(500).json({ message: 'Failed to send test reminder' });
+    }
+  });
+
+  // Trigger manual reminder check (for testing)
+  app.post('/api/reminders/trigger', authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      await reminderService.triggerReminderCheck();
+      res.json({ success: true, message: 'Reminder check triggered' });
+    } catch (error) {
+      console.error('Error triggering reminder check:', error);
+      res.status(500).json({ message: 'Failed to trigger reminder check' });
+    }
+  });
+
   // Test reminder endpoint (for development)
   app.post('/api/test/reminder/:userId', async (req, res) => {
     try {
