@@ -26,7 +26,7 @@ export default function SettingsPage() {
   const [remindersEnabled, setRemindersEnabled] = useState(true);
   const [reminderMode, setReminderMode] = useState('balanced');
   const [customSchedule, setCustomSchedule] = useState<Schedule[]>([]);
-  const [principlesCount, setPrinciplesCount] = useState(2);
+
   const [showModeSelector, setShowModeSelector] = useState(false);
   
   // Загружаем пользователя
@@ -93,7 +93,6 @@ export default function SettingsPage() {
   const handleSave = async () => {
     setupRemindersMutation.mutate({
       reminderMode,
-      dailyPrinciplesCount: principlesCount,
       customSchedule: reminderMode === 'custom' ? customSchedule : undefined,
     });
   };
@@ -108,7 +107,7 @@ export default function SettingsPage() {
       intensive: { name: 'Інтенсивний', principles: 4, color: 'bg-red-100 text-red-700', description: '4 принципи + вечірня рефлексія' },
       balanced: { name: 'Збалансований', principles: 3, color: 'bg-green-100 text-green-700', description: '3 принципи + вечірня рефлексія' },
       light: { name: 'Легкий', principles: 2, color: 'bg-blue-100 text-blue-700', description: '2 принципи + вечірня рефлексія' },
-      custom: { name: 'Власний', principles: principlesCount, color: 'bg-purple-100 text-purple-700', description: `${principlesCount} принципи + власний розклад` },
+      custom: { name: 'Власний', principles: customSchedule.filter(s => s.type === 'principle' && s.enabled).length, color: 'bg-purple-100 text-purple-700', description: `${customSchedule.filter(s => s.type === 'principle' && s.enabled).length} принципи + власний розклад` },
     };
     
     return modes[reminderMode] || modes.balanced;
@@ -222,8 +221,6 @@ export default function SettingsPage() {
                   <CustomScheduleEditor
                     schedule={customSchedule}
                     onChange={setCustomSchedule}
-                    principlesCount={principlesCount}
-                    onPrinciplesCountChange={setPrinciplesCount}
                   />
                 )}
                 
@@ -236,7 +233,6 @@ export default function SettingsPage() {
                       // Восстанавливаем исходные настройки
                       if (reminderSettings) {
                         setReminderMode(reminderSettings.reminderMode || 'balanced');
-                        setPrinciplesCount(reminderSettings.dailyPrinciplesCount || 2);
                         if (reminderSettings.schedule) {
                           setCustomSchedule(reminderSettings.schedule);
                         }

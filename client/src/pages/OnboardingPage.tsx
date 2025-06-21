@@ -12,7 +12,7 @@ export default function OnboardingPage() {
   const [step, setStep] = useState(1);
   const [reminderMode, setReminderMode] = useState('balanced');
   const [customSchedule, setCustomSchedule] = useState<ScheduleItem[]>([]);
-  const [principlesCount, setPrinciplesCount] = useState(2);
+
   const { toast } = useToast();
 
   const setupRemindersMutation = useMutation({
@@ -37,14 +37,13 @@ export default function OnboardingPage() {
   const handleFinishSetup = () => {
     setupRemindersMutation.mutate({
       reminderMode,
-      dailyPrinciplesCount: reminderMode === 'custom' ? principlesCount : undefined,
       customSchedule: reminderMode === 'custom' ? customSchedule : undefined,
     });
   };
 
   const canProceedToCustom = reminderMode === 'custom';
   const canFinishCustom = reminderMode === 'custom' && 
-    customSchedule.filter(s => s.type === 'principle' && s.enabled).length >= principlesCount;
+    customSchedule.filter(s => s.type === 'principle' && s.enabled).length >= 2;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 flex items-center justify-center p-4">
@@ -109,8 +108,6 @@ export default function OnboardingPage() {
                 <CustomScheduleEditor
                   schedule={customSchedule}
                   onChange={setCustomSchedule}
-                  principlesCount={principlesCount}
-                  onPrinciplesCountChange={setPrinciplesCount}
                 />
                 
                 <div className="flex justify-between pt-6">
@@ -135,7 +132,7 @@ export default function OnboardingPage() {
                 
                 {!canFinishCustom && (
                   <div className="bg-yellow-50 p-3 rounded-lg text-sm text-yellow-800 text-center">
-                    Додайте принаймні {principlesCount} нагадування для принципів
+                    Додайте принаймні 2 нагадування для принципів
                   </div>
                 )}
               </div>
