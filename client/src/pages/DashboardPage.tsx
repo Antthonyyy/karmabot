@@ -119,8 +119,7 @@ export default function DashboardPage() {
               </Button>
               <Button
                 variant="ghost"
-                onClick={() => setActiveTab("settings")}
-                className={activeTab === "settings" ? "text-blue-600" : ""}
+                onClick={() => setLocation("/settings")}
               >
                 <Settings className="w-4 h-4 mr-2" />
                 Налаштування
@@ -197,7 +196,7 @@ export default function DashboardPage() {
                 variant="ghost"
                 className="w-full justify-start"
                 onClick={() => {
-                  setActiveTab("settings");
+                  setLocation("/settings");
                   setMobileMenuOpen(false);
                 }}
               >

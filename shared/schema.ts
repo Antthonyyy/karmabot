@@ -16,6 +16,10 @@ export const users = pgTable("users", {
   customTimes: jsonb("custom_times"),
   language: varchar("language").default("uk"),
   isActive: boolean("is_active").default(true),
+  morningReminderTime: text("morning_reminder_time").default("09:00"),
+  eveningReminderTime: text("evening_reminder_time").default("21:00"),
+  remindersEnabled: boolean("reminders_enabled").default(true),
+  timezone: text("timezone").default("Europe/Kiev"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

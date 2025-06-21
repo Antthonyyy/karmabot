@@ -10,6 +10,10 @@ export interface User {
   telegramConnected: boolean;
   telegramId?: string;
   timezoneOffset?: number;
+  morningReminderTime?: string;
+  eveningReminderTime?: string;
+  remindersEnabled?: boolean;
+  timezone?: string;
   stats?: UserStats;
 }
 

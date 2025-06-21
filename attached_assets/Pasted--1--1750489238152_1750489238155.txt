@@ -1,0 +1,273 @@
+# Задача: Добавить настройку времени напоминаний
+
+## Что нужно сделать:
+
+### 1. Обновить схему пользователя в базе данных:
+В файле `/shared/schema.ts` добавь к модели User:
+```typescript
+// Время напоминаний (в формате HH:MM)
+morningReminderTime: text('morning_reminder_time').default('09:00'),
+eveningReminderTime: text('evening_reminder_time').default('21:00'),
+// Включены ли напоминания
+remindersEnabled: integer('reminders_enabled', { mode: 'boolean' }).default(true),
+// Часовой пояс пользователя
+timezone: text('timezone').default('Europe/Kiev'),
+```
+
+### 2. Создать страницу настроек `/src/pages/SettingsPage.tsx`:
+```typescript
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { ArrowLeft, Clock, Bell, Save } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { useUser } from "@/hooks/use-user";
+import { apiRequest } from "@/lib/queryClient";
+
+export default function SettingsPage() {
+  const navigate = useNavigate();
+  const { user, refetch } = useUser();
+  const { toast } = useToast();
+  
+  const [remindersEnabled, setRemindersEnabled] = useState(true);
+  const [morningTime, setMorningTime] = useState("09:00");
+  const [eveningTime, setEveningTime] = useState("21:00");
+  const [isSaving, setIsSaving] = useState(false);
+  
+  useEffect(() => {
+    if (user) {
+      setRemindersEnabled(user.remindersEnabled ?? true);
+      setMorningTime(user.morningReminderTime || "09:00");
+      setEveningTime(user.eveningReminderTime || "21:00");
+    }
+  }, [user]);
+  
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+      await apiRequest("PUT", "/api/user/settings", {
+        remindersEnabled,
+        morningReminderTime: morningTime,
+        eveningReminderTime: eveningTime,
+      });
+      
+      await refetch();
+      
+      toast({
+        title: "Налаштування збережено",
+        description: "Час нагадувань оновлено успішно",
+      });
+    } catch (error) {
+      toast({
+        title: "Помилка",
+        description: "Не вдалося зберегти налаштування",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+  
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+      <div className="max-w-2xl mx-auto p-4">
+        <Button
+          variant="ghost"
+          onClick={() => navigate("/dashboard")}
+          className="mb-6"
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Назад
+        </Button>
+        
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Bell className="h-6 w-6" />
+              Налаштування нагадувань
+            </CardTitle>
+            <CardDescription>
+              Налаштуйте час отримання нагадувань про кармічні принципи
+            </CardDescription>
+          </CardHeader>
+          
+          <CardContent className="space-y-6">
+            {/* Включення/виключення нагадувань */}
+            <div className="flex items-center justify-between">
+              <Label htmlFor="reminders-enabled" className="flex items-center gap-2">
+                <Bell className="h-4 w-4" />
+                Отримувати нагадування
+              </Label>
+              <Switch
+                id="reminders-enabled"
+                checked={remindersEnabled}
+                onCheckedChange={setRemindersEnabled}
+              />
+            </div>
+            
+            {/* Час ранкового нагадування */}
+            <div className="space-y-2">
+              <Label htmlFor="morning-time" className="flex items-center gap-2">
+                <Clock className="h-4 w-4" />
+                Ранкове нагадування
+              </Label>
+              <Input
+                id="morning-time"
+                type="time"
+                value={morningTime}
+                onChange={(e) => setMorningTime(e.target.value)}
+                disabled={!remindersEnabled}
+                className="max-w-xs"
+              />
+              <p className="text-sm text-muted-foreground">
+                Отримайте принцип для роздумів на початку дня
+              </p>
+            </div>
+            
+            {/* Час вечірнього нагадування */}
+            <div className="space-y-2">
+              <Label htmlFor="evening-time" className="flex items-center gap-2">
+                <Clock className="h-4 w-4" />
+                Вечірнє нагадування
+              </Label>
+              <Input
+                id="evening-time"
+                type="time"
+                value={eveningTime}
+                onChange={(e) => setEveningTime(e.target.value)}
+                disabled={!remindersEnabled}
+                className="max-w-xs"
+              />
+              <p className="text-sm text-muted-foreground">
+                Підведіть підсумки дня та оцініть виконання принципу
+              </p>
+            </div>
+            
+            {/* Інформація про часовий пояс */}
+            <div className="p-4 bg-blue-50 rounded-lg">
+              <p className="text-sm text-blue-800">
+                <strong>Часовий пояс:</strong> Київський час (UTC+2)
+              </p>
+              <p className="text-sm text-blue-600 mt-1">
+                Нагадування будуть приходити за київським часом
+              </p>
+            </div>
+            
+            {/* Кнопка збереження */}
+            <Button
+              onClick={handleSave}
+              disabled={isSaving}
+              className="w-full"
+            >
+              {isSaving ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                  Збереження...
+                </>
+              ) : (
+                <>
+                  <Save className="mr-2 h-4 w-4" />
+                  Зберегти налаштування
+                </>
+              )}
+            </Button>
+          </CardContent>
+        </Card>
+        
+        {/* Попередження */}
+        <Card className="mt-4">
+          <CardContent className="pt-6">
+            <p className="text-sm text-muted-foreground">
+              <strong>Важливо:</strong> Для отримання нагадувань переконайтеся, що ви запустили бота @karmics_diary_bot в Telegram та не заблокували його.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
+```
+
+### 3. Добавить роут для страницы настроек в `/src/App.tsx`:
+В секцию с роутами добавь:
+```typescript
+<Route path="/settings" element={<SettingsPage />} />
+```
+
+Не забудь импортировать:
+```typescript
+import SettingsPage from "@/pages/SettingsPage";
+```
+
+### 4. Добавить ссылку на настройки в DashboardPage:
+В компонент DashboardPage добавь кнопку настроек в правом верхнем углу:
+```typescript
+import { Settings } from "lucide-react";
+
+// В JSX добавь кнопку (например, рядом с приветствием):
+<Button
+  variant="outline"
+  size="icon"
+  onClick={() => navigate("/settings")}
+  className="ml-auto"
+>
+  <Settings className="h-4 w-4" />
+</Button>
+```
+
+### 5. Создать API endpoint для сохранения настроек:
+В серверный файл добавь:
+```javascript
+app.put('/api/user/settings', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { remindersEnabled, morningReminderTime, eveningReminderTime } = req.body;
+    
+    // Валидация времени
+    const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
+    if (!timeRegex.test(morningReminderTime) || !timeRegex.test(eveningReminderTime)) {
+      return res.status(400).json({ error: 'Invalid time format' });
+    }
+    
+    // Обновляем настройки пользователя
+    await db.update(users)
+      .set({
+        remindersEnabled,
+        morningReminderTime,
+        eveningReminderTime,
+      })
+      .where(eq(users.id, userId));
+    
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error updating settings:', error);
+    res.status(500).json({ error: 'Failed to update settings' });
+  }
+});
+```
+
+### 6. Обновить endpoint `/api/user/me` чтобы возвращал новые поля:
+Убедись, что endpoint возвращает:
+- remindersEnabled
+- morningReminderTime
+- eveningReminderTime
+- timezone
+
+### 7. Добавить компонент Switch из shadcn/ui:
+Если его еще нет, установи:
+```bash
+npx shadcn-ui@latest add switch
+```
+
+## Результат:
+После выполнения пользователи смогут:
+1. Перейти в настройки с Dashboard
+2. Включить/выключить напоминания
+3. Установить время для утренних и вечерних напоминаний
+4. Сохранить настройки
+
+Время сохраняется в базе данных и будет использоваться ботом для отправки напоминаний.
