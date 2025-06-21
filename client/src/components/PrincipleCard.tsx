@@ -32,8 +32,8 @@ export default function PrincipleCard({ principle, isCurrent = false, onOpenDiar
         </CardHeader>
         
         <CardContent>
-          {principle.reflections && principle.practicalSteps && (
-            <div className="grid md:grid-cols-2 gap-6 mb-6">
+          {principle.reflections && (
+            <div className="mb-6">
               <Card>
                 <CardContent className="p-6">
                   <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
@@ -45,23 +45,6 @@ export default function PrincipleCard({ principle, isCurrent = false, onOpenDiar
                       <li key={index} className="flex items-start space-x-2">
                         <div className="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0" />
                         <span>{reflection}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardContent className="p-6">
-                  <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
-                    <Target className="w-5 h-5 text-blue-600 mr-2" />
-                    Практичні кроки
-                  </h4>
-                  <ul className="space-y-2 text-gray-600 text-sm">
-                    {principle.practicalSteps.map((step, index) => (
-                      <li key={index} className="flex items-start space-x-2">
-                        <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0" />
-                        <span>{step}</span>
                       </li>
                     ))}
                   </ul>
