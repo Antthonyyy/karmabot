@@ -43,8 +43,20 @@ export const journalEntries = pgTable("journal_entries", {
   content: text("content").notNull(),
   mood: varchar("mood"),
   energyLevel: integer("energy_level"),
+  isCompleted: boolean("is_completed").default(false),
+  isSkipped: boolean("is_skipped").default(false),
+  source: varchar("source", { length: 50 }).default("web"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const userSessions = pgTable("user_sessions", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id),
+  telegramId: varchar("telegram_id", { length: 255 }).unique(),
+  currentPrincipleContext: integer("current_principle_context"),
+  expiresAt: timestamp("expires_at"),
+  createdAt: timestamp("created_at").defaultNow(),
 });
 
 export const userStats = pgTable("user_stats", {
@@ -209,6 +221,13 @@ export const aiInsightsRelations = relations(aiInsights, ({ one }) => ({
   }),
 }));
 
+export const userSessionsRelations = relations(userSessions, ({ one }) => ({
+  user: one(users, {
+    fields: [userSessions.userId],
+    references: [users.id],
+  }),
+}));
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -243,3 +262,5 @@ export type PrincipleHistory = typeof principleHistory.$inferSelect;
 export type InsertPrincipleHistory = typeof principleHistory.$inferInsert;
 export type AIInsight = typeof aiInsights.$inferSelect;
 export type InsertAIInsight = typeof aiInsights.$inferInsert;
+export type UserSession = typeof userSessions.$inferSelect;
+export type InsertUserSession = typeof userSessions.$inferInsert;

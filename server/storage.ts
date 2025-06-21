@@ -9,6 +9,7 @@ import {
   userPrinciples,
   principleHistory,
   aiInsights,
+  userSessions,
   type User, 
   type InsertUser,
   type Principle,
@@ -24,7 +25,9 @@ import {
   type PrincipleHistory,
   type InsertPrincipleHistory,
   type AIInsight,
-  type InsertAIInsight
+  type InsertAIInsight,
+  type UserSession,
+  type InsertUserSession
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, sql, and, gte, lte, count } from "drizzle-orm";

@@ -182,9 +182,163 @@ ${principle.description}
     try {
       if (update.message) {
         await this.handleMessage(update.message);
+      } else if (update.callback_query) {
+        await this.handleCallbackQuery(update.callback_query);
       }
     } catch (error) {
       console.error('Error processing bot update:', error);
+    }
+  }
+
+  private async handleCallbackQuery(callbackQuery: any): Promise<void> {
+    const chatId = callbackQuery.message.chat.id.toString();
+    const callbackData = callbackQuery.data;
+    const userId = callbackQuery.from.id;
+    
+    // Get user by telegram ID
+    const user = await storage.getUserByTelegramId(userId.toString());
+    if (!user) {
+      await this.answerCallbackQuery(callbackQuery.id, 'Спочатку зареєструйтесь у веб-додатку');
+      return;
+    }
+
+    // Parse callback data
+    const [action, principleId, extra] = callbackData.split('_');
+    const principleIdNum = parseInt(principleId);
+
+    switch (action) {
+      case 'done':
+        await this.handlePrincipleDone(callbackQuery, user.id, principleIdNum);
+        break;
+      case 'journal':
+        await this.handleJournalPrompt(callbackQuery, user.id, principleIdNum);
+        break;
+      case 'skip':
+        await this.handleSkipPrinciple(callbackQuery, user.id, principleIdNum);
+        break;
+      case 'ai':
+        await this.handleAIInsight(callbackQuery, user.id, principleIdNum, extra === 'refresh');
+        break;
+    }
+  }
+
+  private async handlePrincipleDone(callbackQuery: any, userId: number, principleId: number): Promise<void> {
+    try {
+      // Create automatic completion entry
+      await storage.createJournalEntry({
+        userId,
+        principleId,
+        content: '✅ Принцип виконано',
+        mood: '😊',
+        energyLevel: 7,
+        isCompleted: true,
+        source: 'telegram_quick'
+      });
+
+      // Update user stats
+      await storage.updateUserStats(userId);
+
+      // Update message
+      await this.editMessage(
+        callbackQuery.message.chat.id,
+        callbackQuery.message.message_id,
+        callbackQuery.message.text + '\n\n✅ **Відмічено як виконано!**',
+        {
+          parse_mode: 'Markdown',
+          reply_markup: {
+            inline_keyboard: [[
+              { text: '📝 Додати коментар', callback_data: `journal_${principleId}` }
+            ]]
+          }
+        }
+      );
+
+      await this.answerCallbackQuery(callbackQuery.id, '✅ Принцип відмічено як виконано!');
+    } catch (error) {
+      console.error('Error handling principle done:', error);
+      await this.answerCallbackQuery(callbackQuery.id, '❌ Помилка. Спробуйте ще раз');
+    }
+  }
+
+  private async handleJournalPrompt(callbackQuery: any, userId: number, principleId: number): Promise<void> {
+    try {
+      const principle = await storage.getPrincipleByNumber(principleId);
+      
+      // Create or update user session with principle context
+      await this.createUserSession(userId, callbackQuery.from.id, principleId);
+
+      await this.answerCallbackQuery(callbackQuery.id);
+      
+      // Send new message asking for input
+      await this.sendMessage(
+        callbackQuery.message.chat.id,
+        `📝 Поділіться своїми думками про **${principle?.title}**\n\nПросто напишіть текст, і я збережу його у вашому дневнику.`,
+        {
+          parse_mode: 'Markdown',
+          reply_markup: {
+            force_reply: true,
+            input_field_placeholder: 'Ваші роздуми про принцип...'
+          }
+        }
+      );
+    } catch (error) {
+      console.error('Error handling journal prompt:', error);
+      await this.answerCallbackQuery(callbackQuery.id, '❌ Помилка. Спробуйте ще раз');
+    }
+  }
+
+  private async handleSkipPrinciple(callbackQuery: any, userId: number, principleId: number): Promise<void> {
+    try {
+      // Record skip for statistics
+      await storage.createJournalEntry({
+        userId,
+        principleId,
+        content: '⏭️ Принцип пропущено',
+        mood: '😐',
+        energyLevel: 5,
+        isCompleted: false,
+        isSkipped: true,
+        source: 'telegram_quick'
+      });
+
+      await this.editMessage(
+        callbackQuery.message.chat.id,
+        callbackQuery.message.message_id,
+        callbackQuery.message.text + '\n\n⏭️ **Принцип пропущено**',
+        { parse_mode: 'Markdown' }
+      );
+
+      await this.answerCallbackQuery(callbackQuery.id, 'Принцип пропущено. Нічого страшного, спробуйте наступного разу!');
+    } catch (error) {
+      console.error('Error handling skip principle:', error);
+      await this.answerCallbackQuery(callbackQuery.id, '❌ Помилка. Спробуйте ще раз');
+    }
+  }
+
+  private async handleAIInsight(callbackQuery: any, userId: number, principleId: number, regenerate: boolean = false): Promise<void> {
+    await this.answerCallbackQuery(callbackQuery.id, 'Генерую підказку...');
+    
+    try {
+      const { getDailyInsight } = await import('./aiService');
+      const insight = await getDailyInsight(principleId, userId, regenerate);
+      
+      await this.sendMessage(
+        callbackQuery.message.chat.id,
+        `💡 **AI-підказка для принципу ${principleId}:**\n\n_"${insight}"_`,
+        {
+          parse_mode: 'Markdown',
+          reply_to_message_id: callbackQuery.message.message_id,
+          reply_markup: {
+            inline_keyboard: [[
+              { text: '📝 Записати роздуми', callback_data: `journal_${principleId}` },
+              { text: '🔄 Інша підказка', callback_data: `ai_${principleId}_refresh` }
+            ]]
+          }
+        }
+      );
+    } catch (error) {
+      console.error('Error handling AI insight:', error);
+      await this.sendMessage(callbackQuery.message.chat.id, '❌ Не вдалося згенерувати підказку. Спробуйте пізніше.');
     }
   }
 
