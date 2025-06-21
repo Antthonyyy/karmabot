@@ -285,19 +285,7 @@ export default function DashboardPage() {
                 <TodaysPlan />
               </div>
 
-              {/* Current Principle */}
-              {currentPrinciple && (
-                <div className="mb-12">
-                  <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">
-                    Поточний принцип у фокусі
-                  </h2>
-                  <PrincipleCard 
-                    principle={currentPrinciple} 
-                    isCurrent={true}
-                    onOpenDiary={() => setShowDiaryForm(true)}
-                  />
-                </div>
-              )}
+              
             </div>
           </TabsContent>
 
