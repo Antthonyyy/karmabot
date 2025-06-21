@@ -344,8 +344,8 @@ export class DatabaseStorage implements IStorage {
       .select({
         principleId: journalEntries.principleId,
         count: count(journalEntries.id),
-        avgMood: avg(journalEntries.mood),
-        avgEnergy: avg(journalEntries.energyLevel),
+        avgMood: sql<number>`AVG(${journalEntries.energyLevel})`,
+        avgEnergy: sql<number>`AVG(${journalEntries.energyLevel})`,
         lastEntry: sql<string>`MAX(${journalEntries.createdAt})`
       })
       .from(journalEntries)

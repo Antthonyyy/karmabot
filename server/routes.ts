@@ -318,8 +318,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const entry = await storage.createJournalEntry(validatedData);
       
-      // Update user stats
-      await storage.updateUserStats(user.id);
+      // Try to update user stats, but don't fail the request if it errors
+      try {
+        await storage.updateUserStats(user.id);
+      } catch (statsError) {
+        console.error('Error updating user stats (non-critical):', statsError);
+      }
 
       res.status(201).json(entry);
     } catch (error) {
