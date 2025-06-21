@@ -1,0 +1,378 @@
+# Оптимизированная реализация системы Антидотов и AI-подсказок
+
+## Часть 1: Система "Антидотов" (упрощенная версия)
+
+### БЕЗ изменений в базе данных!
+Антидоты вычисляются на лету из существующего расписания.
+
+### Оптимизированный reminder service:
+
+```typescript
+// server/services/reminderService.ts
+
+import { addMinutes, subtractMinutes } from '../utils/time';
+
+// Вспомогательная функция для расчета времени антидотов
+function calculateAntidoteTimes(specificTimes: string[], currentTime: string) {
+  const sortedTimes = specificTimes.sort();
+  const currentIndex = sortedTimes.indexOf(currentTime);
+  
+  return {
+    isFirstOfDay: currentIndex === 0,
+    isLastOfDay: currentIndex === sortedTimes.length - 1,
+    beforeTime: subtractMinutes(currentTime, 30),
+    afterTime: addMinutes(currentTime, 30)
+  };
+}
+
+// Оптимизированная функция обработки напоминаний
+export async function processScheduledReminders() {
+  const now = new Date();
+  const currentDay = now.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
+  const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+
+  // 1. Обработка ОСНОВНЫХ напоминаний на текущее время
+  const dueMainReminders = await db
+    .select({
+      userId: reminderSettings.userId,
+      specificTimes: reminderSettings.specificTimes,
+      user: users
+    })
+    .from(reminderSettings)
+    .innerJoin(users, eq(users.id, reminderSettings.userId))
+    .where(
+      and(
+        eq(reminderSettings.isEnabled, true),
+        sql`${currentTime} = ANY(${reminderSettings.specificTimes})`,
+        sql`${currentDay} = ANY(${reminderSettings.weekdays})`
+      )
+    );
+
+  for (const reminder of dueMainReminders) {
+    // Отправляем основное напоминание
+    await sendPrincipleReminder(reminder.user, reminder.user.currentPrinciple || 1);
+    
+    // Обновляем принцип на следующий
+    const nextPrinciple = (reminder.user.currentPrinciple || 1) === 10 ? 1 : (reminder.user.currentPrinciple || 1) + 1;
+    await db.update(users)
+      .set({ currentPrinciple: nextPrinciple })
+      .where(eq(users.id, reminder.userId));
+    
+    // Если это последнее напоминание дня, планируем "антидот после"
+    const antidoteInfo = calculateAntidoteTimes(reminder.specificTimes, currentTime);
+    if (antidoteInfo.isLastOfDay) {
+      // Запланировать отправку через 30 минут
+      setTimeout(() => {
+        sendAntidoteReminder(reminder.userId, 'after');
+      }, 30 * 60 * 1000);
+    }
+  }
+
+  // 2. Обработка "Антидотов ДО" (за 30 минут до основного)
+  const antidoteBeforeTime = addMinutes(currentTime, 30);
+  
+  const dueAntidotesBefore = await db
+    .select({
+      userId: reminderSettings.userId,
+      specificTimes: reminderSettings.specificTimes
+    })
+    .from(reminderSettings)
+    .where(
+      and(
+        eq(reminderSettings.isEnabled, true),
+        sql`${antidoteBeforeTime} = ANY(${reminderSettings.specificTimes})`,
+        sql`${currentDay} = ANY(${reminderSettings.weekdays})`
+      )
+    );
+
+  for (const reminder of dueAntidotesBefore) {
+    const antidoteInfo = calculateAntidoteTimes(reminder.specificTimes, antidoteBeforeTime);
+    // Отправляем антидот только если это НЕ первое напоминание дня
+    if (!antidoteInfo.isFirstOfDay) {
+      await sendAntidoteReminder(reminder.userId, 'before');
+    }
+  }
+
+  // 3. Обработка "Антидотов ПОСЛЕ" (через 30 минут после последнего)
+  const antidoteAfterTime = subtractMinutes(currentTime, 30);
+  
+  const dueAntidotesAfter = await db
+    .select({
+      userId: reminderSettings.userId,
+      specificTimes: reminderSettings.specificTimes
+    })
+    .from(reminderSettings)
+    .where(
+      and(
+        eq(reminderSettings.isEnabled, true),
+        sql`${antidoteAfterTime} = ANY(${reminderSettings.specificTimes})`,
+        sql`${currentDay} = ANY(${reminderSettings.weekdays})`
+      )
+    );
+
+  for (const reminder of dueAntidotesAfter) {
+    const antidoteInfo = calculateAntidoteTimes(reminder.specificTimes, antidoteAfterTime);
+    // Отправляем только если это было последнее напоминание дня
+    if (antidoteInfo.isLastOfDay) {
+      await sendAntidoteReminder(reminder.userId, 'after');
+    }
+  }
+}
+
+// Улучшенная функция отправки антидотов с разными текстами
+async function sendAntidoteReminder(userId: number, type: 'before' | 'after') {
+  const user = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+  if (!user[0]) return;
+
+  const messages = {
+    before: "⏰ Через 30 хвилин — час для нового принципу. Підготуйтеся до усвідомленої практики 🧘",
+    after: "✨ Час підвести підсумки дня. Як пройшла практика сьогоднішніх принципів? 📝"
+  };
+
+  const message = messages[type];
+
+  // Отправка через Telegram
+  if (user[0].telegramId) {
+    await bot.telegram.sendMessage(user[0].telegramId, message, {
+      reply_markup: {
+        inline_keyboard: [[
+          { text: "Зробити запис 📝", callback_data: 'create_entry' }
+        ]]
+      }
+    });
+  }
+
+  // Push уведомления (если включены)
+  if (user[0].pushEnabled) {
+    await sendPushNotification(userId, {
+      title: type === 'before' ? 'Антидот: Підготовка' : 'Антидот: Підсумки',
+      body: message,
+      data: { type: `antidote_${type}` }
+    });
+  }
+}
+```
+
+## Часть 2: AI-подсказки (оптимизированная версия)
+
+### База данных (минимальные изменения):
+
+```sql
+-- Только одна таблица для AI подсказок
+CREATE TABLE ai_insights (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER REFERENCES users(id),
+  principle_id INTEGER,
+  insight_text TEXT,
+  created_date DATE DEFAULT CURRENT_DATE,
+  interactions JSONB DEFAULT '{}', -- для отслеживания взаимодействий
+  UNIQUE(user_id, principle_id, created_date) -- одна подсказка на принцип в день
+);
+
+-- Индекс для быстрого поиска
+CREATE INDEX idx_ai_insights_daily ON ai_insights(user_id, principle_id, created_date);
+```
+
+### Оптимизированный AI service:
+
+```typescript
+// server/services/aiService.ts
+
+import OpenAI from 'openai';
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
+
+export async function generateDailyInsight(
+  principleId: number, 
+  userId: number,
+  regenerate: boolean = false
+): Promise<string> {
+  // Проверяем существующую подсказку на сегодня
+  if (!regenerate) {
+    const existing = await db.select()
+      .from(aiInsights)
+      .where(
+        and(
+          eq(aiInsights.userId, userId),
+          eq(aiInsights.principleId, principleId),
+          eq(aiInsights.createdDate, sql`CURRENT_DATE`)
+        )
+      )
+      .limit(1);
+    
+    if (existing[0]) {
+      return existing[0].insightText;
+    }
+  }
+  
+  const principle = PRINCIPLES.find(p => p.id === principleId);
+  if (!principle) throw new Error('Principle not found');
+  
+  // Получить последние 3 записи для контекста
+  const recentEntries = await db.select({
+    content: journalEntries.content,
+    createdAt: journalEntries.createdAt
+  })
+    .from(journalEntries)
+    .where(
+      and(
+        eq(journalEntries.userId, userId),
+        eq(journalEntries.principleId, principleId)
+      )
+    )
+    .orderBy(desc(journalEntries.createdAt))
+    .limit(3);
+  
+  const prompt = `
+    Ти - мудрий наставник. Створи ОДНЕ коротке, практичне питання або пораду для роздумів.
+    
+    Принцип дня: "${principle.title}" - ${principle.description}
+    
+    ${recentEntries.length > 0 ? `Контекст (попередні записи користувача):
+    ${recentEntries.map(e => `- ${e.content.substring(0, 80)}...`).join('\n')}` : ''}
+    
+    Формат: Одне речення. Конкретно, практично, мотивуюче.
+    Починай з: "Сьогодні спробуй..." АБО "Зверни увагу на..." АБО питання "Що б сталося, якби..."
+  `;
+  
+  try {
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o", // Используем более быструю модель
+      messages: [{ role: "system", content: prompt }],
+      temperature: 0.8,
+      max_tokens: 100,
+    });
+    
+    const insight = completion.choices[0].message.content?.trim() || getFallbackInsight(principleId);
+    
+    // Сохраняем или обновляем
+    await db.insert(aiInsights)
+      .values({
+        userId,
+        principleId,
+        insightText: insight,
+        createdDate: sql`CURRENT_DATE`
+      })
+      .onConflictDoUpdate({
+        target: [aiInsights.userId, aiInsights.principleId, aiInsights.createdDate],
+        set: { 
+          insightText: insight,
+          interactions: sql`ai_insights.interactions || '{"regenerated": true}'::jsonb`
+        }
+      });
+    
+    return insight;
+  } catch (error) {
+    console.error('Error generating AI insight:', error);
+    return getFallbackInsight(principleId);
+  }
+}
+
+// API endpoint с использованием React Query
+app.get('/api/insights/daily/:principleId', authenticate, async (req, res) => {
+  try {
+    const { principleId } = req.params;
+    const { regenerate } = req.query;
+    
+    const insight = await generateDailyInsight(
+      parseInt(principleId), 
+      req.userId,
+      regenerate === 'true'
+    );
+    
+    res.json({ insight });
+  } catch (error) {
+    console.error('Error:', error);
+    res.status(500).json({ 
+      error: 'Failed to generate insight',
+      insight: getFallbackInsight(parseInt(req.params.principleId))
+    });
+  }
+});
+```
+
+### Frontend компонент с React Query:
+
+```tsx
+// components/AIDailyInsight.tsx
+
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Sparkles, RefreshCw, Bookmark } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+
+async function fetchDailyInsight(principleId: number, regenerate = false) {
+  const response = await fetch(
+    `/api/insights/daily/${principleId}${regenerate ? '?regenerate=true' : ''}`
+  );
+  if (!response.ok) throw new Error('Failed to fetch insight');
+  return response.json();
+}
+
+export function AIDailyInsight({ principleId }: { principleId: number }) {
+  const queryClient = useQueryClient();
+  
+  // Использование React Query для кеширования
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['daily-insight', principleId],
+    queryFn: () => fetchDailyInsight(principleId),
+    staleTime: 1000 * 60 * 60 * 24, // Кешировать на 24 часа
+    retry: 1,
+  });
+  
+  // Мутация для обновления подсказки
+  const regenerateMutation = useMutation({
+    mutationFn: () => fetchDailyInsight(principleId, true),
+    onSuccess: (newData) => {
+      queryClient.setQueryData(['daily-insight', principleId], newData);
+    },
+  });
+  
+  const insight = data?.insight || (error ? getFallbackInsight(principleId) : '');
+  
+  return (
+    <Card className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-950 dark:to-blue-950 border-purple-200 dark:border-purple-800">
+      <CardHeader className="flex flex-row items-center justify-between pb-3">
+        <CardTitle className="flex items-center gap-2 text-lg">
+          <Sparkles className="h-5 w-5 text-purple-600 animate-pulse" />
+          AI-підказка дня
+        </CardTitle>
+        <div className="flex gap-2">
+          <Button 
+            variant="ghost" 
+            size="icon"
+            onClick={() => regenerateMutation.mutate()}
+            disabled={regenerateMutation.isPending}
+            title="Оновити підказку"
+          >
+            <RefreshCw className={`h-4 w-4 ${regenerateMutation.isPending ? 'animate-spin' : ''}`} />
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent>
+        {isLoading ? (
+          <div className="space-y-2">
+            <div className="animate-pulse h-4 bg-purple-200 dark:bg-purple-700 rounded w-3/4" />
+            <div className="animate-pulse h-4 bg-purple-200 dark:bg-purple-700 rounded w-1/2" />
+          </div>
+        ) : (
+          <p className="text-base italic text-gray-700 dark:text-gray-300 leading-relaxed">
+            "{insight}"
+          </p>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+```
+
+## Ключевые улучшения:
+
+1. **Антидоты без новых таблиц** - вычисляются на лету
+2. **Оптимизированные запросы** - выбираем только нужные записи
+3. **GPT-4o** вместо GPT-4 - быстрее и дешевле
+4. **React Query** - автоматическое кеширование и управление состоянием
+5. **Разные тексты антидотов** - более осмысленные сообщения
+6. **Умное сохранение AI-подсказок** - только одна на день с возможностью обновления

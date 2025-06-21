@@ -532,6 +532,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Trigger manual reminder check (for testing)
+  // AI Insights endpoints
+  app.get('/api/insights/daily/:principleId', authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const user = req.user!;
+      const principleId = parseInt(req.params.principleId);
+      const regenerate = req.query.regenerate === 'true';
+      
+      const { getDailyInsight } = await import('./services/aiService');
+      const insight = await getDailyInsight(principleId, user.id, regenerate);
+      
+      res.json({ insight });
+    } catch (error) {
+      console.error('Error fetching daily insight:', error);
+      res.status(500).json({ 
+        error: 'Failed to generate insight',
+        insight: 'Сьогодні спробуй застосувати цей принцип у повсякденних справах.'
+      });
+    }
+  });
+
   app.post('/api/reminders/trigger', authenticateToken, async (req: AuthRequest, res) => {
     try {
       await reminderService.triggerReminderCheck();

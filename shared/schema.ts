@@ -120,6 +120,15 @@ export const principleHistory = pgTable("principle_history", {
   completed: boolean("completed").default(false),
 });
 
+export const aiInsights = pgTable("ai_insights", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  principleId: integer("principle_id").notNull(),
+  insightText: text("insight_text").notNull(),
+  createdDate: date("created_date").defaultNow(),
+  interactions: jsonb("interactions").default({}),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many, one }) => ({
   journalEntries: many(journalEntries),
@@ -188,6 +197,17 @@ export const principleHistoryRelations = relations(principleHistory, ({ one }) =
   }),
 }));
 
+export const aiInsightsRelations = relations(aiInsights, ({ one }) => ({
+  user: one(users, {
+    fields: [aiInsights.userId],
+    references: [users.id],
+  }),
+  principle: one(principles, {
+    fields: [aiInsights.principleId],
+    references: [principles.id],
+  }),
+}));
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -220,3 +240,5 @@ export type UserPrinciple = typeof userPrinciples.$inferSelect;
 export type InsertUserPrinciple = typeof userPrinciples.$inferInsert;
 export type PrincipleHistory = typeof principleHistory.$inferSelect;
 export type InsertPrincipleHistory = typeof principleHistory.$inferInsert;
+export type AIInsight = typeof aiInsights.$inferSelect;
+export type InsertAIInsight = typeof aiInsights.$inferInsert;

@@ -8,6 +8,7 @@ import {
   reminderSchedules,
   userPrinciples,
   principleHistory,
+  aiInsights,
   type User, 
   type InsertUser,
   type Principle,
@@ -21,7 +22,9 @@ import {
   type UserPrinciple,
   type InsertUserPrinciple,
   type PrincipleHistory,
-  type InsertPrincipleHistory
+  type InsertPrincipleHistory,
+  type AIInsight,
+  type InsertAIInsight
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, sql, and, gte, lte, count } from "drizzle-orm";

@@ -11,6 +11,7 @@ import ProgressChart from "@/components/ProgressChart";
 import SettingsPanel from "@/components/SettingsPanel";
 import TodaysPlan from "@/components/TodaysPlan";
 import NextPrincipleCard from "@/components/NextPrincipleCard";
+import AIDailyInsight from "@/components/AIDailyInsight";
 import { User } from "@/lib/types";
 import { 
   Home, 
@@ -297,7 +298,7 @@ export default function DashboardPage() {
                 <div className="grid md:grid-cols-2 gap-8 mb-12">
                   {/* Current Principle */}
                   {currentPrinciple && (
-                    <div>
+                    <div className="space-y-6">
                       <h2 className="text-xl font-bold text-gray-900 mb-4 text-center">
                         Поточний принцип у фокусі
                       </h2>
@@ -308,6 +309,7 @@ export default function DashboardPage() {
                           // Don't open diary form here - it's handled by TodaysPlan component
                         }}
                       />
+                      <AIDailyInsight principleId={currentPrinciple.id} />
                     </div>
                   )}
                   
