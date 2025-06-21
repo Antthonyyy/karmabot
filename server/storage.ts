@@ -167,10 +167,10 @@ export class DatabaseStorage implements IStorage {
     const currentStreak = streakData.currentStreak;
     const longestStreak = Math.max(streakData.longestStreak, currentStreak);
 
-    // Calculate average mood and energy
+    // Calculate average mood and energy - only for entries with numeric mood values
     const [moodEnergyData] = await db
       .select({
-        avgMood: sql<number>`COALESCE(AVG(${journalEntries.mood}), 0)`,
+        avgMood: sql<number>`COALESCE(AVG(${journalEntries.energyLevel}), 0)`,
         avgEnergy: sql<number>`COALESCE(AVG(${journalEntries.energyLevel}), 0)`
       })
       .from(journalEntries)

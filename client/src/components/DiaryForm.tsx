@@ -72,6 +72,7 @@ export default function DiaryForm({ currentPrinciple, onSuccess }: DiaryFormProp
       content: content.trim(),
       mood: selectedMood || null,
       energyLevel: energyLevel[0],
+      principleId: currentPrinciple?.id || currentPrinciple?.number,
     });
   };
 

@@ -306,10 +306,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/journal/entries', authenticateToken, async (req: AuthRequest, res) => {
     try {
       const user = req.user!;
+      
+      // Use the principleId from request body if provided, otherwise use current principle
+      const principleId = req.body.principleId || user.currentPrinciple;
+      
       const validatedData = insertJournalEntrySchema.parse({
         ...req.body,
         userId: user.id,
-        principleId: user.currentPrinciple
+        principleId: principleId
       });
 
       const entry = await storage.createJournalEntry(validatedData);
@@ -320,6 +324,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json(entry);
     } catch (error) {
       console.error('Error creating journal entry:', error);
+      console.error('Request body:', req.body);
+      console.error('Validation error details:', error);
       res.status(500).json({ message: 'Internal server error' });
     }
   });
