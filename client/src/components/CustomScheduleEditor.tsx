@@ -61,7 +61,7 @@ export default function CustomScheduleEditor({
             onValueChange={(value) => onPrinciplesCountChange(parseInt(value))}
           >
             <SelectTrigger>
-              <SelectValue />
+              <SelectValue placeholder="Оберіть кількість" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="2">2 принципи (мінімум)</SelectItem>
@@ -114,12 +114,12 @@ export default function CustomScheduleEditor({
               
               <Select
                 value={item.type}
-                onValueChange={(value: 'principle' | 'reflection') => 
-                  updateScheduleItem(index, { type: value })
+                onValueChange={(value) => 
+                  updateScheduleItem(index, { type: value as 'principle' | 'reflection' })
                 }
               >
                 <SelectTrigger className="w-40">
-                  <SelectValue />
+                  <SelectValue placeholder="Тип нагадування" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="principle">Новий принцип</SelectItem>

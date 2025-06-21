@@ -104,7 +104,7 @@ export default function ReminderModeSelector({ selectedMode, onModeSelect }: Rem
                     <span className="font-medium">{mode.principlesPerDay} принципи щодня</span>
                   </div>
                   <div className="text-xs text-gray-500">
-                    Нагадування: {mode.schedule.map(s => s.time).join(', ')}
+                    Час: {mode.schedule.map(s => s.time).join(', ')}
                   </div>
                 </div>
               )}
