@@ -32,26 +32,7 @@ export default function PrincipleCard({ principle, isCurrent = false, onOpenDiar
         </CardHeader>
         
         <CardContent>
-          {principle.reflections && (
-            <div className="mb-6">
-              <Card>
-                <CardContent className="p-6">
-                  <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
-                    <Lightbulb className="w-5 h-5 text-green-600 mr-2" />
-                    Сьогоднішні роздуми
-                  </h4>
-                  <ul className="space-y-2 text-gray-600 text-sm">
-                    {principle.reflections.map((reflection, index) => (
-                      <li key={index} className="flex items-start space-x-2">
-                        <div className="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0" />
-                        <span>{reflection}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-              </Card>
-            </div>
-          )}
+          
 
           <div className="flex flex-col sm:flex-row gap-4 items-center justify-center">
             {onOpenDiary && (
