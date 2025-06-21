@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { CheckCircle2, Circle, Clock, Target, Plus, Settings } from "lucide-react";
 import { Link } from "wouter";
 import DiaryForm from "./DiaryForm";
@@ -260,6 +260,9 @@ export default function TodaysPlan({ className }: TodaysPlanProps) {
                 </span>
               )}
             </DialogTitle>
+            <DialogDescription>
+              Запишіть свої думки, відчуття та досвід щодо цього принципу
+            </DialogDescription>
           </DialogHeader>
           <DiaryForm 
             currentPrinciple={selectedPrinciple}

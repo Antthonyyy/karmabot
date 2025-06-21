@@ -170,8 +170,8 @@ export class DatabaseStorage implements IStorage {
     // Calculate average mood and energy
     const [moodEnergyData] = await db
       .select({
-        avgMood: avg(journalEntries.mood),
-        avgEnergy: avg(journalEntries.energyLevel)
+        avgMood: sql<number>`COALESCE(AVG(${journalEntries.mood}), 0)`,
+        avgEnergy: sql<number>`COALESCE(AVG(${journalEntries.energyLevel}), 0)`
       })
       .from(journalEntries)
       .where(eq(journalEntries.userId, userId));

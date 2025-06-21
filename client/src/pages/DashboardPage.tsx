@@ -304,7 +304,9 @@ export default function DashboardPage() {
                       <PrincipleCard 
                         principle={currentPrinciple} 
                         isCurrent={true}
-                        onOpenDiary={() => setShowDiaryForm(true)}
+                        onOpenDiary={() => {
+                          // Don't open diary form here - it's handled by TodaysPlan component
+                        }}
                       />
                     </div>
                   )}
@@ -345,7 +347,9 @@ export default function DashboardPage() {
                       key={principle.id}
                       principle={principle}
                       isCurrent={principle.number === user.currentPrinciple}
-                      onOpenDiary={() => setShowDiaryForm(true)}
+                      onOpenDiary={() => {
+                        // Don't open diary form here - it's handled by TodaysPlan component  
+                      }}
                     />
                   ))}
                 </div>
@@ -418,33 +422,7 @@ export default function DashboardPage() {
         <Plus className="w-6 h-6" />
       </Button>
 
-      {/* Diary Form Modal */}
-      {showDiaryForm && (
-        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-xl font-semibold">Новий запис у щоденнику</h3>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowDiaryForm(false)}
-                >
-                  <X className="w-4 h-4" />
-                </Button>
-              </div>
-              <DiaryForm
-                currentPrinciple={currentPrinciple}
-                onSuccess={() => {
-                  setShowDiaryForm(false);
-                  // Refresh data
-                  window.location.reload();
-                }}
-              />
-            </div>
-          </div>
-        </div>
-      )}
+
     </div>
   );
 }
