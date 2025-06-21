@@ -256,6 +256,30 @@ export default function DashboardPage() {
                 </p>
               </div>
 
+              {/* Instruction Video Section */}
+              <div className="mb-12">
+                <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-2xl p-8 text-center">
+                  <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                    📚 Інструкція користування додатком
+                  </h2>
+                  <p className="text-gray-600 mb-6">
+                    Дізнайтеся, як максимально ефективно використовувати ваш карма-щоденник
+                  </p>
+                  <div className="max-w-4xl mx-auto">
+                    <div className="relative aspect-video bg-black rounded-lg overflow-hidden shadow-lg">
+                      <iframe
+                        src="https://www.youtube.com/embed/Q-uWeyHzkbI"
+                        title="Інструкція користування карма-щоденником"
+                        frameBorder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                        allowFullScreen
+                        className="absolute inset-0 w-full h-full"
+                      ></iframe>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               {/* Today's Plan Section */}
               <div className="mb-12">
                 <TodaysPlan />
