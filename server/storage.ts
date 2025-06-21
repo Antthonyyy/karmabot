@@ -21,7 +21,7 @@ import {
   type InsertUserPrinciple
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, sql } from "drizzle-orm";
+import { eq, desc, sql, and, gte, lte, count } from "drizzle-orm";
 
 export interface IStorage {
   // User methods

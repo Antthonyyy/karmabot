@@ -336,6 +336,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Settings endpoints
+  app.get('/api/user/reminder-settings', authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ message: 'User not authenticated' });
+      }
+
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+
+      const schedule = await storage.getUserReminderSchedules(userId);
+
+      res.json({
+        remindersEnabled: user.remindersEnabled,
+        reminderMode: user.reminderMode,
+        dailyPrinciplesCount: user.dailyPrinciplesCount,
+        schedule: schedule.map(s => ({
+          id: s.id,
+          time: s.time,
+          type: s.type,
+          enabled: s.enabled,
+        })),
+      });
+    } catch (error) {
+      console.error('Error fetching reminder settings:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
   app.put('/api/user/settings', authenticateToken, async (req: AuthRequest, res) => {
     try {
       const user = req.user!;
