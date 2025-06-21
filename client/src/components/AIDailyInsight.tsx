@@ -22,6 +22,10 @@ interface AIDailyInsightProps {
 }
 
 export default function AIDailyInsight({ principleId, className }: AIDailyInsightProps) {
+  // Guard against undefined principleId
+  if (!principleId || isNaN(principleId)) {
+    return null;
+  }
   const queryClient = useQueryClient();
   
   const { data, isLoading, error } = useQuery({

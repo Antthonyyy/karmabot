@@ -552,6 +552,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Complete onboarding endpoint
+  app.patch('/api/user/onboarding/complete', authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const user = req.user!;
+      
+      const updatedUser = await storage.updateUser(user.id, {
+        hasCompletedOnboarding: true
+      });
+      
+      res.json(updatedUser);
+    } catch (error) {
+      console.error('Error completing onboarding:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
   app.post('/api/reminders/trigger', authenticateToken, async (req: AuthRequest, res) => {
     try {
       await reminderService.triggerReminderCheck();

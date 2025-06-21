@@ -14,6 +14,7 @@ export interface User {
   dailyPrinciplesCount?: number;
   timezone?: string;
   remindersEnabled?: boolean;
+  hasCompletedOnboarding?: boolean;
   stats?: UserStats;
 }
 

@@ -21,6 +21,7 @@ export const users = pgTable("users", {
   timezone: text("timezone").default("Europe/Kiev"),
   remindersEnabled: boolean("reminders_enabled").default(true),
   lastReminderSent: timestamp("last_reminder_sent"),
+  hasCompletedOnboarding: boolean("has_completed_onboarding").default(false),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
