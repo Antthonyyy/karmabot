@@ -101,6 +101,22 @@ export default function SettingsPage() {
   const sendTestReminder = () => {
     testReminderMutation.mutate();
   };
+
+  const completeOnboardingMutation = useMutation({
+    mutationFn: () => apiRequest("PATCH", "/api/user/onboarding/complete"),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/user/me"] });
+      setLocation('/dashboard');
+    },
+    onError: () => {
+      // Navigate anyway to not block the user
+      setLocation('/dashboard');
+    }
+  });
+
+  const handleContinue = () => {
+    completeOnboardingMutation.mutate();
+  };
   
   // Отображение текущего режима
   const getModeDisplay = () => {
@@ -277,7 +293,7 @@ export default function SettingsPage() {
                     <p className="text-sm text-green-600">Тепер ви готові до практики кармічних принципів</p>
                   </div>
                   <Button
-                    onClick={() => setLocation('/dashboard')}
+                    onClick={handleContinue}
                     className="bg-green-600 hover:bg-green-700"
                   >
                     Продовжити
