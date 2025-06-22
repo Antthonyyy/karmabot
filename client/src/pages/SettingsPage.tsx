@@ -102,28 +102,26 @@ export default function SettingsPage() {
     testReminderMutation.mutate();
   };
 
-  const completeOnboardingMutation = useMutation({
-    mutationFn: () => apiRequest("PATCH", "/api/user/onboarding/complete"),
-    onSuccess: (data) => {
-      console.log('Onboarding completion successful:', data);
-      queryClient.invalidateQueries({ queryKey: ["/api/user/me"] });
+  const handleContinue = async () => {
+    console.log('Starting onboarding completion...');
+    try {
+      await apiRequest("PATCH", "/api/user/onboarding/complete");
+      console.log('Onboarding completion successful');
       
-      // Wait a bit for the query to update before navigating
-      setTimeout(() => {
-        console.log('Navigating to dashboard...');
-        setLocation('/dashboard');
-      }, 500);
-    },
-    onError: (error) => {
+      // Update user cache immediately
+      queryClient.setQueryData(["/api/user/me"], (oldData: any) => ({
+        ...oldData,
+        hasCompletedOnboarding: true
+      }));
+      
+      // Navigate immediately
+      console.log('Navigating to dashboard...');
+      setLocation('/dashboard');
+    } catch (error) {
       console.error('Onboarding completion failed:', error);
       // Navigate anyway to not block the user
       setLocation('/dashboard');
     }
-  });
-
-  const handleContinue = () => {
-    console.log('Starting onboarding completion...');
-    completeOnboardingMutation.mutate();
   };
   
   // Отображение текущего режима
