@@ -310,6 +310,11 @@ export default function DashboardPage() {
                 </div>
               )}
 
+              {/* AI Advisor Section */}
+              <div className="mb-12">
+                <AIAdvisor />
+              </div>
+
               
             </div>
           </TabsContent>
