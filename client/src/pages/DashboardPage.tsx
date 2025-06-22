@@ -14,6 +14,7 @@ import NextPrincipleCard from "@/components/NextPrincipleCard";
 import AIDailyInsight from "@/components/AIDailyInsight";
 import OnboardingModal from "@/components/OnboardingModal";
 import { useOnboarding } from "@/hooks/useOnboarding";
+import { AIAdvisor } from "@/components/AIAdvisor";
 import { User } from "@/lib/types";
 import { 
   Home, 
