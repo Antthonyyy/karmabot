@@ -1,4 +1,5 @@
 import crypto from "crypto";
+import { getGreeting } from '../telegram-bot.js';
 
 interface TelegramUser {
   id: number;
@@ -92,14 +93,7 @@ ${greeting}
 
 ${principle.description}
 
-💭 Роздуми для практики:
-• Як цей принцип стосується мого життя?
-• Де я можу застосувати його сьогодні?
-• Що змінить практика цього принципу?
-
-📝 Поділіться своїми роздумами в щоденнику або надішліть мені повідомлення.
-
-🌟 Гарної практики!
+💡 В додатку доступні персональні AI-рекомендації на основі ваших записей!
         `;
         break;
 
@@ -318,32 +312,7 @@ ${principle.description}
     }
   }
 
-  private async handleAIInsight(callbackQuery: any, userId: number, principleId: number, regenerate: boolean = false): Promise<void> {
-    await this.answerCallbackQuery(callbackQuery.id, 'Генерую підказку...');
-    
-    try {
-      const { getDailyInsight } = await import('./aiService');
-      const insight = await getDailyInsight(principleId, userId, regenerate);
-      
-      await this.sendMessage(
-        callbackQuery.message.chat.id,
-        `💡 **AI-підказка для принципу ${principleId}:**\n\n_"${insight}"_`,
-        {
-          parse_mode: 'Markdown',
-          reply_to_message_id: callbackQuery.message.message_id,
-          reply_markup: {
-            inline_keyboard: [[
-              { text: '📝 Записати роздуми', callback_data: `journal_${principleId}` },
-              { text: '🔄 Інша підказка', callback_data: `ai_${principleId}_refresh` }
-            ]]
-          }
-        }
-      );
-    } catch (error) {
-      console.error('Error handling AI insight:', error);
-      await this.sendMessage(callbackQuery.message.chat.id, '❌ Не вдалося згенерувати підказку. Спробуйте пізніше.');
-    }
-  }
+
 
   private async handleMessage(message: any): Promise<void> {
     const chatId = message.chat.id.toString();
@@ -418,19 +387,30 @@ ${process.env.FRONTEND_URL || 'http://localhost:5000'}
   }
 
   private async handleStatsCommand(chatId: string, telegramId: number): Promise<void> {
+    const frontendUrl = process.env.FRONTEND_URL || 'https://karmichna-diary.vercel.app';
+    
     const message = `
 📊 <b>Ваша статистика</b>
 
 Для перегляду детальної статистики відкрийте веб-додаток:
-${process.env.FRONTEND_URL || 'http://localhost:5000'}
+${frontendUrl}
 
 📈 Там ви знайдете:
 • Кількість днів поспіль
 • Прогрес по принципах  
 • Графіки активності
+
+💡 Переглянути детальну аналітику та отримати персональні AI-поради можна в додатку!
     `.trim();
 
-    await this.sendMessage(chatId, message);
+    await this.sendMessage(chatId, message, {
+      parse_mode: 'HTML',
+      reply_markup: {
+        inline_keyboard: [[
+          { text: '🌐 Відкрити додаток', url: frontendUrl }
+        ]]
+      }
+    });
   }
 
   private async handleSettingsCommand(chatId: string): Promise<void> {
