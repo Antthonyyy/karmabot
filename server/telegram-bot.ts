@@ -7,6 +7,48 @@ const token = '8034922821:AAEBc1Iw-bv33Wx-VpudozESPJVsX3FCKwA';
 // Create bot instance  
 const bot = new TelegramBot(token, { polling: true });
 
+// Time-based personalized greetings
+function getGreeting(name: string): string {
+  const now = new Date();
+  const hour = now.getHours();
+  
+  const morningGreetings = [
+    `Доброе утро, ${name}! ☀️ Готовы начать день с благодарности?`,
+    `Привет, ${name}! 🌅 Новый день — новые возможности для роста!`,
+    `Утро, ${name}! ✨ Давайте наполним этот день осознанностью`,
+    `Доброе утро, ${name}! 🌻 Время для утренних размышлений`
+  ];
+  
+  const dayGreetings = [
+    `Добрый день, ${name}! 🌞 Как проходит ваша практика?`,
+    `Привет, ${name}! ⭐ Время для дневной рефлексии`,
+    `День добрый, ${name}! 🌈 Продолжаем работу над собой`,
+    `Здравствуйте, ${name}! 💫 Момент для осознанности`
+  ];
+  
+  const eveningGreetings = [
+    `Добрый вечер, ${name}! 🌙 Время подвести итоги дня`,
+    `Вечер, ${name}! 🌟 Как прошел ваш день с принципами?`,
+    `Привет, ${name}! 🌆 Время для вечерних размышлений`,
+    `Добрый вечер, ${name}! ✨ Завершаем день с благодарностью`
+  ];
+  
+  let greetings: string[];
+  
+  if (hour >= 5 && hour < 12) {
+    greetings = morningGreetings;
+  } else if (hour >= 12 && hour < 18) {
+    greetings = dayGreetings;
+  } else if (hour >= 18 && hour < 23) {
+    greetings = eveningGreetings;
+  } else {
+    // Late night/early morning fallback
+    greetings = [`Привет, ${name}! 🌙 Поздний час для размышлений`];
+  }
+  
+  return greetings[Math.floor(Math.random() * greetings.length)];
+}
+
 // Log errors
 bot.on('polling_error', (error) => {
   console.error('Telegram bot polling error:', error);
@@ -66,4 +108,5 @@ bot.onText(/^\/start$/, async (msg) => {
 
 console.log('Telegram bot started successfully');
 
+export { getGreeting };
 export default bot;

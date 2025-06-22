@@ -81,13 +81,14 @@ export class TelegramService {
 
   async sendPrincipleReminder(chatId: string, principle: any, userName: string, reminderType: string = 'principle'): Promise<boolean> {
     let message = '';
+    const greeting = getGreeting(userName);
 
     switch (reminderType) {
       case 'principle':
         message = `
-🪷 Новий принцип для ${userName}!
+${greeting}
 
-**"${principle.title}"**
+🪷 **"${principle.title}"**
 
 ${principle.description}
 
@@ -104,7 +105,9 @@ ${principle.description}
 
       case 'test':
         message = `
-🧪 Тестове нагадування для ${userName}!
+${greeting}
+
+🧪 Тестове нагадування!
 
 🪷 Поточний принцип: "${principle.title}"
 
@@ -118,9 +121,9 @@ ${principle.description}
 
       default:
         message = `
-🪷 Нагадування для ${userName}
+${greeting}
 
-Принцип: "${principle.title}"
+🪷 Принцип: "${principle.title}"
 
 ${principle.description}
 
