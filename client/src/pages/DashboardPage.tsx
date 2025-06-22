@@ -277,39 +277,6 @@ export default function DashboardPage() {
                 <TodaysPlan />
               </div>
 
-              {/* Sequential Practice Cards */}
-              {practiceState && principles && (
-                <div className="grid md:grid-cols-2 gap-8 mb-12">
-                  {/* Current Principle */}
-                  {currentPrinciple && (
-                    <div className="space-y-6">
-                      <h2 className="text-xl font-bold text-gray-900 mb-4 text-center">
-                        Поточний принцип у фокусі
-                      </h2>
-                      <PrincipleCard 
-                        principle={currentPrinciple} 
-                        isCurrent={true}
-                        onOpenDiary={() => {
-                          // Don't open diary form here - it's handled by TodaysPlan component
-                        }}
-                      />
-                      <AIDailyInsight principleId={currentPrinciple.id} />
-                    </div>
-                  )}
-                  
-                  {/* Next Principle */}
-                  <div>
-                    <h2 className="text-xl font-bold text-gray-900 mb-4 text-center">
-                      Готується наступним
-                    </h2>
-                    <NextPrincipleCard 
-                      currentPrinciple={practiceState.currentPrinciple}
-                      principles={principles}
-                    />
-                  </div>
-                </div>
-              )}
-
               {/* AI Advisor Section */}
               <div className="mb-12">
                 <AIAdvisor />
