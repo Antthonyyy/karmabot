@@ -168,7 +168,10 @@ export default function SettingsPage() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setShowModeSelector(!showModeSelector)}
+                  onClick={() => {
+                    setShowModeSelector(!showModeSelector);
+                    setShowContinueButton(false);
+                  }}
                   disabled={!remindersEnabled}
                 >
                   <Settings className="h-4 w-4 mr-1" />
@@ -229,6 +232,7 @@ export default function SettingsPage() {
                     variant="outline"
                     onClick={() => {
                       setShowModeSelector(false);
+                      setShowContinueButton(false);
                       // Восстанавливаем исходные настройки
                       if (reminderSettings) {
                         setReminderMode(reminderSettings.reminderMode || 'balanced');
