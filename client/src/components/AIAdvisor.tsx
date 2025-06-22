@@ -37,9 +37,9 @@ export function AIAdvisor() {
   
   return (
     <Card className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-950 dark:to-blue-950 border-purple-200 dark:border-purple-800">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-lg">
-          <Sparkles className="w-5 h-5 text-purple-600 animate-pulse" />
+      <CardHeader className="pb-3 sm:pb-6">
+        <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+          <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600 animate-pulse" />
           AI-помічник
         </CardTitle>
       </CardHeader>
@@ -47,22 +47,24 @@ export function AIAdvisor() {
         <Button
           onClick={getAdvice}
           disabled={loading}
-          className="flex items-center gap-2 bg-purple-600 text-white hover:bg-purple-700 w-full"
+          className="flex items-center gap-2 bg-purple-600 text-white hover:bg-purple-700 w-full sm:w-auto"
         >
           {loading ? (
-            <RefreshCw className="w-5 h-5 animate-spin" />
+            <RefreshCw className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" />
           ) : (
-            <Sparkles className="w-5 h-5" />
+            <Sparkles className="w-4 h-4 sm:w-5 sm:h-5" />
           )}
-          {loading ? 'AI аналізує...' : 'Отримати персональну пораду'}
+          <span className="text-sm sm:text-base">
+            {loading ? 'AI аналізує...' : 'Отримати пораду'}
+          </span>
         </Button>
         
         {advice && (
-          <div className="p-4 bg-white dark:bg-gray-800 rounded-lg border">
-            <h3 className="font-semibold mb-2 flex items-center gap-2">
+          <div className="p-3 sm:p-4 bg-white dark:bg-gray-800 rounded-lg border">
+            <h3 className="font-semibold mb-2 flex items-center gap-2 text-sm sm:text-base">
               🤖 Персональна порада:
             </h3>
-            <p className="text-gray-700 dark:text-gray-300 leading-relaxed italic">
+            <p className="text-gray-700 dark:text-gray-300 leading-relaxed italic text-sm sm:text-base">
               "{advice}"
             </p>
           </div>

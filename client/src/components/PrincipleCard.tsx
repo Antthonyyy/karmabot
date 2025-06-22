@@ -21,26 +21,26 @@ export default function PrincipleCard({ principle, isCurrent = false, onOpenDiar
   if (isCurrent) {
     return (
       <Card className="border-2 border-blue-200 bg-gradient-to-br from-blue-50/50 to-purple-50/50">
-        <CardContent className="text-center p-8">
-          <div className="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
-            <span className="text-2xl font-bold text-blue-600">{principle.number}</span>
+        <CardContent className="text-center p-4 sm:p-8">
+          <div className="mx-auto w-12 h-12 sm:w-16 sm:h-16 bg-blue-100 rounded-full flex items-center justify-center mb-3 sm:mb-4">
+            <span className="text-xl sm:text-2xl font-bold text-blue-600">{principle.number}</span>
           </div>
-          <div className="text-2xl font-semibold text-gray-900 mb-2">
+          <div className="text-lg sm:text-2xl font-semibold text-gray-900 mb-2">
             Принцип {principle.number}: {principle.title}
           </div>
-          <p className="text-gray-600 text-lg mb-6">{principle.description}</p>
+          <p className="text-gray-600 text-base sm:text-lg mb-4 sm:mb-6">{principle.description}</p>
 
-          <div className="flex flex-col sm:flex-row gap-4 items-center justify-center">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-center justify-center">
             {onOpenDiary && (
-              <Button onClick={onOpenDiary} className="bg-green-600 hover:bg-green-700">
+              <Button onClick={onOpenDiary} className="bg-green-600 hover:bg-green-700 w-full sm:w-auto text-sm sm:text-base">
                 Записати в щоденник
               </Button>
             )}
             {principle.url && (
-              <Button variant="outline" asChild>
+              <Button variant="outline" asChild className="w-full sm:w-auto text-sm sm:text-base">
                 <a href={principle.url} target="_blank" rel="noopener noreferrer">
                   Детальніше про принцип
-                  <ExternalLink className="w-4 h-4 ml-2" />
+                  <ExternalLink className="w-3 h-3 sm:w-4 sm:h-4 ml-2" />
                 </a>
               </Button>
             )}

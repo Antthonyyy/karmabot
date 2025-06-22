@@ -110,11 +110,11 @@ export default function TodaysPlan({ className }: TodaysPlanProps) {
   return (
     <div>
       <Card className={className}>
-        <CardHeader>
-          <div className="flex items-center justify-between">
+        <CardHeader className="pb-3 sm:pb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
             <div>
-              <CardTitle className="flex items-center gap-2">
-                <Target className="h-5 w-5" />
+              <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                <Target className="h-4 w-4 sm:h-5 sm:w-5" />
                 План на сьогодні
               </CardTitle>
               <CardDescription>

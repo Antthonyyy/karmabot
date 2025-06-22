@@ -278,7 +278,7 @@ export default function DashboardPage() {
               </div>
 
               {/* AI Advisor Section */}
-              <div className="mb-12">
+              <div className="mb-8 sm:mb-12">
                 <AIAdvisor />
               </div>
 
@@ -287,19 +287,19 @@ export default function DashboardPage() {
           </TabsContent>
 
           {/* Principles Tab */}
-          <TabsContent value="principles" className="py-8">
+          <TabsContent value="principles" className="py-4 sm:py-8">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="text-center mb-12">
-                <h2 className="text-4xl font-bold text-gray-900 mb-4">
+              <div className="text-center mb-8 sm:mb-12">
+                <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-3 sm:mb-4">
                   10 кармічних принципів
                 </h2>
-                <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+                <p className="text-base sm:text-lg lg:text-xl text-gray-600 max-w-3xl mx-auto">
                   Вивчайте та практикуйте універсальні життєві принципи, що ведуть до внутрішньої гармонії та духовного зростання
                 </p>
               </div>
 
               {principles && (
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                   {principles.map((principle: any) => (
                     <PrincipleCard
                       key={principle.id}
@@ -316,10 +316,10 @@ export default function DashboardPage() {
               {!principles && (
                 <div className="text-center py-12">
                   <div className="animate-pulse space-y-4">
-                    <div className="h-8 bg-gray-200 rounded w-1/3 mx-auto"></div>
-                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div className="h-6 sm:h-8 bg-gray-200 rounded w-1/3 mx-auto"></div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                       {[...Array(10)].map((_, i) => (
-                        <div key={i} className="h-48 bg-gray-200 rounded-lg"></div>
+                        <div key={i} className="h-40 sm:h-48 bg-gray-200 rounded-lg"></div>
                       ))}
                     </div>
                   </div>
@@ -329,11 +329,11 @@ export default function DashboardPage() {
           </TabsContent>
 
           {/* Diary Tab */}
-          <TabsContent value="diary" className="py-8">
+          <TabsContent value="diary" className="py-4 sm:py-8">
             <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="text-center mb-8">
-                <h2 className="text-3xl font-bold text-gray-900 mb-4">Ваш щоденник</h2>
-                <p className="text-gray-600 text-lg">Записуйте свої роздуми, досвід та відкриття</p>
+              <div className="text-center mb-6 sm:mb-8">
+                <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3 sm:mb-4">Ваш щоденник</h2>
+                <p className="text-gray-600 text-base sm:text-lg">Записуйте свої роздуми, досвід та відкриття</p>
               </div>
               
               <DiaryForm 
@@ -347,11 +347,11 @@ export default function DashboardPage() {
           </TabsContent>
 
           {/* Progress Tab */}
-          <TabsContent value="progress" className="py-8">
+          <TabsContent value="progress" className="py-4 sm:py-8">
             <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="text-center mb-8">
-                <h2 className="text-3xl font-bold text-gray-900 mb-4">Ваш прогрес</h2>
-                <p className="text-gray-600 text-lg">Відстежуйте свій духовний розвиток</p>
+              <div className="text-center mb-6 sm:mb-8">
+                <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3 sm:mb-4">Ваш прогрес</h2>
+                <p className="text-gray-600 text-base sm:text-lg">Відстежуйте свій духовний розвиток</p>
               </div>
               
               <ProgressChart user={user} />
@@ -359,22 +359,22 @@ export default function DashboardPage() {
           </TabsContent>
 
           {/* Settings Tab */}
-          <TabsContent value="settings" className="py-8">
+          <TabsContent value="settings" className="py-4 sm:py-8">
             <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="text-center mb-8">
-                <h2 className="text-3xl font-bold text-gray-900 mb-4">Налаштування</h2>
-                <p className="text-gray-600 text-lg">Персоналізуйте свій досвід використання додатку</p>
+              <div className="text-center mb-6 sm:mb-8">
+                <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3 sm:mb-4">Налаштування</h2>
+                <p className="text-gray-600 text-base sm:text-lg">Персоналізуйте свій досвід використання додатку</p>
               </div>
               
               <SettingsPanel user={user} />
               
               {/* Instruction Video Section in Settings */}
-              <div className="mt-12">
-                <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-2xl p-8 text-center">
-                  <h2 className="text-2xl font-bold text-gray-900 mb-4">
+              <div className="mt-8 sm:mt-12">
+                <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl sm:rounded-2xl p-4 sm:p-8 text-center">
+                  <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-3 sm:mb-4">
                     📚 Інструкція користування додатком
                   </h2>
-                  <p className="text-gray-600 mb-6">
+                  <p className="text-gray-600 mb-4 sm:mb-6 text-sm sm:text-base">
                     Дізнайтеся, як максимально ефективно використовувати ваш карма-щоденник
                   </p>
                   <div className="max-w-4xl mx-auto">
@@ -398,10 +398,10 @@ export default function DashboardPage() {
 
       {/* Floating Action Button */}
       <Button
-        className="fixed bottom-6 right-6 z-40 h-14 w-14 rounded-full shadow-lg"
+        className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-40 h-12 w-12 sm:h-14 sm:w-14 rounded-full shadow-lg"
         onClick={() => setShowDiaryForm(true)}
       >
-        <Plus className="w-6 h-6" />
+        <Plus className="w-5 h-5 sm:w-6 sm:h-6" />
       </Button>
 
       {/* Onboarding Modal */}
