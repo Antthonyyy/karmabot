@@ -262,6 +262,25 @@ export default function SettingsPage() {
               </div>
             )}
             
+            {/* Кнопка "Продовжити" после настройки */}
+            {showContinueButton && (
+              <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium text-green-800">Налаштування збережено!</p>
+                    <p className="text-sm text-green-600">Тепер ви готові до практики кармічних принципів</p>
+                  </div>
+                  <Button
+                    onClick={() => setLocation('/dashboard')}
+                    className="bg-green-600 hover:bg-green-700"
+                  >
+                    Продовжити
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
+            
             {/* Информация о часовом поясе */}
             <div className="p-4 bg-blue-50 rounded-lg">
               <p className="text-sm text-blue-800">
