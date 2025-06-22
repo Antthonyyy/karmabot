@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Bell, Clock, Settings, Save, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, Bell, Clock, Settings, Save, Plus, Trash2, ArrowRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -20,14 +20,15 @@ interface Schedule {
 }
 
 export default function SettingsPage() {
+  const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
   const [remindersEnabled, setRemindersEnabled] = useState(true);
   const [reminderMode, setReminderMode] = useState('balanced');
   const [customSchedule, setCustomSchedule] = useState<Schedule[]>([]);
-
   const [showModeSelector, setShowModeSelector] = useState(false);
+  const [showContinueButton, setShowContinueButton] = useState(false);
   
   // Загружаем пользователя
   const { data: user } = useQuery({
@@ -62,6 +63,7 @@ export default function SettingsPage() {
         description: "Розклад нагадувань оновлено успішно",
       });
       setShowModeSelector(false);
+      setShowContinueButton(true);
     },
     onError: () => {
       toast({
