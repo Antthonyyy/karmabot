@@ -104,17 +104,25 @@ export default function SettingsPage() {
 
   const completeOnboardingMutation = useMutation({
     mutationFn: () => apiRequest("PATCH", "/api/user/onboarding/complete"),
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log('Onboarding completion successful:', data);
       queryClient.invalidateQueries({ queryKey: ["/api/user/me"] });
-      setLocation('/dashboard');
+      
+      // Wait a bit for the query to update before navigating
+      setTimeout(() => {
+        console.log('Navigating to dashboard...');
+        setLocation('/dashboard');
+      }, 500);
     },
-    onError: () => {
+    onError: (error) => {
+      console.error('Onboarding completion failed:', error);
       // Navigate anyway to not block the user
       setLocation('/dashboard');
     }
   });
 
   const handleContinue = () => {
+    console.log('Starting onboarding completion...');
     completeOnboardingMutation.mutate();
   };
   

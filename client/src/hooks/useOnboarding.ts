@@ -14,12 +14,18 @@ export function useOnboarding() {
   useEffect(() => {
     if (!isLoading && user) {
       const needsOnboarding = !user.hasCompletedOnboarding;
+      console.log('Onboarding check:', { 
+        userId: user.id, 
+        hasCompletedOnboarding: user.hasCompletedOnboarding, 
+        needsOnboarding 
+      });
       setShowOnboarding(needsOnboarding);
       setIsReady(true);
     }
   }, [user, isLoading]);
 
   const completeOnboarding = () => {
+    console.log('Manually completing onboarding in hook');
     setShowOnboarding(false);
   };
 
