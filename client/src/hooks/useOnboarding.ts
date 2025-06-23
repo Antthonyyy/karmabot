@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import type { User } from "@/lib/types";
+import { authUtils } from '@/utils/auth';
 
 export function useOnboarding() {
   const [showOnboarding, setShowOnboarding] = useState(false);
@@ -8,7 +9,7 @@ export function useOnboarding() {
 
   const { data: user, isLoading } = useQuery<User>({
     queryKey: ["/api/user/me"],
-    enabled: !!localStorage.getItem("karma_token"),
+    enabled: !!authUtils.getToken(),
   });
 
   useEffect(() => {

@@ -75,9 +75,9 @@ export default function TelegramLoginButton({ onAuthSuccess }: TelegramLoginButt
           setIsChecking(false);
           setSessionId(null);
           
-          // Save data
-          localStorage.setItem("karma_token", data.token);
-          localStorage.setItem("karma_user", JSON.stringify(data.user));
+          // Save data using authUtils
+          authUtils.setToken(data.token);
+          authUtils.setUser(data.user);
           
           toast({
             title: "Успішна авторизація!",

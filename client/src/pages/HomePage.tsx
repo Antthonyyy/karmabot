@@ -3,6 +3,7 @@ import { useLocation } from "wouter";
 import TelegramLoginButton from "@/components/TelegramLoginButton";
 import { Card, CardContent } from "@/components/ui/card";
 import { CheckCircle } from "lucide-react";
+import { authUtils } from '@/utils/auth';
 
 export default function HomePage() {
   const [, setLocation] = useLocation();
@@ -10,8 +11,7 @@ export default function HomePage() {
 
   useEffect(() => {
     // Check if user is already authenticated
-    const token = localStorage.getItem("karma_token");
-    if (token) {
+    if (authUtils.isAuthenticated()) {
       setLocation("/dashboard");
     }
   }, [setLocation]);

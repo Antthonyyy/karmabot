@@ -16,6 +16,7 @@ import OnboardingModal from "@/components/OnboardingModal";
 import { useOnboarding } from "@/hooks/useOnboarding";
 import { AIAdvisor } from "@/components/AIAdvisor";
 import { User } from "@/lib/types";
+import { authUtils } from '@/utils/auth';
 import { 
   Home, 
   BookOpen, 
@@ -39,8 +40,7 @@ export default function DashboardPage() {
 
   // Check authentication
   useEffect(() => {
-    const token = localStorage.getItem("karma_token");
-    if (!token) {
+    if (!authUtils.isAuthenticated()) {
       setLocation("/");
     }
   }, [setLocation]);
@@ -48,7 +48,7 @@ export default function DashboardPage() {
   // Fetch user data
   const { data: user, isLoading: userLoading, error: userError } = useQuery<User>({
     queryKey: ["/api/user/me"],
-    enabled: !!localStorage.getItem("karma_token"),
+    enabled: !!authUtils.getToken(),
   });
 
   // Fetch principles
@@ -69,7 +69,7 @@ export default function DashboardPage() {
   });
 
   const handleLogout = () => {
-    localStorage.removeItem("karma_token");
+    authUtils.clearAuth();
     setLocation("/");
   };
 
