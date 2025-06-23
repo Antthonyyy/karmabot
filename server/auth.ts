@@ -5,13 +5,20 @@ import { storage } from "./storage.js";
 
 const JWT_SECRET = process.env.JWT_SECRET || "karma-diary-secret-key";
 
+console.log('🔑 JWT_SECRET configured:', JWT_SECRET ? 'Yes' : 'No');
+console.log('🔑 JWT_SECRET length:', JWT_SECRET?.length);
+console.log('🔑 JWT_SECRET preview:', JWT_SECRET.substring(0, 20) + '...');
+
 export interface AuthRequest extends Request {
   user?: any;
 }
 
 // Generate JWT token
 export function generateToken(user: any): string {
-  return jwt.sign(
+  console.log('🎫 Generating token for user:', user.id);
+  console.log('🔑 Using JWT_SECRET for generation:', JWT_SECRET.substring(0, 20) + '...');
+  
+  const token = jwt.sign(
     { 
       id: user.id, 
       telegramId: user.telegramId,
@@ -20,6 +27,9 @@ export function generateToken(user: any): string {
     JWT_SECRET,
     { expiresIn: '30d' }
   );
+  
+  console.log('✅ Token generated successfully, length:', token.length);
+  return token;
 }
 
 // Verify JWT token middleware
@@ -28,30 +38,22 @@ export function authenticateToken(req: AuthRequest, res: Response, next: NextFun
     const authHeader = req.headers['authorization'];
     console.log('🔐 Auth header:', authHeader ? 'Present' : 'Missing');
     
-    if (!authHeader) {
-      console.error('❌ No authorization header');
-      return res.status(401).json({ message: 'No authorization header' });
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      console.error('❌ No authorization header or invalid format');
+      return res.status(401).json({ message: 'No valid authorization header' });
     }
     
-    const token = authHeader.split(' ')[1];
-    if (!token) {
-      console.error('❌ No token in authorization header');
-      return res.status(401).json({ message: 'No token provided' });
-    }
+    const token = authHeader.substring(7);
+    console.log('🎫 Token extracted, length:', token.length);
+    console.log('🎫 Token preview:', token.substring(0, 20) + '...');
+    console.log('🔑 Using JWT_SECRET:', JWT_SECRET.substring(0, 10) + '...');
     
-    console.log('🔑 Verifying token...');
-    
-    jwt.verify(token, JWT_SECRET, async (err: any, decoded: any) => {
-      if (err) {
-        console.error("❌ JWT verification error:", err.message);
-        return res.status(403).json({ message: 'Invalid or expired token', details: err.message });
-      }
-
+    try {
+      const decoded = jwt.verify(token, JWT_SECRET) as any;
       console.log('✅ Token verified, user ID:', decoded.id);
 
-      try {
-        // Get fresh user data
-        const user = await storage.getUser(decoded.id);
+      // Get fresh user data  
+      storage.getUser(decoded.id).then(user => {
         if (!user) {
           console.error('❌ User not found in database for ID:', decoded.id);
           return res.status(404).json({ message: 'User not found' });
@@ -59,11 +61,30 @@ export function authenticateToken(req: AuthRequest, res: Response, next: NextFun
 
         req.user = user;
         next();
-      } catch (error) {
+      }).catch(error => {
         console.error('❌ Error fetching user:', error);
         res.status(500).json({ message: 'Internal server error', details: error?.message });
+      });
+    } catch (error) {
+      console.error("❌ JWT verification error:", error.message);
+      
+      if (error.name === 'TokenExpiredError') {
+        return res.status(403).json({ 
+          message: "Token expired", 
+          details: "Please login again" 
+        });
+      } else if (error.name === 'JsonWebTokenError') {
+        return res.status(403).json({ 
+          message: "Invalid token", 
+          details: error.message 
+        });
       }
-    });
+      
+      return res.status(403).json({ 
+        message: "Invalid or expired token", 
+        details: error.message 
+      });
+    }
   } catch (error) {
     console.error("❌ Authentication error:", error?.message);
     return res.status(500).json({ message: 'Authentication failed', details: error?.message });

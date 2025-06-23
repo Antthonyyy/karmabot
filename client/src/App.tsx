@@ -9,6 +9,7 @@ import AnalyticsPage from "@/pages/AnalyticsPage";
 import SettingsPage from "@/pages/SettingsPage";
 import OnboardingPage from "@/pages/OnboardingPage";
 import NotFound from "@/pages/not-found";
+import { EmergencyLogout } from "@/components/EmergencyLogout";
 
 function Router() {
   return (
@@ -29,6 +30,7 @@ function App() {
       <TooltipProvider>
         <Toaster />
         <Router />
+        <EmergencyLogout />
       </TooltipProvider>
     </QueryClientProvider>
   );

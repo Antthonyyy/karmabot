@@ -17,6 +17,7 @@ import { useOnboarding } from "@/hooks/useOnboarding";
 import { AIAdvisor } from "@/components/AIAdvisor";
 import { User } from "@/lib/types";
 import { authUtils } from '@/utils/auth';
+import { checkAuthError, handleAuthError } from '@/utils/auth-recovery';
 import { 
   Home, 
   BookOpen, 
@@ -55,12 +56,18 @@ export default function DashboardPage() {
         });
         
         console.log('Response status:', response.status);
-        console.log('Response headers:', response.headers);
         
         if (!response.ok) {
           const errorData = await response.json();
           console.error('Error response:', errorData);
-          throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+          
+          // Проверяем, является ли это ошибкой токена
+          if (response.status === 403 || response.status === 401) {
+            handleAuthError();
+            return;
+          }
+          
+          throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
         }
         
         const data = await response.json();
@@ -68,10 +75,17 @@ export default function DashboardPage() {
         return data;
       } catch (error) {
         console.error('Fetch error:', error);
+        
+        // Проверяем ошибку аутентификации
+        if (checkAuthError(error)) {
+          handleAuthError();
+          return;
+        }
+        
         throw error;
       }
     },
-    retry: 1,
+    retry: false, // Отключаем retry для ошибок аутентификации
     enabled: !!authUtils.getToken(),
   });
 

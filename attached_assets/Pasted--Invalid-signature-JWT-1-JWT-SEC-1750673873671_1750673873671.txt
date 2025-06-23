@@ -1,0 +1,250 @@
+Исправь ошибку "Invalid signature" для JWT токенов в приложении.
+
+1. Проверь и синхронизируй JWT_SECRET в `/server/auth.ts`:
+```typescript
+import jwt from "jsonwebtoken";
+import bcrypt from "bcryptjs";
+import { db } from "./db";
+import { users } from "./db/schema";
+import { eq } from "drizzle-orm";
+
+// Убедись, что используется правильный секрет
+const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
+
+console.log('🔑 JWT_SECRET configured:', JWT_SECRET ? 'Yes' : 'No');
+console.log('🔑 JWT_SECRET length:', JWT_SECRET?.length);
+
+export async function hashPassword(password: string): Promise<string> {
+  return bcrypt.hash(password, 10);
+}
+
+export async function comparePasswords(password: string, hash: string): Promise<boolean> {
+  return bcrypt.compare(password, hash);
+}
+
+export function generateToken(userId: number): string {
+  console.log('🎫 Generating token for user:', userId);
+  console.log('🔑 Using JWT_SECRET:', JWT_SECRET.substring(0, 10) + '...');
+  
+  const token = jwt.sign(
+    { userId }, 
+    JWT_SECRET,
+    { expiresIn: "30d" }
+  );
+  
+  console.log('✅ Token generated successfully');
+  return token;
+}
+
+export function verifyToken(token: string): { userId: number } {
+  try {
+    console.log('🔍 Verifying token...');
+    console.log('🔑 Using JWT_SECRET:', JWT_SECRET.substring(0, 10) + '...');
+    
+    const decoded = jwt.verify(token, JWT_SECRET) as { userId: number };
+    console.log('✅ Token verified, userId:', decoded.userId);
+    
+    return decoded;
+  } catch (error) {
+    console.error('❌ Token verification failed:', error.message);
+    throw error;
+  }
+}
+
+export async function authenticateUser(email: string, password: string) {
+  console.log('🔐 Authenticating user:', email);
+  
+  const user = await db.query.users.findFirst({
+    where: eq(users.email, email),
+  });
+
+  if (!user) {
+    console.log('❌ User not found');
+    throw new Error("Invalid credentials");
+  }
+
+  const isValidPassword = await comparePasswords(password, user.password);
+  if (!isValidPassword) {
+    console.log('❌ Invalid password');
+    throw new Error("Invalid credentials");
+  }
+
+  console.log('✅ User authenticated successfully');
+  const token = generateToken(user.id);
+  
+  return {
+    token,
+    user: {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      telegramId: user.telegramId,
+      onboardingCompleted: user.onboardingCompleted,
+      subscription: user.subscription || 'none',
+      preferredLanguage: user.preferredLanguage || 'uk'
+    },
+  };
+}
+
+Обнови middleware для лучшей диагностики /server/middleware/auth.ts:
+
+typescriptimport { Request, Response, NextFunction } from "express";
+import { verifyToken } from "../auth";
+
+interface AuthRequest extends Request {
+  user?: { id: number };
+}
+
+export function authenticate(req: AuthRequest, res: Response, next: NextFunction) {
+  try {
+    const authHeader = req.headers.authorization;
+    console.log('🔐 Auth middleware - Header:', authHeader ? 'Present' : 'Missing');
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      console.log('❌ Invalid authorization header format');
+      return res.status(401).json({ message: "No valid authorization header" });
+    }
+
+    const token = authHeader.substring(7);
+    console.log('🎫 Token extracted, length:', token.length);
+    console.log('🎫 Token preview:', token.substring(0, 20) + '...');
+
+    try {
+      const decoded = verifyToken(token);
+      req.user = { id: decoded.userId };
+      console.log('✅ Auth middleware - User authenticated:', decoded.userId);
+      next();
+    } catch (error) {
+      console.error('❌ Token verification error:', error);
+      
+      if (error.name === 'TokenExpiredError') {
+        return res.status(403).json({ 
+          message: "Token expired", 
+          details: "Please login again" 
+        });
+      } else if (error.name === 'JsonWebTokenError') {
+        return res.status(403).json({ 
+          message: "Invalid token", 
+          details: error.message 
+        });
+      }
+      
+      return res.status(403).json({ 
+        message: "Invalid or expired token", 
+        details: error.message 
+      });
+    }
+  } catch (error) {
+    console.error("❌ Auth middleware error:", error);
+    return res.status(500).json({ message: "Authentication error" });
+  }
+}
+
+Создай утилиту для сброса токена и перелогина /client/src/utils/auth-recovery.ts:
+
+typescriptimport { authUtils } from './auth';
+
+export function checkAuthError(error: any): boolean {
+  // Проверяем, является ли это ошибкой аутентификации
+  if (error?.message?.includes('Invalid') || 
+      error?.message?.includes('expired') ||
+      error?.message?.includes('token') ||
+      error?.status === 401 ||
+      error?.status === 403) {
+    return true;
+  }
+  return false;
+}
+
+export function handleAuthError() {
+  console.log('🔄 Handling auth error - clearing local storage and redirecting to login');
+  
+  // Очищаем все данные авторизации
+  authUtils.clearAuth();
+  
+  // Перенаправляем на страницу входа
+  window.location.href = '/';
+}
+
+Обнови DashboardPage для автоматического перелогина при ошибке токена /client/src/pages/DashboardPage.tsx:
+
+typescriptimport { checkAuthError, handleAuthError } from '@/utils/auth-recovery';
+
+// В компоненте DashboardPage, обнови обработку ошибок:
+const { data: user, error: userError, isLoading: userLoading } = useQuery({
+  queryKey: ["user"],
+  queryFn: async () => {
+    try {
+      const response = await fetch("/api/users/profile", {
+        headers: authUtils.getAuthHeaders(),
+      });
+      
+      console.log('Response status:', response.status);
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Error response:', errorData);
+        
+        // Проверяем, является ли это ошибкой токена
+        if (response.status === 403 || response.status === 401) {
+          handleAuthError();
+          return;
+        }
+        
+        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log('User data received:', data);
+      return data;
+    } catch (error) {
+      console.error('Fetch error:', error);
+      
+      // Проверяем ошибку аутентификации
+      if (checkAuthError(error)) {
+        handleAuthError();
+        return;
+      }
+      
+      throw error;
+    }
+  },
+  retry: false, // Отключаем retry для ошибок аутентификации
+});
+
+Добавь кнопку для ручного выхода в случае проблем /client/src/components/EmergencyLogout.tsx:
+
+typescriptimport { Button } from '@/components/ui/button';
+import { authUtils } from '@/utils/auth';
+import { LogOut } from 'lucide-react';
+
+export function EmergencyLogout() {
+  const handleLogout = () => {
+    authUtils.clearAuth();
+    window.location.href = '/';
+  };
+
+  return (
+    <Button 
+      onClick={handleLogout}
+      variant="ghost"
+      size="sm"
+      className="fixed bottom-4 right-4 opacity-50 hover:opacity-100"
+    >
+      <LogOut className="w-4 h-4 mr-2" />
+      Вийти
+    </Button>
+  );
+}
+
+Временно добавь компонент EmergencyLogout в App.tsx для быстрого выхода:
+
+typescriptimport { EmergencyLogout } from '@/components/EmergencyLogout';
+
+// В компоненте App, после всех роутов:
+return (
+  <div>
+    {/* существующие роуты */}
+    <EmergencyLogout />
+  </div>
+);
