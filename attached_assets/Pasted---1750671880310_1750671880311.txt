@@ -1,0 +1,269 @@
+Настрой базовую систему локализации для приложения "Кармічний щоденник" с поддержкой украинского и английского языков.
+
+Установи необходимые пакеты (если они еще не установлены):
+
+bashnpm install i18next react-i18next
+
+Создай структуру папок для локализации:
+
+/client/src/locales/
+  ├── uk/
+  │   ├── common.json
+  │   ├── subscriptions.json
+  │   ├── ai.json
+  │   └── achievements.json
+  └── en/
+      ├── common.json
+      ├── subscriptions.json
+      ├── ai.json
+      └── achievements.json
+
+Создай /client/src/locales/uk/common.json:
+
+json{
+  "app": {
+    "name": "Кармічний щоденник",
+    "tagline": "Твій шлях до позитивної карми"
+  },
+  "nav": {
+    "dashboard": "Дашборд",
+    "subscriptions": "Підписки",
+    "journal": "Щоденник",
+    "statistics": "Статистика",
+    "logout": "Вийти"
+  },
+  "auth": {
+    "login": "Увійти",
+    "register": "Реєстрація",
+    "email": "Email",
+    "password": "Пароль",
+    "name": "Ім'я"
+  },
+  "common": {
+    "loading": "Завантаження...",
+    "error": "Помилка",
+    "success": "Успішно",
+    "save": "Зберегти",
+    "cancel": "Скасувати",
+    "delete": "Видалити",
+    "edit": "Редагувати",
+    "back": "Назад",
+    "next": "Далі",
+    "yes": "Так",
+    "no": "Ні"
+  }
+}
+
+Создай /client/src/locales/uk/subscriptions.json:
+
+json{
+  "title": "Обери свій план",
+  "description": "Розблокуй потенціал для розвитку карми",
+  "billing": {
+    "monthly": "Щомісячно",
+    "yearly": "Щорічно",
+    "yearlyDiscount": "Знижка 16%"
+  },
+  "plans": {
+    "current": "Поточний план",
+    "select": "Обрати {{plan}}",
+    "upgrade": "Покращити план",
+    "free": {
+      "name": "Безкоштовний",
+      "features": [
+        "Базовий щоденник",
+        "Telegram нагадування",
+        "Проста статистика"
+      ]
+    },
+    "light": {
+      "name": "Карма Лайт",
+      "features": [
+        "Все з безкоштовного",
+        "Швидкі записи",
+        "Розширена статистика",
+        "Експорт даних"
+      ]
+    },
+    "plus": {
+      "name": "Карма Плюс", 
+      "features": [
+        "Все з Лайт",
+        "AI-поради (5/місяць)",
+        "Досягнення та бейджі",
+        "Аналітика настрою"
+      ]
+    },
+    "pro": {
+      "name": "Карма Про",
+      "features": [
+        "Все з Плюс",
+        "Необмежений AI-чат",
+        "Персональні інсайти",
+        "Пріоритетна підтримка"
+      ]
+    }
+  },
+  "guarantee": "7-денна гарантія повернення коштів",
+  "popularBadge": "Популярний"
+}
+
+Создай /client/src/locales/uk/ai.json:
+
+json{
+  "chat": {
+    "title": "AI-психолог",
+    "subtitle": "Персональний консультант з карми",
+    "placeholder": "Напиши своє питання...",
+    "hint": "Shift+Enter для нового рядка",
+    "send": "Відправити",
+    "clear": "Очистити чат",
+    "examples": {
+      "title": "Приклади питань:",
+      "list": [
+        "Як справитися зі стресом?",
+        "Як покращити карму?",
+        "Що робити з негативними думками?"
+      ]
+    },
+    "welcome": "Привіт! Я твій AI-психолог. Чим можу допомогти?",
+    "error": "Вибач, сталася помилка. Спробуй ще раз.",
+    "limit": "Ліміт запитів вичерпано",
+    "upgrade": "AI-чат доступний лише в тарифі Про"
+  },
+  "advisor": {
+    "title": "AI-порадник",
+    "button": "Отримати пораду",
+    "loading": "Аналізую твої записи...",
+    "limit": "Ти використав {{used}} з {{total}} порад цього місяця"
+  }
+}
+
+Создай /client/src/locales/en/common.json:
+
+json{
+  "app": {
+    "name": "Karma Journal",
+    "tagline": "Your path to positive karma"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "subscriptions": "Subscriptions",
+    "journal": "Journal",
+    "statistics": "Statistics",
+    "logout": "Logout"
+  },
+  "auth": {
+    "login": "Login",
+    "register": "Register",
+    "email": "Email",
+    "password": "Password",
+    "name": "Name"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "back": "Back",
+    "next": "Next",
+    "yes": "Yes",
+    "no": "No"
+  }
+}
+
+Создай конфигурацию i18n /client/src/i18n/config.ts:
+
+typescriptimport i18n from 'i18next';
+import { initReactI18next } from 'react-i18next';
+
+// Импорт всех переводов
+import commonUk from '../locales/uk/common.json';
+import subscriptionsUk from '../locales/uk/subscriptions.json';
+import aiUk from '../locales/uk/ai.json';
+
+import commonEn from '../locales/en/common.json';
+import subscriptionsEn from '../locales/en/subscriptions.json';
+import aiEn from '../locales/en/ai.json';
+
+const resources = {
+  uk: {
+    common: commonUk,
+    subscriptions: subscriptionsUk,
+    ai: aiUk
+  },
+  en: {
+    common: commonEn,
+    subscriptions: subscriptionsEn,
+    ai: aiEn
+  }
+};
+
+i18n
+  .use(initReactI18next)
+  .init({
+    resources,
+    lng: 'uk', // язык по умолчанию
+    fallbackLng: 'uk',
+    
+    ns: ['common', 'subscriptions', 'ai'],
+    defaultNS: 'common',
+    
+    interpolation: {
+      escapeValue: false
+    },
+    
+    react: {
+      useSuspense: false
+    }
+  });
+
+export default i18n;
+
+Обнови /client/src/main.tsx:
+
+typescriptimport './i18n/config';
+import { I18nextProvider } from 'react-i18next';
+import i18n from './i18n/config';
+
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <React.StrictMode>
+    <I18nextProvider i18n={i18n}>
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>
+    </I18nextProvider>
+  </React.StrictMode>
+);
+
+Создай компонент переключения языка /client/src/components/LanguageSwitcher.tsx:
+
+typescriptimport { useTranslation } from 'react-i18next';
+import { Button } from '@/components/ui/button';
+import { Languages } from 'lucide-react';
+
+export function LanguageSwitcher() {
+  const { i18n } = useTranslation();
+  
+  const toggleLanguage = () => {
+    const newLang = i18n.language === 'uk' ? 'en' : 'uk';
+    i18n.changeLanguage(newLang);
+    localStorage.setItem('karma_language', newLang);
+  };
+  
+  return (
+    <Button
+      variant="ghost"
+      size="sm"
+      onClick={toggleLanguage}
+      className="flex items-center gap-2"
+    >
+      <Languages className="w-4 h-4" />
+      {i18n.language.toUpperCase()}
+    </Button>
+  );
+}
+Проверь: запусти приложение и убедись, что можешь использовать useTranslation хук в компонентах. Пример: const { t } = useTranslation('common'); console.log(t('app.name'));

@@ -2,14 +2,13 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Sparkles, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { authUtils } from '@/utils/auth';
 
 async function fetchDailyInsight(principleId: number, regenerate = false) {
   const response = await fetch(
     `/api/insights/daily/${principleId}${regenerate ? '?regenerate=true' : ''}`,
     {
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('karma_token')}`
-      }
+      headers: authUtils.getAuthHeaders()
     }
   );
   if (!response.ok) throw new Error('Failed to fetch insight');

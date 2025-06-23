@@ -1,0 +1,24 @@
+{
+  "title": "Achievements",
+  "newBadge": "New!",
+  "categories": {
+    "streak": "Streak",
+    "writing": "Writing",
+    "reflection": "Reflection",
+    "growth": "Growth"
+  },
+  "achievements": {
+    "firstEntry": {
+      "name": "First Step",
+      "description": "Made your first journal entry"
+    },
+    "streak7": {
+      "name": "Weekly Warrior",
+      "description": "7 days in a row journaling"
+    },
+    "streak30": {
+      "name": "Habit Master",
+      "description": "30 days in a row journaling"
+    }
+  }
+}

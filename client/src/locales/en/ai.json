@@ -1,0 +1,28 @@
+{
+  "chat": {
+    "title": "AI Psychologist",
+    "subtitle": "Personal karma consultant",
+    "placeholder": "Type your question...",
+    "hint": "Shift+Enter for new line",
+    "send": "Send",
+    "clear": "Clear chat",
+    "examples": {
+      "title": "Example questions:",
+      "list": [
+        "How to deal with stress?",
+        "How to improve karma?",
+        "What to do with negative thoughts?"
+      ]
+    },
+    "welcome": "Hi! I'm your AI psychologist. How can I help?",
+    "error": "Sorry, an error occurred. Please try again.",
+    "limit": "Request limit reached",
+    "upgrade": "AI chat is only available in Pro plan"
+  },
+  "advisor": {
+    "title": "AI Advisor",
+    "button": "Get advice",
+    "loading": "Analyzing your entries...",
+    "limit": "You've used {{used}} of {{total}} advice this month"
+  }
+}

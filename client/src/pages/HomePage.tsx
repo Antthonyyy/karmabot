@@ -4,10 +4,13 @@ import TelegramLoginButton from "@/components/TelegramLoginButton";
 import { Card, CardContent } from "@/components/ui/card";
 import { CheckCircle } from "lucide-react";
 import { authUtils } from '@/utils/auth';
+import { useTranslation } from 'react-i18next';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 
 export default function HomePage() {
   const [, setLocation] = useLocation();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const { t } = useTranslation('common');
 
   useEffect(() => {
     // Check if user is already authenticated
@@ -33,8 +36,9 @@ export default function HomePage() {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-2">
               <div className="text-2xl">🪷</div>
-              <span className="text-xl font-bold text-gray-900">Кармічний щоденник</span>
+              <span className="text-xl font-bold text-gray-900">{t('app.name')}</span>
             </div>
+            <LanguageSwitcher />
           </div>
         </div>
       </nav>
@@ -47,9 +51,9 @@ export default function HomePage() {
               <div className="mb-6 animate-bounce">
                 <div className="text-6xl">🪷</div>
               </div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-4">Кармічний щоденник</h1>
+              <h1 className="text-3xl font-bold text-gray-900 mb-4">{t('app.name')}</h1>
               <p className="text-gray-600 text-lg mb-8">
-                Трансформуйте своє життя через усвідомлене застосування кармічних принципів
+                {t('app.tagline')}
               </p>
             </div>
 

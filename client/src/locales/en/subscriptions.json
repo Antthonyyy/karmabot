@@ -1,0 +1,51 @@
+{
+  "title": "Choose Your Plan",
+  "description": "Unlock your karma development potential",
+  "billing": {
+    "monthly": "Monthly",
+    "yearly": "Yearly",
+    "yearlyDiscount": "16% discount"
+  },
+  "plans": {
+    "current": "Current plan",
+    "select": "Choose {{plan}}",
+    "upgrade": "Upgrade plan",
+    "free": {
+      "name": "Free",
+      "features": [
+        "Basic journal",
+        "Telegram reminders",
+        "Simple statistics"
+      ]
+    },
+    "light": {
+      "name": "Karma Light",
+      "features": [
+        "Everything from Free",
+        "Quick entries",
+        "Advanced statistics",
+        "Data export"
+      ]
+    },
+    "plus": {
+      "name": "Karma Plus", 
+      "features": [
+        "Everything from Light",
+        "AI advice (5/month)",
+        "Achievements and badges",
+        "Mood analytics"
+      ]
+    },
+    "pro": {
+      "name": "Karma Pro",
+      "features": [
+        "Everything from Plus",
+        "Unlimited AI chat",
+        "Personal insights",
+        "Priority support"
+      ]
+    }
+  },
+  "guarantee": "7-day money back guarantee",
+  "popularBadge": "Popular"
+}

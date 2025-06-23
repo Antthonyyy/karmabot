@@ -1,0 +1,33 @@
+{
+  "app": {
+    "name": "Karma Journal",
+    "tagline": "Your path to positive karma"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "subscriptions": "Subscriptions",
+    "journal": "Journal",
+    "statistics": "Statistics",
+    "logout": "Logout"
+  },
+  "auth": {
+    "login": "Login",
+    "register": "Register",
+    "email": "Email",
+    "password": "Password",
+    "name": "Name"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "back": "Back",
+    "next": "Next",
+    "yes": "Yes",
+    "no": "No"
+  }
+}

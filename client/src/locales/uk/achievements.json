@@ -1,0 +1,24 @@
+{
+  "title": "Досягнення",
+  "newBadge": "Нове!",
+  "categories": {
+    "streak": "Послідовність",
+    "writing": "Записи",
+    "reflection": "Рефлексія",
+    "growth": "Зростання"
+  },
+  "achievements": {
+    "firstEntry": {
+      "name": "Перший крок",
+      "description": "Зробив перший запис у щоденнику"
+    },
+    "streak7": {
+      "name": "Тижневий воїн",
+      "description": "7 днів поспіль ведеш щоденник"
+    },
+    "streak30": {
+      "name": "Майстер звички",
+      "description": "30 днів поспіль ведеш щоденник"
+    }
+  }
+}
