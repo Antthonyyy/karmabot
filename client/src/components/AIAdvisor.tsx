@@ -1,14 +1,28 @@
 import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Sparkles, RefreshCw } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { authUtils } from '@/utils/auth';
+import { SubscriptionRequired } from './SubscriptionRequired';
 
 export function AIAdvisor() {
   const [advice, setAdvice] = useState('');
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+
+  // Check subscription features
+  const { data: features } = useQuery({
+    queryKey: ['subscription-features'],
+    queryFn: async () => {
+      const response = await fetch('/api/subscriptions/features', {
+        headers: authUtils.getAuthHeaders()
+      });
+      if (!response.ok) throw new Error('Failed to fetch features');
+      return response.json();
+    }
+  });
   
   const getAdvice = async () => {
     setLoading(true);

@@ -5,7 +5,7 @@ import type { AuthRequest } from '../auth.js';
 
 const router = Router();
 
-router.get('/api/ai/advice', authenticateToken, async (req: AuthRequest, res) => {
+router.get('/api/ai/advice', authenticateToken, requireSubscription('plus'), async (req: AuthRequest, res) => {
   try {
     if (!req.user?.id) {
       return res.status(401).json({ error: 'User not authenticated' });
@@ -21,7 +21,7 @@ router.get('/api/ai/advice', authenticateToken, async (req: AuthRequest, res) =>
   }
 });
 
-router.get('/api/ai/insight/:principleId', authenticateToken, async (req: AuthRequest, res) => {
+router.get('/api/ai/insight/:principleId', authenticateToken, requireSubscription('plus'), async (req: AuthRequest, res) => {
   try {
     if (!req.user?.id) {
       return res.status(401).json({ error: 'User not authenticated' });
