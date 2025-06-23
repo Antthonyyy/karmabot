@@ -1,0 +1,172 @@
+Диагностируй и исправь ошибку "Помилка завантаження даних користувача" в приложении.
+
+1. Добавь логирование в `/server/routes/users.ts` для отладки:
+```typescript
+router.get("/api/users/profile", authenticate, async (req, res) => {
+  try {
+    console.log('🔍 Getting user profile for ID:', req.user?.id);
+    
+    if (!req.user?.id) {
+      console.error('❌ No user ID in request');
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+    
+    const user = await db.query.users.findFirst({
+      where: eq(users.id, req.user.id),
+    });
+    
+    console.log('👤 Found user:', user ? 'Yes' : 'No');
+    console.log('📊 User data:', JSON.stringify(user, null, 2));
+    
+    if (!user) {
+      console.error('❌ User not found in database');
+      return res.status(404).json({ error: "User not found" });
+    }
+    
+    // Убедимся, что возвращаем все необходимые поля
+    const userResponse = {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      telegramId: user.telegramId,
+      onboardingCompleted: user.onboardingCompleted ?? false,
+      notificationsEnabled: user.notificationsEnabled ?? true,
+      subscription: user.subscription ?? 'none',
+      subscriptionStartDate: user.subscriptionStartDate,
+      subscriptionEndDate: user.subscriptionEndDate,
+      preferredLanguage: user.preferredLanguage ?? 'uk',
+      createdAt: user.createdAt
+    };
+    
+    console.log('✅ Sending user response:', userResponse);
+    res.json(userResponse);
+  } catch (error) {
+    console.error("❌ Error fetching user profile:", error);
+    console.error("Stack trace:", error.stack);
+    res.status(500).json({ error: "Failed to fetch user profile", details: error.message });
+  }
+});
+
+Проверь middleware аутентификации /server/middleware/auth.ts:
+
+typescriptexport const authenticate = async (req: any, res: any, next: any) => {
+  try {
+    const authHeader = req.headers.authorization;
+    console.log('🔐 Auth header:', authHeader ? 'Present' : 'Missing');
+    
+    if (!authHeader) {
+      console.error('❌ No authorization header');
+      return res.status(401).json({ error: "No authorization header" });
+    }
+    
+    const token = authHeader.split(" ")[1];
+    if (!token) {
+      console.error('❌ No token in authorization header');
+      return res.status(401).json({ error: "No token provided" });
+    }
+    
+    console.log('🔑 Verifying token...');
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!);
+    console.log('✅ Token verified, user ID:', decoded.userId);
+    
+    req.user = { id: decoded.userId };
+    next();
+  } catch (error) {
+    console.error("❌ Authentication error:", error.message);
+    return res.status(401).json({ error: "Invalid token", details: error.message });
+  }
+};
+
+Добавь проверку подключения к БД в /server/db/index.ts:
+
+typescript// Добавь после создания db
+export async function testConnection() {
+  try {
+    console.log('🔌 Testing database connection...');
+    const result = await db.select().from(users).limit(1);
+    console.log('✅ Database connection successful');
+    console.log(`📊 Found ${result.length} users in database`);
+    return true;
+  } catch (error) {
+    console.error('❌ Database connection failed:', error);
+    return false;
+  }
+}
+
+// Вызови при старте сервера
+testConnection();
+
+Проверь, что все роуты подключены в /server/index.ts:
+
+typescript// Убедись, что есть эти импорты и использование
+import userRoutes from "./routes/users";
+
+// После app.use(express.json())
+app.use(userRoutes);
+
+// Добавь общий обработчик ошибок
+app.use((err: any, req: any, res: any, next: any) => {
+  console.error('🚨 Global error handler:', err);
+  res.status(500).json({ 
+    error: 'Internal server error', 
+    message: err.message,
+    stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
+  });
+});
+
+Обнови клиентский код для показа деталей ошибки в /client/src/pages/DashboardPage.tsx:
+
+typescriptconst { data: user, error: userError, isLoading: userLoading } = useQuery({
+  queryKey: ["user"],
+  queryFn: async () => {
+    try {
+      const response = await fetch("/api/users/profile", {
+        headers: authUtils.getAuthHeaders(),
+      });
+      
+      console.log('Response status:', response.status);
+      console.log('Response headers:', response.headers);
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Error response:', errorData);
+        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log('User data received:', data);
+      return data;
+    } catch (error) {
+      console.error('Fetch error:', error);
+      throw error;
+    }
+  },
+  retry: 1,
+});
+
+// Добавь отображение ошибки
+if (userError) {
+  return (
+    <div className="p-8">
+      <Card className="bg-red-50 border-red-200">
+        <CardContent className="pt-6">
+          <h2 className="text-red-800 font-semibold mb-2">Помилка завантаження даних</h2>
+          <p className="text-red-600">{userError.message}</p>
+          <details className="mt-2">
+            <summary className="cursor-pointer text-sm text-red-500">Деталі</summary>
+            <pre className="mt-2 text-xs bg-red-100 p-2 rounded overflow-auto">
+              {JSON.stringify(userError, null, 2)}
+            </pre>
+          </details>
+          <Button 
+            onClick={() => window.location.reload()} 
+            className="mt-4"
+            variant="outline"
+          >
+            Перезавантажити
+          </Button>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

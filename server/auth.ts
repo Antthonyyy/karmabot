@@ -24,32 +24,50 @@ export function generateToken(user: any): string {
 
 // Verify JWT token middleware
 export function authenticateToken(req: AuthRequest, res: Response, next: NextFunction) {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
-
-  if (!token) {
-    return res.status(401).json({ message: 'Access token required' });
-  }
-
-  jwt.verify(token, JWT_SECRET, async (err: any, decoded: any) => {
-    if (err) {
-      return res.status(403).json({ message: 'Invalid or expired token' });
+  try {
+    const authHeader = req.headers['authorization'];
+    console.log('🔐 Auth header:', authHeader ? 'Present' : 'Missing');
+    
+    if (!authHeader) {
+      console.error('❌ No authorization header');
+      return res.status(401).json({ message: 'No authorization header' });
     }
-
-    try {
-      // Get fresh user data
-      const user = await storage.getUser(decoded.id);
-      if (!user) {
-        return res.status(404).json({ message: 'User not found' });
+    
+    const token = authHeader.split(' ')[1];
+    if (!token) {
+      console.error('❌ No token in authorization header');
+      return res.status(401).json({ message: 'No token provided' });
+    }
+    
+    console.log('🔑 Verifying token...');
+    
+    jwt.verify(token, JWT_SECRET, async (err: any, decoded: any) => {
+      if (err) {
+        console.error("❌ JWT verification error:", err.message);
+        return res.status(403).json({ message: 'Invalid or expired token', details: err.message });
       }
 
-      req.user = user;
-      next();
-    } catch (error) {
-      console.error('Error fetching user:', error);
-      res.status(500).json({ message: 'Internal server error' });
-    }
-  });
+      console.log('✅ Token verified, user ID:', decoded.id);
+
+      try {
+        // Get fresh user data
+        const user = await storage.getUser(decoded.id);
+        if (!user) {
+          console.error('❌ User not found in database for ID:', decoded.id);
+          return res.status(404).json({ message: 'User not found' });
+        }
+
+        req.user = user;
+        next();
+      } catch (error) {
+        console.error('❌ Error fetching user:', error);
+        res.status(500).json({ message: 'Internal server error', details: error?.message });
+      }
+    });
+  } catch (error) {
+    console.error("❌ Authentication error:", error?.message);
+    return res.status(500).json({ message: 'Authentication failed', details: error?.message });
+  }
 }
 
 // Optional authentication - doesn't fail if no token

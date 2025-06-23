@@ -46,8 +46,32 @@ export default function DashboardPage() {
   }, [setLocation]);
 
   // Fetch user data
-  const { data: user, isLoading: userLoading, error: userError } = useQuery<User>({
-    queryKey: ["/api/user/me"],
+  const { data: user, error: userError, isLoading: userLoading } = useQuery({
+    queryKey: ["user"],
+    queryFn: async () => {
+      try {
+        const response = await fetch("/api/user/me", {
+          headers: authUtils.getAuthHeaders(),
+        });
+        
+        console.log('Response status:', response.status);
+        console.log('Response headers:', response.headers);
+        
+        if (!response.ok) {
+          const errorData = await response.json();
+          console.error('Error response:', errorData);
+          throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log('User data received:', data);
+        return data;
+      } catch (error) {
+        console.error('Fetch error:', error);
+        throw error;
+      }
+    },
+    retry: 1,
     enabled: !!authUtils.getToken(),
   });
 
@@ -84,13 +108,27 @@ export default function DashboardPage() {
     );
   }
 
-  if (userError || !user) {
+  // Добавь отображение ошибки
+  if (userError) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Card className="max-w-md">
-          <CardContent className="p-6 text-center">
-            <p className="text-red-600 mb-4">Помилка завантаження даних користувача</p>
-            <Button onClick={() => setLocation("/")}>Повернутися на головну</Button>
+      <div className="p-8">
+        <Card className="bg-red-50 border-red-200">
+          <CardContent className="pt-6">
+            <h2 className="text-red-800 font-semibold mb-2">Помилка завантаження даних</h2>
+            <p className="text-red-600">{userError.message}</p>
+            <details className="mt-2">
+              <summary className="cursor-pointer text-sm text-red-500">Деталі</summary>
+              <pre className="mt-2 text-xs bg-red-100 p-2 rounded overflow-auto">
+                {JSON.stringify(userError, null, 2)}
+              </pre>
+            </details>
+            <Button 
+              onClick={() => window.location.reload()} 
+              className="mt-4"
+              variant="outline"
+            >
+              Перезавантажити
+            </Button>
           </CardContent>
         </Card>
       </div>

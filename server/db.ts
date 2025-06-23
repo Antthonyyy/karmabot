@@ -13,3 +13,20 @@ if (!process.env.DATABASE_URL) {
 
 export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 export const db = drizzle({ client: pool, schema });
+
+// Test database connection
+export async function testConnection() {
+  try {
+    console.log('🔌 Testing database connection...');
+    const result = await db.select().from(schema.users).limit(1);
+    console.log('✅ Database connection successful');
+    console.log(`📊 Found ${result.length} users in database`);
+    return true;
+  } catch (error) {
+    console.error('❌ Database connection failed:', error);
+    return false;
+  }
+}
+
+// Call on startup
+testConnection();
