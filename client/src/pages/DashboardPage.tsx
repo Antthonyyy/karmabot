@@ -15,6 +15,8 @@ import AIDailyInsight from "@/components/AIDailyInsight";
 import OnboardingModal from "@/components/OnboardingModal";
 import { useOnboarding } from "@/hooks/useOnboarding";
 import { AIAdvisor } from "@/components/AIAdvisor";
+import { AIChat } from "@/components/AIChat";
+import { AIBudgetStatus } from "@/components/AIBudgetStatus";
 import { User } from "@/lib/types";
 import { authUtils } from '@/utils/auth';
 import { checkAuthError, handleAuthError } from '@/utils/auth-recovery';
