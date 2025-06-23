@@ -1,0 +1,18 @@
+{
+  "totalKarma": "Загальна карма",
+  "currentStreak": "Поточна серія",
+  "totalEntries": "Записи в щоденнику",
+  "averageKarma": "Середня карма",
+  "today": "сьогодні",
+  "days": "днів",
+  "thisMonth": "цього місяця",
+  "perEntry": "за запис",
+  "weeklyActivity": "Тижнева активність",
+  "last7Days": "Останні 7 днів",
+  "weeklyProgress": "Тижневий прогрес",
+  "monthlyGoal": "Місячна ціль",
+  "principlesProgress": "Прогрес по принципах",
+  "mood": "Настрій",
+  "energy": "Енергія",
+  "completionRate": "Відсоток виконання"
+}

@@ -1,0 +1,136 @@
+import { useState } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Heart, Sparkles, HandHeart, Loader2, Plus } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { authUtils } from '@/utils/auth';
+
+interface JournalQuickAddProps {
+  onSuccess?: () => void;
+}
+
+export function JournalQuickAdd({ onSuccess }: JournalQuickAddProps) {
+  const { t } = useTranslation(['journal', 'common']);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [category, setCategory] = useState('kindness');
+  const [description, setDescription] = useState('');
+
+  const addEntryMutation = useMutation({
+    mutationFn: async (data: { category: string; description: string }) => {
+      const res = await fetch('/api/journal/entries', {
+        method: 'POST',
+        headers: {
+          ...authUtils.getAuthHeaders(),
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      });
+      
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.error || 'Failed to add entry');
+      }
+      
+      return res.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Успіх",
+        description: "Запис додано до щоденника"
+      });
+      setDescription('');
+      queryClient.invalidateQueries({ queryKey: ['journal-entries'] });
+      queryClient.invalidateQueries({ queryKey: ['user'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-today-plan'] });
+      onSuccess?.();
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Помилка",
+        description: error.message,
+        variant: 'destructive'
+      });
+    }
+  });
+
+  const categories = [
+    { value: 'kindness', label: 'Доброта', icon: Heart, color: 'text-pink-600' },
+    { value: 'gratitude', label: 'Вдячність', icon: Sparkles, color: 'text-purple-600' },
+    { value: 'help', label: 'Допомога', icon: HandHeart, color: 'text-blue-600' }
+  ];
+
+  const handleSubmit = () => {
+    if (!description.trim()) {
+      toast({
+        title: "Помилка",
+        description: "Опис не може бути порожнім",
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    addEntryMutation.mutate({ category, description });
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Plus className="w-5 h-5" />
+          Швидкий запис
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <RadioGroup value={category} onValueChange={setCategory}>
+          <div className="grid grid-cols-3 gap-2">
+            {categories.map((cat) => {
+              const Icon = cat.icon;
+              return (
+                <Label
+                  key={cat.value}
+                  htmlFor={cat.value}
+                  className={`flex flex-col items-center gap-2 p-3 rounded-lg border-2 cursor-pointer transition-all ${
+                    category === cat.value
+                      ? 'border-primary bg-primary/5'
+                      : 'border-muted hover:border-primary/50'
+                  }`}
+                >
+                  <RadioGroupItem value={cat.value} id={cat.value} className="sr-only" />
+                  <Icon className={`w-6 h-6 ${cat.color}`} />
+                  <span className="text-xs text-center">{cat.label}</span>
+                </Label>
+              );
+            })}
+          </div>
+        </RadioGroup>
+
+        <Textarea
+          placeholder="Опишіть свій добрий вчинок..."
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          rows={3}
+          className="resize-none"
+        />
+
+        <Button
+          onClick={handleSubmit}
+          disabled={addEntryMutation.isPending || !description.trim()}
+          className="w-full"
+        >
+          {addEntryMutation.isPending ? (
+            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+          ) : (
+            <Heart className="w-4 h-4 mr-2" />
+          )}
+          Додати запис
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
