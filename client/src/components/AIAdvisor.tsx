@@ -3,6 +3,7 @@ import { Sparkles, RefreshCw } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
+import { authUtils } from '@/utils/auth';
 
 export function AIAdvisor() {
   const [advice, setAdvice] = useState('');
@@ -13,9 +14,7 @@ export function AIAdvisor() {
     setLoading(true);
     try {
       const response = await fetch('/api/ai/advice', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('karma_token')}`
-        }
+        headers: authUtils.getAuthHeaders()
       });
       
       if (!response.ok) {

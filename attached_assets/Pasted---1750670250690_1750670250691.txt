@@ -1,0 +1,98 @@
+Унифицируй использование токена авторизации во всем приложении "Кармічний щоденник", чтобы избежать путаницы между 'token' и 'karma_token'.
+
+Создай утилиту для работы с авторизацией /client/src/utils/auth.ts:
+
+typescriptconst TOKEN_KEY = 'karma_token';
+const USER_KEY = 'karma_user';
+
+export const authUtils = {
+  // Токен
+  getToken: () => localStorage.getItem(TOKEN_KEY),
+  setToken: (token: string) => localStorage.setItem(TOKEN_KEY, token),
+  removeToken: () => localStorage.removeItem(TOKEN_KEY),
+  
+  // Пользователь
+  getUser: () => {
+    const userStr = localStorage.getItem(USER_KEY);
+    return userStr ? JSON.parse(userStr) : null;
+  },
+  setUser: (user: any) => localStorage.setItem(USER_KEY, JSON.stringify(user)),
+  removeUser: () => localStorage.removeItem(USER_KEY),
+  
+  // Очистка всех данных
+  clearAuth: () => {
+    authUtils.removeToken();
+    authUtils.removeUser();
+  },
+  
+  // Проверка авторизации
+  isAuthenticated: () => !!authUtils.getToken(),
+  
+  // Заголовки для запросов
+  getAuthHeaders: () => ({
+    'Authorization': `Bearer ${authUtils.getToken()}`,
+    'Content-Type': 'application/json'
+  })
+};
+
+Создай хук для использования в компонентах /client/src/hooks/useAuth.ts:
+
+typescriptimport { authUtils } from '@/utils/auth';
+import { useNavigate } from 'react-router-dom';
+import { useToast } from './use-toast';
+
+export function useAuth() {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  
+  const logout = () => {
+    authUtils.clearAuth();
+    navigate('/login');
+    toast({
+      title: "Вихід виконано",
+      description: "До зустрічі!"
+    });
+  };
+  
+  return {
+    token: authUtils.getToken(),
+    user: authUtils.getUser(),
+    isAuthenticated: authUtils.isAuthenticated(),
+    logout,
+    authUtils
+  };
+}
+
+Обнови все компоненты, заменив прямые обращения к localStorage:
+
+
+Найди все использования localStorage.getItem('token') и localStorage.getItem('karma_token')
+Замени их на authUtils.getToken()
+Для заголовков используй headers: authUtils.getAuthHeaders()
+
+
+Обнови пример fetch запроса в любом компоненте:
+
+typescript// Было:
+const response = await fetch('/api/data', {
+  headers: {
+    'Authorization': `Bearer ${localStorage.getItem('token')}`,
+    'Content-Type': 'application/json'
+  }
+});
+
+// Стало:
+import { authUtils } from '@/utils/auth';
+
+const response = await fetch('/api/data', {
+  headers: authUtils.getAuthHeaders()
+});
+
+Обнови компонент логина для использования authUtils:
+
+typescript// После успешного логина
+authUtils.setToken(data.token);
+authUtils.setUser(data.user);
+Проверь: выполни поиск по проекту для 'localStorage.getItem' - не должно остаться прямых обращений к токену. Все должно использовать authUtils.
+
+**После выполнения**: Проверьте, что авторизация работает и токен сохраняется как 'karma_token'
