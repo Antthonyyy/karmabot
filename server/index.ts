@@ -1,6 +1,15 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { checkEnvVariables, logEnvStatus } from "./utils/env-check";
+
+// Проверяем переменные окружения при запуске
+if (!checkEnvVariables()) {
+  console.log('⚠️  Настройте переменные окружения и перезапустите сервер');
+}
+
+// Показываем статус всех переменных окружения
+logEnvStatus();
 
 const app = express();
 app.use(express.json());
