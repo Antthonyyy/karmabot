@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, varchar, jsonb, real, date } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, varchar, jsonb, real, date, decimal } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -22,6 +22,10 @@ export const users = pgTable("users", {
   remindersEnabled: boolean("reminders_enabled").default(true),
   lastReminderSent: timestamp("last_reminder_sent"),
   hasCompletedOnboarding: boolean("has_completed_onboarding").default(false),
+  subscription: text("subscription").$type<'none' | 'light' | 'plus' | 'pro'>().default('none'),
+  subscriptionStartDate: timestamp("subscription_start_date"),
+  subscriptionEndDate: timestamp("subscription_end_date"),
+  preferredLanguage: text("preferred_language").default('uk'),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -142,6 +146,49 @@ export const aiInsights = pgTable("ai_insights", {
   interactions: jsonb("interactions").default({}),
 });
 
+export const subscriptions = pgTable("subscriptions", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  plan: text("plan").$type<'light' | 'plus' | 'pro'>().notNull(),
+  billingPeriod: text("billing_period").$type<'monthly' | 'yearly'>().notNull(),
+  startDate: timestamp("start_date").notNull(),
+  endDate: timestamp("end_date").notNull(),
+  status: text("status").$type<'active' | 'cancelled' | 'expired' | 'pending'>().default('pending'),
+  paymentOrderId: text("payment_order_id"),
+  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+  currency: text("currency").default('EUR'),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const aiRequests = pgTable("ai_requests", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  type: text("type").$type<'advisor' | 'chat' | 'insight'>().notNull(),
+  tokensUsed: integer("tokens_used").notNull().default(0),
+  cost: decimal("cost", { precision: 10, scale: 4 }).notNull().default('0'),
+  model: text("model").notNull().default('gpt-4o'),
+  prompt: text("prompt"),
+  response: text("response"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const aiCache = pgTable("ai_cache", {
+  id: serial("id").primaryKey(),
+  questionHash: text("question_hash").notNull().unique(),
+  response: text("response").notNull(),
+  language: text("language").default('uk'),
+  expiresAt: timestamp("expires_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const achievements = pgTable("achievements", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  type: text("type").$type<'first_entry' | '7_days_streak' | '30_days_streak' | '50_entries' | '100_entries' | 'gratitude_master' | 'karma_champion'>().notNull(),
+  unlockedAt: timestamp("unlocked_at").defaultNow(),
+  notified: boolean("notified").default(false),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many, one }) => ({
   journalEntries: many(journalEntries),
@@ -151,6 +198,9 @@ export const usersRelations = relations(users, ({ many, one }) => ({
   }),
   reminderSchedules: many(reminderSchedules),
   userPrinciples: many(userPrinciples),
+  subscriptions: many(subscriptions),
+  aiRequests: many(aiRequests),
+  achievements: many(achievements),
 }));
 
 export const journalEntriesRelations = relations(journalEntries, ({ one }) => ({
@@ -228,6 +278,27 @@ export const userSessionsRelations = relations(userSessions, ({ one }) => ({
   }),
 }));
 
+export const subscriptionsRelations = relations(subscriptions, ({ one }) => ({
+  user: one(users, {
+    fields: [subscriptions.userId],
+    references: [users.id],
+  }),
+}));
+
+export const aiRequestsRelations = relations(aiRequests, ({ one }) => ({
+  user: one(users, {
+    fields: [aiRequests.userId],
+    references: [users.id],
+  }),
+}));
+
+export const achievementsRelations = relations(achievements, ({ one }) => ({
+  user: one(users, {
+    fields: [achievements.userId],
+    references: [users.id],
+  }),
+}));
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -264,3 +335,11 @@ export type AIInsight = typeof aiInsights.$inferSelect;
 export type InsertAIInsight = typeof aiInsights.$inferInsert;
 export type UserSession = typeof userSessions.$inferSelect;
 export type InsertUserSession = typeof userSessions.$inferInsert;
+export type Subscription = typeof subscriptions.$inferSelect;
+export type InsertSubscription = typeof subscriptions.$inferInsert;
+export type AIRequest = typeof aiRequests.$inferSelect;
+export type InsertAIRequest = typeof aiRequests.$inferInsert;
+export type AICache = typeof aiCache.$inferSelect;
+export type InsertAICache = typeof aiCache.$inferInsert;
+export type Achievement = typeof achievements.$inferSelect;
+export type InsertAchievement = typeof achievements.$inferInsert;

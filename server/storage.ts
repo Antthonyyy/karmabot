@@ -84,6 +84,26 @@ export interface IStorage {
   createUserPrinciple(userPrinciple: InsertUserPrinciple): Promise<UserPrinciple>;
   getActiveReminders(): Promise<Array<ReminderSchedule & { user: User }>>;
   getNextPrincipleForUser(userId: number): Promise<Principle | undefined>;
+  
+  // Subscription methods
+  getUserSubscriptions(userId: number): Promise<Subscription[]>;
+  createSubscription(subscription: InsertSubscription): Promise<Subscription>;
+  updateSubscriptionStatus(subscriptionId: number, status: string): Promise<void>;
+  
+  // AI Request methods
+  getMonthlyAIRequests(userId: number, month: string): Promise<number>;
+  createAIRequest(request: InsertAIRequest): Promise<AIRequest>;
+  
+  // AI Cache methods
+  getCachedAIResponse(hash: string): Promise<AICache | undefined>;
+  cacheAIResponse(cache: InsertAICache): Promise<AICache>;
+  deleteCachedAIResponse(hash: string): Promise<void>;
+  cleanExpiredAICache(): Promise<void>;
+  
+  // Achievement methods
+  getUserAchievements(userId: number): Promise<Achievement[]>;
+  createAchievement(achievement: InsertAchievement): Promise<Achievement>;
+  markAchievementAsNotified(achievementId: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
