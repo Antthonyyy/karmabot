@@ -1,0 +1,48 @@
+{
+  "greeting": {
+    "morning": "Good morning, {{name}}!",
+    "afternoon": "Good afternoon, {{name}}!",
+    "evening": "Good evening, {{name}}!"
+  },
+  "user": "User",
+  "quotes": [
+    "Every day is a new chance to become better",
+    "Your actions today shape your karma tomorrow",
+    "Kindness is a language everyone understands",
+    "Positive energy attracts positive changes",
+    "Soul development is the most important journey"
+  ],
+  "stats": {
+    "totalKarma": "Total Karma",
+    "streak": "Current Streak",
+    "entries": "Entries",
+    "subscription": "Subscription",
+    "today": "today",
+    "days": "days"
+  },
+  "plans": {
+    "none": "Free",
+    "light": "Light",
+    "plus": "Plus",
+    "pro": "Pro"
+  },
+  "upgrade": "Upgrade",
+  "tabs": {
+    "overview": "Overview",
+    "aiChat": "AI Chat",
+    "analytics": "Analytics",
+    "achievements": "Achievements"
+  },
+  "quickAdd": {
+    "title": "Quick Entry",
+    "description": "Add a new entry to your journal",
+    "success": "Entry added to journal"
+  },
+  "progress": {
+    "title": "Daily Progress",
+    "description": "Your achievements today",
+    "positiveActions": "Positive Actions",
+    "gratitude": "Gratitude"
+  },
+  "recentAchievements": "Recent Achievements"
+}
