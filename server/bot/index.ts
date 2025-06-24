@@ -9,8 +9,8 @@ import { eq, gte, and } from 'drizzle-orm';
 const token = process.env.TELEGRAM_BOT_TOKEN;
 
 if (!token) {
-  console.error("❌ TELEGRAM_BOT_TOKEN not found");
-  process.exit(1);
+  console.log("⚠️ TELEGRAM_BOT_TOKEN not found - enhanced bot disabled");
+  process.exit(0);
 }
 
 const bot = new TelegramBot(token, { polling: true });
