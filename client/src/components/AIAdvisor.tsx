@@ -10,6 +10,7 @@ import { SubscriptionRequired } from './SubscriptionRequired';
 export function AIAdvisor() {
   const [advice, setAdvice] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
   // Check subscription features
@@ -26,12 +27,22 @@ export function AIAdvisor() {
   
   const getAdvice = async () => {
     setLoading(true);
+    
+    const token = localStorage.getItem('token');
+    console.log('Token from localStorage:', token ? 'exists' : 'missing');
+    
+    if (!token) {
+      setError('Необхідно увійти в систему');
+      setLoading(false);
+      return;
+    }
+    
     try {
       const response = await fetch('/api/ai/advice', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${token}`
         }
       });
 

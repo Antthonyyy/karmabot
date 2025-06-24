@@ -1,0 +1,68 @@
+Исправь проблему с авторизацией для AI endpoint:
+
+1. В файле /client/src/components/dashboard/AIAdvisor.tsx проверь как отправляется токен:
+```typescript
+const handleGetAdvice = async () => {
+  const token = localStorage.getItem('token');
+  console.log('Token from localStorage:', token ? 'exists' : 'missing');
+  
+  if (!token) {
+    setError('Необхідно увійти в систему');
+    return;
+  }
+  
+  try {
+    const response = await fetch('/api/ai/advice', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}` // Убедись что есть Bearer
+      }
+    });
+    // ... остальной код
+  }
+}
+
+В файле /server/middleware/auth.ts проверь что middleware правильно проверяет токен:
+
+typescriptexport const authenticate = async (req: Request, res: Response, next: NextFunction) => {
+  const authHeader = req.headers.authorization;
+  console.log('Auth header:', authHeader);
+  
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    console.log('Missing or invalid auth header');
+    return res.status(403).json({ error: 'Invalid token' });
+  }
+  
+  const token = authHeader.substring(7);
+  console.log('Token extracted:', token ? 'yes' : 'no');
+  
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET) as any;
+    console.log('Token decoded, user ID:', decoded.userId);
+    
+    const user = await User.findByPk(decoded.userId);
+    if (!user) {
+      console.log('User not found');
+      return res.status(403).json({ error: 'Invalid token' });
+    }
+    
+    req.user = user;
+    next();
+  } catch (error) {
+    console.log('Token verification failed:', error.message);
+    return res.status(403).json({ error: 'Invalid token' });
+  }
+};
+
+Убедись что в /server/routes/ai.ts используется правильный middleware:
+
+typescriptimport { authenticate } from '../middleware/auth';
+import { requireSubscription } from '../middleware/subscription';
+
+// Сначала authenticate, потом requireSubscription
+router.post('/advice', authenticate, requireSubscription(['plus', 'pro']), async (req, res) => {
+  console.log('AI advice route reached, user:', req.user?.id);
+  // ... остальной код
+});
+Проблема в том, что токен не проходит проверку. Это исправит авторизацию.
