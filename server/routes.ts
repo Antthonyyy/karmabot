@@ -13,8 +13,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize principles data
   await initializePrinciples();
 
-  // Register AI routes
-  app.use(aiRoutes);
+  // Add request logging for debugging
+  app.use((req, res, next) => {
+    console.log(`${req.method} ${req.path}`);
+    next();
+  });
+
+  // Register AI routes with proper prefix
+  app.use('/api/ai', aiRoutes);
 
   // Auth routes - Session-based Telegram authentication
   app.post('/api/auth/telegram/start-session', (req, res) => {

@@ -4,9 +4,17 @@ import { requireSubscription } from '../middleware/subscription.js';
 import { AIAssistant } from '../services/ai-assistant.js';
 import type { AuthRequest } from '../auth.js';
 
+console.log('AI routes file loaded');
+
 const router = Router();
 
-router.post('/api/ai/advice', authenticateToken, requireSubscription('plus'), async (req: AuthRequest, res) => {
+// Add debugging middleware
+router.use((req, res, next) => {
+  console.log('AI route accessed:', req.method, req.path);
+  next();
+});
+
+router.post('/advice', authenticateToken, requireSubscription('plus'), async (req: AuthRequest, res) => {
   try {
     console.log('Getting AI advice for user:', req.user?.id);
     
@@ -32,7 +40,7 @@ router.post('/api/ai/advice', authenticateToken, requireSubscription('plus'), as
   }
 });
 
-router.get('/api/ai/insight/:principleId', authenticateToken, requireSubscription('plus'), async (req: AuthRequest, res) => {
+router.get('/insight/:principleId', authenticateToken, requireSubscription('plus'), async (req: AuthRequest, res) => {
   try {
     if (!req.user?.id) {
       return res.status(401).json({ error: 'User not authenticated' });
@@ -53,7 +61,7 @@ router.get('/api/ai/insight/:principleId', authenticateToken, requireSubscriptio
   }
 });
 
-router.post('/api/ai/chat', authenticateToken, requireSubscription('pro'), async (req: AuthRequest, res) => {
+router.post('/chat', authenticateToken, requireSubscription('pro'), async (req: AuthRequest, res) => {
   try {
     if (!req.user?.id) {
       return res.status(401).json({ error: 'User not authenticated' });
