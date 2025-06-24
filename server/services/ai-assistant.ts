@@ -6,14 +6,16 @@ export class AIAssistant {
 
   constructor() {
     const apiKey = process.env.OPENAI_API_KEY || process.env.api_key_openai;
+    
     if (!apiKey) {
       console.error('OpenAI API key is missing! Checked: OPENAI_API_KEY, api_key_openai');
       throw new Error("OPENAI_API_KEY environment variable is required");
+    } else {
+      console.log('OpenAI API key found, starting with:', apiKey.substring(0, 10));
     }
     
-    console.log('🤖 OpenAI API key found, initializing client...');
     this.openai = new OpenAI({
-      apiKey: apiKey,
+      apiKey: apiKey
     });
   }
 
