@@ -2,16 +2,20 @@ import OpenAI from "openai";
 import { storage } from "../storage.js";
 
 export class AIAssistant {
-  private openai: OpenAI;
+  public openai: OpenAI;
+  private model: string;
 
   constructor() {
     const apiKey = process.env.OPENAI_API_KEY || process.env.api_key_openai;
+    
+    // Используем GPT-4o для высокого качества психологических советов
+    this.model = 'gpt-4o';
     
     if (!apiKey) {
       console.error('OpenAI API key is missing! Checked: OPENAI_API_KEY, api_key_openai');
       throw new Error("OPENAI_API_KEY environment variable is required");
     } else {
-      console.log('OpenAI API key found, starting with:', apiKey.substring(0, 10));
+      console.log('OpenAI initialized with model:', this.model);
     }
     
     this.openai = new OpenAI({
@@ -37,7 +41,7 @@ export class AIAssistant {
         .map((entry, index) => `Запис ${index + 1}: ${entry.content}`)
         .join('\n\n');
 
-      const prompt = `Ви - мудрий наставник з духовного розвитку. Проаналізуйте записи користувача з кармічного щоденника і дайте персональну пораду.
+      const prompt = `Проаналізуйте записи користувача з кармічного щоденника і дайте персональну пораду.
 
 Записи користувача:
 ${entriesText}
@@ -51,11 +55,17 @@ ${entriesText}
 - На українській мові`;
 
       const response = await this.openai.chat.completions.create({
-        model: "gpt-3.5-turbo", // Using stable model for better compatibility
+        model: this.model,
         messages: [
           {
             role: "system",
-            content: "Ви - експерт з духовного розвитку та кармічних практик. Надавайте мудрі, підтримуючі поради українською мовою."
+            content: `Ти досвідчений психолог-консультант з глибоким розумінням кармічних практик. 
+            Твої поради мають бути:
+            - Емпатичними та підтримуючими
+            - Конкретними та практичними
+            - Безпечними та етичними
+            - Враховувати індивідуальний контекст людини
+            Уникай загальних фраз, давай персоналізовані рекомендації.`
           },
           {
             role: "user",
@@ -106,11 +116,17 @@ ${entriesText}
 - На українській мові`;
 
       const response = await this.openai.chat.completions.create({
-        model: "gpt-3.5-turbo", // Using stable model for better compatibility
+        model: this.model,
         messages: [
           {
             role: "system", 
-            content: "Ви - наставник з кармічних практик. Надавайте короткі, практичні поради українською мовою."
+            content: `Ти досвідчений психолог-консультант з глибоким розумінням кармічних практик. 
+            Твої поради мають бути:
+            - Емпатичними та підтримуючими
+            - Конкретними та практичними
+            - Безпечними та етичними
+            - Враховувати індивідуальний контекст людини
+            Уникай загальних фраз, давай персоналізовані рекомендації.`
           },
           {
             role: "user",

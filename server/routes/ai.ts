@@ -43,4 +43,61 @@ router.get('/api/ai/insight/:principleId', authenticateToken, requireSubscriptio
   }
 });
 
+router.post('/api/ai/chat', authenticateToken, requireSubscription('pro'), async (req: AuthRequest, res) => {
+  try {
+    if (!req.user?.id) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
+
+    const { messages, language = 'uk' } = req.body;
+    
+    if (!messages || !Array.isArray(messages)) {
+      return res.status(400).json({ error: 'Messages array is required' });
+    }
+
+    const aiAssistant = new AIAssistant();
+    
+    // Add system context for chat
+    const chatMessages = [
+      {
+        role: 'system',
+        content: language === 'uk' 
+          ? `Ти досвідчений психолог-консультант з глибоким розумінням кармічних практик. 
+            Відповідай українською мовою.
+            Твої поради мають бути:
+            - Емпатичними та підтримуючими
+            - Конкретними та практичними
+            - Безпечними та етичними
+            - Враховувати індивідуальний контекст людини
+            Уникай загальних фраз, давай персоналізовані рекомендації.`
+          : `You are an experienced psychologist-consultant with deep understanding of karmic practices.
+            Your advice should be:
+            - Empathetic and supportive
+            - Concrete and practical
+            - Safe and ethical
+            - Consider individual context
+            Avoid generic phrases, give personalized recommendations.`
+      },
+      ...messages
+    ];
+
+    const response = await aiAssistant.openai.chat.completions.create({
+      model: 'gpt-4o',
+      messages: chatMessages,
+      max_tokens: 500,
+      temperature: 0.7
+    });
+
+    const reply = response.choices[0]?.message?.content;
+    if (!reply) {
+      throw new Error('No response from AI');
+    }
+
+    res.json({ reply });
+  } catch (error) {
+    console.error('AI chat error:', error);
+    res.status(500).json({ error: 'Failed to process chat message' });
+  }
+});
+
 export default router;
