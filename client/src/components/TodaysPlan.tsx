@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { CheckCircle2, Circle, Clock, Target, Plus, Settings } from "lucide-react";
 import { Link } from "wouter";
 import DiaryForm from "./DiaryForm";
-import AIDailyInsight from "./AIDailyInsight";
+
 
 interface TodaysPlanProps {
   className?: string;
@@ -249,13 +249,7 @@ export default function TodaysPlan({ className }: TodaysPlanProps) {
         </CardContent>
       </Card>
 
-      {/* AI Daily Insight - shown only when there are principles for today */}
-      {principles.length > 0 && (
-        <AIDailyInsight 
-          principleId={principles[0].id} 
-          className="mt-6"
-        />
-      )}
+
 
       {/* Diary Form Dialog */}
       <Dialog open={showDiaryForm} onOpenChange={setShowDiaryForm}>
