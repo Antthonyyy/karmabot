@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Trophy, Lock, Star, Flame, Heart, Target, Calendar, Zap } from 'lucide-react';
+import { Trophy, Star, Flame, Heart, Target, Calendar, Zap } from 'lucide-react';
 import { authUtils } from '@/utils/auth';
 
 export function Achievements() {
@@ -147,11 +147,7 @@ export function Achievements() {
               <CardHeader className="pb-3">
                 <div className="flex items-center gap-3">
                   <div className={`p-2 rounded-lg ${achievement.unlocked ? achievement.bgColor : 'bg-gray-100'}`}>
-                    {achievement.unlocked ? (
-                      <Icon className={`w-6 h-6 ${achievement.color}`} />
-                    ) : (
-                      <Lock className="w-6 h-6 text-gray-400" />
-                    )}
+                    <Icon className={`w-6 h-6 ${achievement.unlocked ? achievement.color : 'text-gray-400'}`} />
                   </div>
                   <div>
                     <CardTitle className="text-lg">{achievement.title}</CardTitle>
@@ -179,11 +175,10 @@ export function Achievements() {
         })}
       </div>
 
-      {/* Locked Achievements Info */}
+      {/* Motivational message for locked achievements */}
       {unlockedCount < allAchievements.length && (
         <Card className="border-dashed">
           <CardContent className="text-center py-8">
-            <Lock className="w-12 h-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-semibold mb-2">Більше досягнень чекає на вас!</h3>
             <p className="text-muted-foreground">
               Продовжуйте вести щоденник та розвивати позитивну карму, 
