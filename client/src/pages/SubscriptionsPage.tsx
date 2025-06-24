@@ -7,6 +7,7 @@ import { CheckCircle, Crown, Zap, Star } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { authUtils } from '@/utils/auth';
 import { useToast } from '@/hooks/use-toast';
+import { BackButton } from '@/components/BackButton';
 
 interface Plan {
   id: string;
@@ -131,6 +132,7 @@ export default function SubscriptionsPage() {
   return (
     <div className="min-h-screen bg-gray-50 py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <BackButton />
         {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">

@@ -11,6 +11,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import ReminderModeSelector from "@/components/ReminderModeSelector";
 import CustomScheduleEditor from "@/components/CustomScheduleEditor";
+import { BackButton } from "@/components/BackButton";
 
 interface Schedule {
   id?: number;
@@ -149,12 +150,7 @@ export default function SettingsPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
       <div className="max-w-4xl mx-auto p-4">
-        <Link href="/dashboard">
-          <Button variant="ghost" className="mb-6">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Назад
-          </Button>
-        </Link>
+        <BackButton />
         
         {/* Основная карточка настроек */}
         <Card className="mb-6">

@@ -7,6 +7,7 @@ import ReminderModeSelector from "@/components/ReminderModeSelector";
 import CustomScheduleEditor, { type ScheduleItem } from "@/components/CustomScheduleEditor";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { BackButton } from "@/components/BackButton";
 
 export default function OnboardingPage() {
   const [step, setStep] = useState(1);
@@ -48,6 +49,7 @@ export default function OnboardingPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 flex items-center justify-center p-4">
       <div className="max-w-4xl w-full">
+        <BackButton to="/" />
         <Card className="shadow-xl">
           <CardHeader className="text-center pb-8">
             <CardTitle className="text-3xl font-bold text-gray-900">
