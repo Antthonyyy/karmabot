@@ -25,8 +25,11 @@ export class AIAssistant {
 
   async analyzeUserEntries(userId: number): Promise<string> {
     try {
+      console.log('Starting AI analysis for user:', userId);
+      
       // Get user's recent journal entries
       const entries = await storage.getUserJournalEntries(userId, 10);
+      console.log('Found entries:', entries.length);
       
       if (entries.length === 0) {
         return "Почніть вести щоденник, і я зможу дати вам персональні поради на основі ваших записів!";
@@ -35,11 +38,14 @@ export class AIAssistant {
       // Get user info for personalization
       const user = await storage.getUser(userId);
       const userName = user?.firstName || "друже";
+      console.log('User name:', userName);
 
       // Prepare entries text for analysis
       const entriesText = entries
         .map((entry, index) => `Запис ${index + 1}: ${entry.content}`)
         .join('\n\n');
+      
+      console.log('Entries text length:', entriesText.length);
 
       const prompt = `Проаналізуйте записи користувача з кармічного щоденника і дайте персональну пораду.
 
@@ -76,17 +82,18 @@ ${entriesText}
         temperature: 0.7,
       });
 
-      return response.choices[0]?.message?.content || "Продовжуйте вести щоденник і практикувати кармічні принципи. Ваш духовний розвиток - це подорож, кожен крок якої має значення.";
-
+      console.log('OpenAI response received');
+      const advice = response.choices[0]?.message?.content;
+      console.log('Generated advice:', advice);
+      
+      if (!advice) {
+        throw new Error('No content in OpenAI response');
+      }
+      
+      return advice;
     } catch (error) {
-      console.error('AI Assistant detailed error:', {
-        message: error.message,
-        response: error.response?.data,
-        status: error.response?.status,
-        code: error.code,
-        type: error.type
-      });
-      throw new Error("Не вдалося проаналізувати ваші записи. Спробуйте пізніше.");
+      console.error('Error analyzing user entries:', error);
+      throw error; // Re-throw to let the router handle it properly
     }
   }
 

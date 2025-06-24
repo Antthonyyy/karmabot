@@ -6,8 +6,10 @@ import type { AuthRequest } from '../auth.js';
 
 const router = Router();
 
-router.get('/api/ai/advice', authenticateToken, requireSubscription('plus'), async (req: AuthRequest, res) => {
+router.post('/api/ai/advice', authenticateToken, requireSubscription('plus'), async (req: AuthRequest, res) => {
   try {
+    console.log('Getting AI advice for user:', req.user?.id);
+    
     if (!req.user?.id) {
       return res.status(401).json({ error: 'User not authenticated' });
     }
@@ -15,10 +17,18 @@ router.get('/api/ai/advice', authenticateToken, requireSubscription('plus'), asy
     const aiAssistant = new AIAssistant();
     const advice = await aiAssistant.analyzeUserEntries(req.user.id);
     
+    console.log('Generated advice:', advice);
+    
+    if (!advice) {
+      throw new Error('No advice generated');
+    }
+    
     res.json({ advice });
   } catch (error) {
-    console.error('AI advice error:', error);
-    res.status(500).json({ error: 'Failed to get AI advice' });
+    console.error('AI Advice Error:', error);
+    res.status(500).json({ 
+      error: error.message || 'Failed to get AI advice'
+    });
   }
 });
 

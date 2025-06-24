@@ -28,15 +28,42 @@ export function AIAdvisor() {
     setLoading(true);
     try {
       const response = await fetch('/api/ai/advice', {
-        headers: authUtils.getAuthHeaders()
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
       });
+
+      console.log('AI Response status:', response.status);
       
-      if (!response.ok) {
-        throw new Error('Failed to get AI advice');
+      // Read response as text first
+      const responseText = await response.text();
+      console.log('AI Response text:', responseText);
+      
+      // Check if response is not empty
+      if (!responseText) {
+        throw new Error('Empty response from server');
       }
       
-      const data = await response.json();
-      setAdvice(data.advice);
+      // Parse JSON
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (e) {
+        console.error('Failed to parse JSON:', e);
+        throw new Error('Invalid JSON response');
+      }
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to get advice');
+      }
+      
+      if (data.advice) {
+        setAdvice(data.advice);
+      } else {
+        throw new Error('No advice in response');
+      }
     } catch (error) {
       console.error('Error getting AI advice:', error);
       toast({

@@ -1,0 +1,98 @@
+Вижу, что запрос проходит (status 200), но возвращается пустой объект ошибки. Давайте проверим, что именно возвращает сервер:
+🔧 Промпт для исправления пустого ответа:
+Исправь проблему с пустым ответом от AI endpoint:
+
+1. В файле /client/src/components/dashboard/AIAdvisor.tsx исправь обработку ответа:
+```typescript
+const handleGetAdvice = async () => {
+  setLoading(true);
+  setError(null);
+  
+  try {
+    const response = await fetch('/api/ai/advice', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      }
+    });
+
+    console.log('AI Response status:', response.status);
+    
+    // Читаем ответ как текст сначала
+    const responseText = await response.text();
+    console.log('AI Response text:', responseText);
+    
+    // Проверяем, что ответ не пустой
+    if (!responseText) {
+      throw new Error('Empty response from server');
+    }
+    
+    // Парсим JSON
+    let data;
+    try {
+      data = JSON.parse(responseText);
+    } catch (e) {
+      console.error('Failed to parse JSON:', e);
+      throw new Error('Invalid JSON response');
+    }
+    
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to get advice');
+    }
+    
+    if (data.advice) {
+      setAdvice(data.advice);
+    } else {
+      throw new Error('No advice in response');
+    }
+  } catch (err) {
+    console.error('Error getting AI advice:', err);
+    setError('Не вдалося отримати AI-пораду. Спробуйте пізніше.');
+  } finally {
+    setLoading(false);
+  }
+};
+
+В файле /server/routes/ai.ts добавь проверку что advice действительно генерируется:
+
+typescriptrouter.post('/advice', requireSubscription(['plus', 'pro']), async (req, res) => {
+  try {
+    console.log('Getting AI advice for user:', req.user?.id);
+    
+    const advice = await aiAssistant.getAdvice(req.user.id);
+    
+    console.log('Generated advice:', advice);
+    
+    if (!advice) {
+      throw new Error('No advice generated');
+    }
+    
+    res.json({ advice });
+  } catch (error) {
+    console.error('AI Advice Error:', error);
+    res.status(500).json({ 
+      error: error.message || 'Failed to get AI advice'
+    });
+  }
+});
+
+Проверь что роуты правильно экспортируются в /server/routes/ai.ts:
+
+typescriptmodule.exports = router;
+// или
+export default router;
+
+И импортируются в /server/routes/index.ts:
+
+typescriptconst aiRoutes = require('./ai');
+// или
+import aiRoutes from './ai';
+
+router.use('/ai', aiRoutes);
+Это должно показать, где именно теряется ответ от AI.
+
+## 💡 Проблема видимо в том, что:
+- Запрос доходит до сервера (200 OK)
+- Но ответ приходит пустой
+- Возможно, роуты не подключены правильно или ответ не формируется
