@@ -5,11 +5,13 @@ export class AIAssistant {
   private openai: OpenAI;
 
   constructor() {
-    const apiKey = process.env.OPENAI_API_KEY;
+    const apiKey = process.env.OPENAI_API_KEY || process.env.api_key_openai;
     if (!apiKey) {
+      console.error('OpenAI API key is missing! Checked: OPENAI_API_KEY, api_key_openai');
       throw new Error("OPENAI_API_KEY environment variable is required");
     }
     
+    console.log('🤖 OpenAI API key found, initializing client...');
     this.openai = new OpenAI({
       apiKey: apiKey,
     });
@@ -47,7 +49,7 @@ ${entriesText}
 - На українській мові`;
 
       const response = await this.openai.chat.completions.create({
-        model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+        model: "gpt-3.5-turbo", // Using stable model for better compatibility
         messages: [
           {
             role: "system",
@@ -65,7 +67,13 @@ ${entriesText}
       return response.choices[0]?.message?.content || "Продовжуйте вести щоденник і практикувати кармічні принципи. Ваш духовний розвиток - це подорож, кожен крок якої має значення.";
 
     } catch (error) {
-      console.error("Error analyzing user entries:", error);
+      console.error('AI Assistant detailed error:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        code: error.code,
+        type: error.type
+      });
       throw new Error("Не вдалося проаналізувати ваші записи. Спробуйте пізніше.");
     }
   }
@@ -96,7 +104,7 @@ ${entriesText}
 - На українській мові`;
 
       const response = await this.openai.chat.completions.create({
-        model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+        model: "gpt-3.5-turbo", // Using stable model for better compatibility
         messages: [
           {
             role: "system", 
@@ -114,7 +122,13 @@ ${entriesText}
       return response.choices[0]?.message?.content || `Сьогодні зосередьтеся на практиці принципу "${principle.title}" у повсякденних справах.`;
 
     } catch (error) {
-      console.error("Error generating personalized insight:", error);
+      console.error('AI Assistant detailed error:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        code: error.code,
+        type: error.type
+      });
       throw new Error("Не вдалося згенерувати підказку. Спробуйте пізніше.");
     }
   }

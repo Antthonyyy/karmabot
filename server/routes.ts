@@ -6,11 +6,15 @@ import { telegramService } from "./services/telegramService.js";
 import { reminderService } from "./services/reminderService.js";
 import { insertJournalEntrySchema } from "@shared/schema.js";
 import { createSession, checkSession, deleteSession } from "./auth-sessions.js";
+import aiRoutes from "./routes/ai.js";
 import "./telegram-bot.js"; // Import to start the bot
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize principles data
   await initializePrinciples();
+
+  // Register AI routes
+  app.use(aiRoutes);
 
   // Auth routes - Session-based Telegram authentication
   app.post('/api/auth/telegram/start-session', (req, res) => {

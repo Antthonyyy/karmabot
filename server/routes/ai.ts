@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { authenticateToken } from '../auth.js';
+import { requireSubscription } from '../middleware/subscription.js';
 import { AIAssistant } from '../services/ai-assistant.js';
 import type { AuthRequest } from '../auth.js';
 
