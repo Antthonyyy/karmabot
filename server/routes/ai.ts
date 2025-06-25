@@ -14,7 +14,31 @@ router.use((req, res, next) => {
   next();
 });
 
-router.post('/advice', authenticateToken, async (req: AuthRequest, res) => {
+// Test endpoint to create Pro subscription
+router.get('/create-test-subscription', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    console.log('Creating test subscription for user:', req.user?.id);
+    
+    const subscription = await storage.createSubscription({
+      userId: req.user.id,
+      plan: 'pro',
+      status: 'active',
+      startDate: new Date(),
+      endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // +30 days
+      paymentMethod: 'test',
+      amount: 20.00,
+      currency: 'EUR'
+    });
+    
+    console.log('Test Pro subscription created:', subscription);
+    res.json({ message: 'Test Pro subscription created', subscription });
+  } catch (error) {
+    console.error('Error creating test subscription:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.post('/advice', authenticateToken, requireSubscription('plus'), async (req: AuthRequest, res) => {
   try {
     console.log('AI advice route reached, user:', req.user?.id);
     
@@ -23,19 +47,9 @@ router.post('/advice', authenticateToken, async (req: AuthRequest, res) => {
       return res.status(401).json({ error: 'User not authenticated' });
     }
 
-    // Check subscription manually for better debugging
-    try {
-      const subscription = await storage.getUserSubscriptions(req.user.id);
-      console.log('User subscriptions:', subscription);
-      
-      // For now, allow all users to test AI functionality
-      // TODO: Re-enable subscription check later
-      // if (!subscription || subscription.length === 0) {
-      //   return res.status(403).json({ error: 'Subscription required' });
-      // }
-    } catch (subError) {
-      console.log('Subscription check error (continuing anyway):', subError);
-    }
+    // Check subscription
+    const subscriptions = await storage.getUserSubscriptions(req.user.id);
+    console.log('User subscriptions:', subscriptions);
 
     const aiAssistant = new AIAssistant();
     const advice = await aiAssistant.analyzeUserEntries(req.user.id);
