@@ -8,8 +8,8 @@ export class AIAssistant {
   constructor() {
     const apiKey = process.env.OPENAI_API_KEY || process.env.api_key_openai;
     
-    // Используем GPT-4o для высокого качества психологических советов
-    this.model = 'gpt-4o';
+    // Changed to gpt-3.5-turbo for better stability and reduced 503 errors
+    this.model = 'gpt-3.5-turbo';
     
     if (!apiKey) {
       console.error('OpenAI API key is missing! Checked: OPENAI_API_KEY, api_key_openai');
@@ -91,9 +91,22 @@ ${entriesText}
       }
       
       return advice;
-    } catch (error) {
-      console.error('Error analyzing user entries:', error);
-      throw error; // Re-throw to let the router handle it properly
+    } catch (error: any) {
+      console.error('OpenAI error details:', {
+        status: error?.status,
+        message: error?.message,
+        type: error?.type
+      });
+      
+      // Handle specific OpenAI errors
+      if (error?.status === 503) {
+        throw new Error('OpenAI тимчасово недоступний. Спробуйте через хвилину.');
+      }
+      if (error?.status === 429) {
+        throw new Error('Забагато запитів до AI. Спробуйте через хвилину.');
+      }
+      
+      throw error;
     }
   }
 
@@ -123,7 +136,7 @@ ${entriesText}
 - На українській мові`;
 
       const response = await this.openai.chat.completions.create({
-        model: this.model,
+        model: this.model, // Using gpt-3.5-turbo for stability
         messages: [
           {
             role: "system", 
@@ -146,14 +159,21 @@ ${entriesText}
 
       return response.choices[0]?.message?.content || `Сьогодні зосередьтеся на практиці принципу "${principle.title}" у повсякденних справах.`;
 
-    } catch (error) {
-      console.error('AI Assistant detailed error:', {
-        message: error.message,
-        response: error.response?.data,
-        status: error.response?.status,
-        code: error.code,
-        type: error.type
+    } catch (error: any) {
+      console.error('OpenAI error details:', {
+        status: error?.status,
+        message: error?.message,
+        type: error?.type
       });
+      
+      // Handle specific OpenAI errors
+      if (error?.status === 503) {
+        throw new Error('OpenAI тимчасово недоступний. Спробуйте через хвилину.');
+      }
+      if (error?.status === 429) {
+        throw new Error('Забагато запитів до AI. Спробуйте через хвилину.');
+      }
+      
       throw new Error("Не вдалося згенерувати підказку. Спробуйте пізніше.");
     }
   }
