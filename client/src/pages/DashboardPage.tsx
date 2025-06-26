@@ -12,7 +12,7 @@ import { AIChat } from '@/components/AIChat';
 import { JournalQuickAdd } from '@/components/JournalQuickAdd';
 import { KarmaStats } from '@/components/KarmaStats';
 import { Achievements } from '@/components/Achievements';
-import { AIAdvisor } from "@/components/AIAdvisor";
+
 import { AIBudgetStatus } from "@/components/AIBudgetStatus";
 import TodaysPlan from "@/components/TodaysPlan";
 import NextPrincipleCard from "@/components/NextPrincipleCard";
@@ -385,7 +385,7 @@ export default function DashboardPage() {
               </div>
 
               <div className="lg:col-span-1 space-y-6">
-                <AIAdvisor />
+
                 <AIBudgetStatus />
               </div>
             </div>

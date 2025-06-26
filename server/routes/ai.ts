@@ -39,36 +39,7 @@ router.get('/create-test-subscription', authenticateToken, async (req: AuthReque
   }
 });
 
-router.post('/advice', authenticateToken, requireSubscription('plus'), async (req: AuthRequest, res) => {
-  try {
-    console.log('AI advice route reached, user:', req.user?.id);
-    
-    if (!req.user?.id) {
-      console.log('User not authenticated in AI advice route');
-      return res.status(401).json({ error: 'User not authenticated' });
-    }
 
-    // Check subscription
-    const subscriptions = await storage.getUserSubscriptions(req.user.id);
-    console.log('User subscriptions:', subscriptions);
-
-    const aiAssistant = new AIAssistant();
-    const advice = await aiAssistant.analyzeUserEntries(req.user.id);
-    
-    console.log('Generated advice:', advice);
-    
-    if (!advice) {
-      throw new Error('No advice generated');
-    }
-    
-    res.json({ advice });
-  } catch (error) {
-    console.error('AI Advice Error:', error);
-    res.status(500).json({ 
-      error: error.message || 'Failed to get AI advice'
-    });
-  }
-});
 
 router.get('/insight/:principleId', authenticateToken, requireSubscription('plus'), async (req: AuthRequest, res) => {
   try {
