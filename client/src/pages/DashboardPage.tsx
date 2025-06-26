@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Brain, TrendingUp, Trophy, Sparkles, ChevronRight, LogOut, Menu, X, Settings } from 'lucide-react';
-import { ThemeToggle } from '@/components/ThemeToggle';
+import { SafeThemeToggle } from '@/components/SafeThemeToggle';
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useLocation } from "wouter";
 import { AIChat } from '@/components/AIChat';
@@ -194,7 +194,7 @@ export default function DashboardPage() {
                 </Avatar>
                 <span className="font-medium">{user.firstName}</span>
               </div>
-              <ThemeToggle />
+              <SafeThemeToggle />
               <Button variant="ghost" size="sm" onClick={handleLogout} className="hidden md:flex">
                 <LogOut className="w-4 h-4" />
               </Button>
