@@ -194,6 +194,7 @@ export default function DashboardPage() {
                 </Avatar>
                 <span className="font-medium">{user.firstName}</span>
               </div>
+              <ThemeToggle />
               <Button variant="ghost" size="sm" onClick={handleLogout} className="hidden md:flex">
                 <LogOut className="w-4 h-4" />
               </Button>
