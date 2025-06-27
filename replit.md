@@ -128,6 +128,9 @@ FRONTEND_URL=https://your-domain.com
 
 ```
 Changelog:
+- June 27, 2025. Upgraded OpenAI model from gpt-3.5-turbo to gpt-4o for better psychological coaching capabilities
+- June 27, 2025. Removed complex ThemeProvider architecture and implemented self-contained SafeThemeToggle
+- June 27, 2025. Added page transition animations using framer-motion with staggered card animations
 - June 23, 2025. Initial setup
 ```
 

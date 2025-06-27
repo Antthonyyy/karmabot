@@ -8,8 +8,8 @@ export class AIAssistant {
   constructor() {
     const apiKey = process.env.OPENAI_API_KEY || process.env.api_key_openai;
     
-    // Changed to gpt-3.5-turbo for better stability and reduced 503 errors
-    this.model = 'gpt-3.5-turbo';
+    // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+    this.model = 'gpt-4o';
     
     if (!apiKey) {
       console.error('OpenAI API key is missing! Checked: OPENAI_API_KEY, api_key_openai');
