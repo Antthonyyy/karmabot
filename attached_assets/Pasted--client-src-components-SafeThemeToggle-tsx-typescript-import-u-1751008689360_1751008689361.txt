@@ -1,3 +1,6 @@
+Создай файл /client/src/components/SafeThemeToggle.tsx с таким содержимым:
+
+```typescript
 import { useEffect, useState } from 'react';
 import { Sun, Moon, Monitor } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -59,3 +62,9 @@ function ThemeToggleContent() {
     </DropdownMenu>
   );
 }
+Затем в файле /client/src/pages/DashboardPage.tsx:
+
+Найди строку: import { ThemeToggle } from '@/components/ThemeToggle';
+Замени её на: import { SafeThemeToggle } from '@/components/SafeThemeToggle';
+Найди <ThemeToggle /> (должно быть на строке ~171)
+Замени на <SafeThemeToggle />
