@@ -1,6 +1,5 @@
 import { Switch, Route } from "wouter";
 import { Toaster } from "@/components/ui/toaster";
-import { TooltipProvider } from "@/components/ui/tooltip";
 import HomePage from "@/pages/HomePage";
 import DashboardPage from "@/pages/DashboardPage";
 import AnalyticsPage from "@/pages/AnalyticsPage";
@@ -26,11 +25,11 @@ function Router() {
 
 function App() {
   return (
-    <TooltipProvider>
+    <>
       <Toaster />
       <Router />
       <EmergencyLogout />
-    </TooltipProvider>
+    </>
   );
 }
 
