@@ -7,14 +7,43 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useTheme } from '@/contexts/ThemeContext';
+
+type Theme = 'light' | 'dark' | 'system';
 
 export function SafeThemeToggle() {
   const [mounted, setMounted] = useState(false);
+  const [theme, setTheme] = useState<Theme>('system');
 
   useEffect(() => {
     setMounted(true);
+    
+    // Загружаем сохраненную тему
+    const savedTheme = localStorage.getItem('theme') as Theme;
+    if (savedTheme) {
+      setTheme(savedTheme);
+    }
+    
+    // Применяем тему
+    applyTheme(savedTheme || 'system');
   }, []);
+
+  const applyTheme = (newTheme: Theme) => {
+    localStorage.setItem('theme', newTheme);
+    
+    if (newTheme === 'system') {
+      const hour = new Date().getHours();
+      const isDarkTime = hour >= 20 || hour < 6; // 20:00 - 6:00
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      document.documentElement.classList.toggle('dark', isDarkTime || prefersDark);
+    } else {
+      document.documentElement.classList.toggle('dark', newTheme === 'dark');
+    }
+  };
+
+  const handleThemeChange = (newTheme: Theme) => {
+    setTheme(newTheme);
+    applyTheme(newTheme);
+  };
 
   // Пока компонент не смонтирован, показываем placeholder
   if (!mounted) {
@@ -26,13 +55,6 @@ export function SafeThemeToggle() {
     );
   }
 
-  // После монтирования рендерим настоящий ThemeToggle
-  return <ThemeToggleContent />;
-}
-
-function ThemeToggleContent() {
-  const { theme, setTheme } = useTheme();
-
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -43,15 +65,15 @@ function ThemeToggleContent() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={() => setTheme('light')}>
+        <DropdownMenuItem onClick={() => handleThemeChange('light')}>
           <Sun className="mr-2 h-4 w-4" />
           <span>Світла</span>
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme('dark')}>
+        <DropdownMenuItem onClick={() => handleThemeChange('dark')}>
           <Moon className="mr-2 h-4 w-4" />
           <span>Темна</span>
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme('system')}>
+        <DropdownMenuItem onClick={() => handleThemeChange('system')}>
           <Monitor className="mr-2 h-4 w-4" />
           <span>Авто (20:00 - 6:00)</span>
         </DropdownMenuItem>
