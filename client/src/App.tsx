@@ -9,7 +9,7 @@ import SettingsPage from "@/pages/SettingsPage";
 import OnboardingPage from "@/pages/OnboardingPage";
 import SubscriptionsPage from "@/pages/SubscriptionsPage";
 import NotFound from "@/pages/not-found";
-import { EmergencyLogout } from "@/components/EmergencyLogout";
+
 
 // Wrapper component for animated routes
 function AnimatedRoute({ component: Component, ...props }: any) {
@@ -40,11 +40,10 @@ function Router() {
 
 function App() {
   return (
-    <>
-      <Toaster />
+    <div className="min-h-screen bg-background">
       <Router />
-      <EmergencyLogout />
-    </>
+      <Toaster />
+    </div>
   );
 }
 

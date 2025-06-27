@@ -32,7 +32,7 @@ The app is built as a monorepo with a Node.js/Express backend, React frontend wi
 - **Telegram Integration**: Users authenticate via Telegram Login Widget
 - **Session Management**: JWT tokens stored in localStorage with automatic refresh
 - **Authorization Middleware**: Route protection based on user authentication status
-- **Fallback Auth**: Emergency logout component for auth recovery
+- **User Logout**: Standard logout functionality integrated in navigation
 
 ### Journal System
 - **Daily Entries**: Users create journal entries linked to karma principles
