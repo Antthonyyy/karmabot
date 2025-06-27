@@ -1,5 +1,7 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, useLocation } from "wouter";
+import { AnimatePresence } from "framer-motion";
 import { Toaster } from "@/components/ui/toaster";
+import { PageTransition } from "@/components/PageTransition";
 import HomePage from "@/pages/HomePage";
 import DashboardPage from "@/pages/DashboardPage";
 import AnalyticsPage from "@/pages/AnalyticsPage";
@@ -9,17 +11,30 @@ import SubscriptionsPage from "@/pages/SubscriptionsPage";
 import NotFound from "@/pages/not-found";
 import { EmergencyLogout } from "@/components/EmergencyLogout";
 
-function Router() {
+// Wrapper component for animated routes
+function AnimatedRoute({ component: Component, ...props }: any) {
   return (
-    <Switch>
-      <Route path="/" component={HomePage} />
-      <Route path="/dashboard" component={DashboardPage} />
-      <Route path="/analytics" component={AnalyticsPage} />
-      <Route path="/settings" component={SettingsPage} />
-      <Route path="/subscriptions" component={SubscriptionsPage} />
-      <Route path="/onboarding" component={OnboardingPage} />
-      <Route component={NotFound} />
-    </Switch>
+    <PageTransition>
+      <Component {...props} />
+    </PageTransition>
+  );
+}
+
+function Router() {
+  const [location] = useLocation();
+  
+  return (
+    <AnimatePresence mode="wait" initial={false}>
+      <Switch key={location}>
+        <Route path="/" component={(props) => <AnimatedRoute component={HomePage} {...props} />} />
+        <Route path="/dashboard" component={(props) => <AnimatedRoute component={DashboardPage} {...props} />} />
+        <Route path="/analytics" component={(props) => <AnimatedRoute component={AnalyticsPage} {...props} />} />
+        <Route path="/settings" component={(props) => <AnimatedRoute component={SettingsPage} {...props} />} />
+        <Route path="/subscriptions" component={(props) => <AnimatedRoute component={SubscriptionsPage} {...props} />} />
+        <Route path="/onboarding" component={(props) => <AnimatedRoute component={OnboardingPage} {...props} />} />
+        <Route component={(props) => <AnimatedRoute component={NotFound} {...props} />} />
+      </Switch>
+    </AnimatePresence>
   );
 }
 
