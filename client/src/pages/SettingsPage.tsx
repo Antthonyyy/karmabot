@@ -5,13 +5,14 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Bell, Clock, Settings, Save, Plus, Trash2, ArrowRight } from "lucide-react";
+import { ArrowLeft, Bell, Clock, Settings, Save, Plus, Trash2, ArrowRight, Play } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import ReminderModeSelector from "@/components/ReminderModeSelector";
 import CustomScheduleEditor from "@/components/CustomScheduleEditor";
 import { BackButton } from "@/components/BackButton";
+import VideoInstructionModal from "@/components/VideoInstructionModal";
 
 interface Schedule {
   id?: number;
@@ -30,6 +31,7 @@ export default function SettingsPage() {
   const [customSchedule, setCustomSchedule] = useState<Schedule[]>([]);
   const [showModeSelector, setShowModeSelector] = useState(false);
   const [showContinueButton, setShowContinueButton] = useState(false);
+  const [showVideoModal, setShowVideoModal] = useState(false);
   
   // Загружаем пользователя
   const { data: user } = useQuery({
@@ -315,6 +317,16 @@ export default function SettingsPage() {
               </p>
             </div>
             
+            {/* Кнопка видеоинструкции */}
+            <Button
+              variant="outline"
+              onClick={() => setShowVideoModal(true)}
+              className="w-full"
+            >
+              <Play className="mr-2 h-4 w-4" />
+              Переглянути відеоінструкцію
+            </Button>
+
             {/* Кнопка тестового напоминания */}
             <Button
               variant="outline"
@@ -346,6 +358,15 @@ export default function SettingsPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Video instruction modal */}
+      <VideoInstructionModal
+        isOpen={showVideoModal}
+        onClose={() => setShowVideoModal(false)}
+        title="📖 Інструкція користування додатком"
+        description="Дізнайтеся, як максимально ефективно використовувати ваш карма-щоденник для духовного розвитку"
+        videoId="dQw4w9WgXcQ"
+      />
     </div>
   );
 }

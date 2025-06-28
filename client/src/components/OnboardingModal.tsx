@@ -79,7 +79,7 @@ export default function OnboardingModal({ isOpen, onComplete }: OnboardingModalP
                 </div>
               )}
               <iframe
-                src="https://www.youtube.com/embed/Q-uWeyHzkbI?autoplay=0&rel=0"
+                src="https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=0&rel=0&controls=1"
                 title="Інструкція користування карма-щоденником"
                 frameBorder="0"
                 allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
@@ -90,6 +90,7 @@ export default function OnboardingModal({ isOpen, onComplete }: OnboardingModalP
                   setIsVideoLoaded(true);
                   console.error("Video failed to load");
                 }}
+                style={{ border: 'none' }}
               />
             </div>
           </div>
@@ -108,7 +109,7 @@ export default function OnboardingModal({ isOpen, onComplete }: OnboardingModalP
                   Збереження...
                 </>
               ) : (
-                "Далее"
+                "Далі"
               )}
             </Button>
           </div>
