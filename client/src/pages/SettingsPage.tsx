@@ -327,25 +327,7 @@ export default function SettingsPage() {
               Переглянути відеоінструкцію
             </Button>
 
-            {/* Кнопка тестового напоминания */}
-            <Button
-              variant="outline"
-              onClick={sendTestReminder}
-              disabled={!remindersEnabled || testReminderMutation.isPending}
-              className="w-full"
-            >
-              {testReminderMutation.isPending ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900 mr-2" />
-                  Відправляємо...
-                </>
-              ) : (
-                <>
-                  <Bell className="mr-2 h-4 w-4" />
-                  Надіслати тестове нагадування
-                </>
-              )}
-            </Button>
+            
           </CardContent>
         </Card>
         
@@ -365,7 +347,7 @@ export default function SettingsPage() {
         onClose={() => setShowVideoModal(false)}
         title="📖 Інструкція користування додатком"
         description="Дізнайтеся, як максимально ефективно використовувати ваш карма-щоденник для духовного розвитку"
-        videoId="dQw4w9WgXcQ"
+        videoId="Q-uWeyHzkbI"
       />
     </div>
   );
