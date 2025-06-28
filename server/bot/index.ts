@@ -10,11 +10,9 @@ const token = process.env.TELEGRAM_BOT_TOKEN;
 
 if (!token) {
   console.log("⚠️ TELEGRAM_BOT_TOKEN not found - enhanced bot disabled");
-  process.exit(0);
 }
 
-// Временно отключено для настройки webhook
-// const bot = new TelegramBot(token, { polling: true });
+const bot = new TelegramBot(token, { polling: true });
 const aiAssistant = new AIAssistant();
 
 // User sessions for multi-step interactions

@@ -1,13 +1,9 @@
 import TelegramBot from "node-telegram-bot-api";
 import { authorizeSession } from "./auth-sessions.js";
 
-// Use the correct bot token
 const token = process.env.TELEGRAM_BOT_TOKEN;
 
-// Временно отключаем бот для настройки webhook
-if (token && false) {
-  // false отключает бота
-  // Create bot instance
+if (token) {
   const bot = new TelegramBot(token, { polling: true });
 
   // Time-based personalized greetings
@@ -104,9 +100,7 @@ if (token && false) {
 
   console.log("Telegram bot started successfully");
 } else {
-  console.log("⚠️ Telegram bot temporarily disabled for webhook setup");
+  console.log("⚠️ TELEGRAM_BOT_TOKEN not found - bot disabled");
 }
 
-// Export greeting function for use in other files
 export { getGreeting };
-export default null; // Temporarily no bot export

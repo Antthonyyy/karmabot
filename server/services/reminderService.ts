@@ -1,6 +1,6 @@
 import cron from 'node-cron';
 import { storage } from '../storage.js';
-// import { bot } from '../bot/index.js'; // Временно отключено
+import { bot } from '../bot/index.js';
 
 export class ReminderService {
   constructor() {
@@ -33,7 +33,7 @@ export class ReminderService {
       if (user.notificationType === 'daily' || user.notificationType === 'intensive') {
         try {
           await bot.sendMessage(
-            parseInt(user.telegramId),
+            parseInt(user.telegramId!),
             `🌅 Доброго ранку, ${user.firstName}!\n\n` +
             `Новий день - нова можливість творити добро.\n` +
             `Сьогоднішній принцип: ${user.currentPrinciple}/10\n\n` +
@@ -61,7 +61,7 @@ export class ReminderService {
       if (user.notificationType === 'intensive') {
         try {
           await bot.sendMessage(
-            parseInt(user.telegramId),
+            parseInt(user.telegramId!),
             `☀️ ${user.firstName}, як проходить день?\n\n` +
             `Час для короткої рефлексії:\n` +
             `• Що доброго ти вже зробив сьогодні?\n` +
@@ -105,7 +105,7 @@ export class ReminderService {
           }
 
           await bot.sendMessage(
-            parseInt(user.telegramId),
+            parseInt(user.telegramId!),
             message,
             {
               reply_markup: {
@@ -128,7 +128,7 @@ export class ReminderService {
       const user = await storage.getUser(userId);
       if (user && user.telegramId) {
         await bot.sendMessage(
-          parseInt(user.telegramId),
+          parseInt(user.telegramId!),
           message,
           {
             reply_markup: {

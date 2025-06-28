@@ -4,7 +4,7 @@ import { Router } from "express";
 import { createHash } from "crypto";
 import { subscriptionService } from "../services/subscriptionService.js";
 import { storage } from "../storage.js";
-// import { bot } from "../bot/index.js"; // Временно отключено
+import { bot } from "../bot/index.js";
 import { getGreeting } from "../telegram-bot.js";
 
 const router = Router();
@@ -56,7 +56,7 @@ router.post("/wayforpay", async (req, res) => {
         console.log("✅ Subscription activated:", subscription);
 
         // Get user for Telegram notification
-        const user = await storage.getUserById(subscription.userId);
+        const user = await storage.getUser(subscription.userId);
 
         if (user && user.telegramId) {
           await sendPaymentSuccessNotification(user, subscription);
@@ -137,25 +137,26 @@ async function sendPaymentSuccessNotification(user: any, subscription: any) {
       planFeatures.map((feature) => `• ${feature}`).join("\n") +
       `\n\n🚀 Почніть користуватися новими функціями прямо зараз!`;
 
-    // await bot.sendMessage(user.telegramId, message, { // Временно отключено
-    console.log('📨 Would send Telegram notification:', message);
+    await bot.sendMessage(user.telegramId, message, {
+      parse_mode: "HTML",
+    });
 
     // Send additional message for Pro users about AI chat
     if (subscription.plan === "pro") {
       setTimeout(async () => {
-        // await bot.sendMessage(
-        //   user.telegramId,
-        //   `🤖 Тепер ви маєте доступ до необмеженого AI-чату!\n\n` +
-        //     `Просто напишіть мені будь-яке питання, і я дам персональну пораду на основі вашого щоденника.\n\n` +
-        //     `Спробуйте прямо зараз! 💬`,
-        //   {
-        //     reply_markup: {
-        //       inline_keyboard: [
-        //         [{ text: "💡 Отримати AI-пораду", callback_data: "ai_advice" }],
-        //       ],
-        //     },
-        //   },
-        // ); // Временно отключено
+        await bot.sendMessage(
+          user.telegramId,
+          `🤖 Тепер ви маєте доступ до необмеженого AI-чату!\n\n` +
+            `Просто напишіть мені будь-яке питання, і я дам персональну пораду на основі вашого щоденника.\n\n` +
+            `Спробуйте прямо зараз! 💬`,
+          {
+            reply_markup: {
+              inline_keyboard: [
+                [{ text: "💡 Отримати AI-пораду", callback_data: "ai_advice" }],
+              ],
+            },
+          },
+        );
       }, 2000);
     }
   } catch (error) {

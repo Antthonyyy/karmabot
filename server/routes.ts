@@ -31,28 +31,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // NEW: Webhook routes (важно - БЕЗ аутентификации!)
   app.use("/api/webhooks", webhookRoutes);
 
-  // TEST: Direct webhook endpoint for testing
-  app.post('/api/test-wayforpay', (req, res) => {
-    console.log('🔔 Test webhook called:', req.body);
-    res.json({ 
-      status: 'ok', 
-      message: 'Direct webhook endpoint works!',
-      timestamp: new Date().toISOString()
-    });
-  });
 
-  app.get('/api/test-wayforpay', (req, res) => {
-    res.json({ 
-      status: 'ok', 
-      message: 'Webhook endpoint accessible via GET (should be POST)',
-      timestamp: new Date().toISOString()
-    });
-  });
-  
-  // TEST: Simple test endpoint
-  app.get('/api/test-webhook', (req, res) => {
-    res.json({ message: 'Webhook routing works!' });
-  });
 
   // Auth routes - Session-based Telegram authentication
   app.post("/api/auth/telegram/start-session", (req, res) => {
