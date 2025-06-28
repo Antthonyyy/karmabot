@@ -4,7 +4,7 @@ import { Router } from "express";
 import { createHash } from "crypto";
 import { subscriptionService } from "../services/subscriptionService.js";
 import { storage } from "../storage.js";
-import { bot } from "../bot/index.js"; // Полнофункциональный бот
+// import { bot } from "../bot/index.js"; // Временно отключено
 import { getGreeting } from "../telegram-bot.js";
 
 const router = Router();
@@ -137,42 +137,25 @@ async function sendPaymentSuccessNotification(user: any, subscription: any) {
       planFeatures.map((feature) => `• ${feature}`).join("\n") +
       `\n\n🚀 Почніть користуватися новими функціями прямо зараз!`;
 
-    await bot.sendMessage(user.telegramId, message, {
-      reply_markup: {
-        inline_keyboard: [
-          [
-            {
-              text: "🚀 Відкрити додаток",
-              web_app: {
-                url:
-                  process.env.FRONTEND_URL || "https://karma-diary.replit.app",
-              },
-            },
-          ],
-          [
-            { text: "📊 Статистика", callback_data: "stats" },
-            { text: "💬 AI-порада", callback_data: "ai_advice" },
-          ],
-        ],
-      },
-    });
+    // await bot.sendMessage(user.telegramId, message, { // Временно отключено
+    console.log('📨 Would send Telegram notification:', message);
 
     // Send additional message for Pro users about AI chat
     if (subscription.plan === "pro") {
       setTimeout(async () => {
-        await bot.sendMessage(
-          user.telegramId,
-          `🤖 Тепер ви маєте доступ до необмеженого AI-чату!\n\n` +
-            `Просто напишіть мені будь-яке питання, і я дам персональну пораду на основі вашого щоденника.\n\n` +
-            `Спробуйте прямо зараз! 💬`,
-          {
-            reply_markup: {
-              inline_keyboard: [
-                [{ text: "💡 Отримати AI-пораду", callback_data: "ai_advice" }],
-              ],
-            },
-          },
-        );
+        // await bot.sendMessage(
+        //   user.telegramId,
+        //   `🤖 Тепер ви маєте доступ до необмеженого AI-чату!\n\n` +
+        //     `Просто напишіть мені будь-яке питання, і я дам персональну пораду на основі вашого щоденника.\n\n` +
+        //     `Спробуйте прямо зараз! 💬`,
+        //   {
+        //     reply_markup: {
+        //       inline_keyboard: [
+        //         [{ text: "💡 Отримати AI-пораду", callback_data: "ai_advice" }],
+        //       ],
+        //     },
+        //   },
+        // ); // Временно отключено
       }, 2000);
     }
   } catch (error) {

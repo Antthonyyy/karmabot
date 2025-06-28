@@ -1,6 +1,6 @@
 import cron from 'node-cron';
 import { storage } from '../storage.js';
-import { bot } from '../bot/index.js';
+// import { bot } from '../bot/index.js'; // Временно отключено
 
 export class ReminderService {
   constructor() {
