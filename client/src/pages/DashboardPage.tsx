@@ -97,12 +97,8 @@ export default function DashboardPage() {
   });
 
   const getGreeting = () => {
-    const hour = new Date().getHours();
     const name = user?.firstName || 'Користувач';
-    
-    if (hour < 12) return `Доброго ранку, ${name}!`;
-    if (hour < 18) return `Добрий день, ${name}!`;
-    return `Добрий вечір, ${name}!`;
+    return `Вітаю, ${name}!`;
   };
 
   const getMotivationalQuote = () => {
@@ -255,19 +251,7 @@ export default function DashboardPage() {
           <p className="text-muted-foreground">{getMotivationalQuote()}</p>
         </div>
 
-        {/* Quick Stats */}
-        <div className="grid grid-cols-1 gap-4 mb-8 max-w-md">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardDescription>Поточна серія</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {user?.stats?.streakDays || 0} днів
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        
 
         {/* Main Content */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
