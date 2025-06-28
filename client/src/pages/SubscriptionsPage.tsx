@@ -349,8 +349,7 @@ export default function SubscriptionsPage() {
                       >
                         <div className="flex-shrink-0">
                           <div className="p-1 bg-green-100 rounded-full">
-                            {getPlanFeatureIcon(feature)}
-                            <CheckCircle className="w-4 h-4 text-green-600 absolute" />
+                            <CheckCircle className="w-4 h-4 text-green-600" />
                           </div>
                         </div>
                         <span className="text-gray-700 font-medium">{feature}</span>

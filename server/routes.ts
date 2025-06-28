@@ -717,6 +717,138 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Subscription endpoints
+  app.get("/api/subscriptions/plans", (req, res) => {
+    const plans = [
+      {
+        id: 'light',
+        name: 'Лайт',
+        monthly: 5,
+        yearly: 50,
+        currency: 'EUR',
+        features: [
+          'Щоденник карми',
+          'Базова аналітика',
+          'Експорт даних',
+          'Нагадування в Telegram',
+          'Підтримка спільноти'
+        ]
+      },
+      {
+        id: 'plus',
+        name: 'Плюс',
+        monthly: 10,
+        yearly: 100,
+        currency: 'EUR',
+        features: [
+          'Все з тарифу Лайт',
+          '5 AI-порад на місяць',
+          'Розширена аналітика',
+          'Персональні рекомендації',
+          'Досягнення та геймификація',
+          'Пріоритетна підтримка'
+        ]
+      },
+      {
+        id: 'pro',
+        name: 'Про',
+        monthly: 20,
+        yearly: 200,
+        currency: 'EUR',
+        features: [
+          'Все з тарифу Плюс',
+          'Необмежені AI-поради',
+          'AI-чат консультант',
+          'Розширені інсайти',
+          'Персональний коучинг',
+          'VIP підтримка'
+        ]
+      }
+    ];
+    
+    res.json(plans);
+  });
+
+  app.get("/api/subscriptions/current", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const user = req.user;
+      const subscriptions = await storage.getUserSubscriptions(user.id);
+      
+      // Return the most recent active subscription or none
+      const activeSubscription = subscriptions.find(sub => sub.status === 'active');
+      
+      if (activeSubscription) {
+        res.json({
+          plan: activeSubscription.plan,
+          startDate: activeSubscription.startDate,
+          endDate: activeSubscription.endDate,
+          features: activeSubscription.features || {}
+        });
+      } else {
+        res.json({
+          plan: 'none',
+          startDate: null,
+          endDate: null,
+          features: {}
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching current subscription:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post("/api/subscriptions/subscribe", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const { planId, billingPeriod } = req.body;
+      const user = req.user;
+      
+      // Create subscription record
+      const subscription = await storage.createSubscription({
+        userId: user.id,
+        plan: planId,
+        billingPeriod,
+        status: 'pending',
+        startDate: new Date(),
+        endDate: billingPeriod === 'yearly' 
+          ? new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)
+          : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+        features: {}
+      });
+
+      // Create WayForPay payment URL (mock for now)
+      const paymentUrl = `https://secure.wayforpay.com/pay?planId=${planId}&billingPeriod=${billingPeriod}&subscriptionId=${subscription.id}`;
+      
+      res.json({
+        subscriptionId: subscription.id,
+        paymentUrl
+      });
+    } catch (error) {
+      console.error("Error creating subscription:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post("/api/subscriptions/cancel", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const user = req.user;
+      const subscriptions = await storage.getUserSubscriptions(user.id);
+      
+      // Find active subscription and cancel it
+      const activeSubscription = subscriptions.find(sub => sub.status === 'active');
+      
+      if (activeSubscription) {
+        await storage.updateSubscriptionStatus(activeSubscription.id, 'cancelled');
+        res.json({ message: "Subscription cancelled successfully" });
+      } else {
+        res.status(404).json({ message: "No active subscription found" });
+      }
+    } catch (error) {
+      console.error("Error cancelling subscription:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

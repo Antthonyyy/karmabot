@@ -10,6 +10,10 @@ import {
   principleHistory,
   aiInsights,
   userSessions,
+  subscriptions,
+  aiRequests,
+  aiCache,
+  achievements,
   type User, 
   type InsertUser,
   type Principle,
@@ -27,7 +31,15 @@ import {
   type AIInsight,
   type InsertAIInsight,
   type UserSession,
-  type InsertUserSession
+  type InsertUserSession,
+  type Subscription,
+  type InsertSubscription,
+  type AIRequest,
+  type InsertAIRequest,
+  type AICache,
+  type InsertAICache,
+  type Achievement,
+  type InsertAchievement
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, sql, and, gte, lte, count } from "drizzle-orm";
@@ -742,6 +754,131 @@ export class DatabaseStorage implements IStorage {
       .returning();
 
     return updatedUser;
+  }
+
+  // Subscription methods
+  async getUserSubscriptions(userId: number): Promise<Subscription[]> {
+    return await db
+      .select()
+      .from(subscriptions)
+      .where(eq(subscriptions.userId, userId))
+      .orderBy(desc(subscriptions.createdAt));
+  }
+
+  async createSubscription(subscription: InsertSubscription): Promise<Subscription> {
+    const [newSubscription] = await db
+      .insert(subscriptions)
+      .values(subscription)
+      .returning();
+    return newSubscription;
+  }
+
+  async updateSubscriptionStatus(subscriptionId: number, status: string): Promise<void> {
+    await db
+      .update(subscriptions)
+      .set({ 
+        status: status as 'active' | 'cancelled' | 'expired' | 'pending'
+      })
+      .where(eq(subscriptions.id, subscriptionId));
+  }
+
+  // Add missing method implementations
+  async updateWeeklyStats(userId: number, weekStart: string): Promise<WeeklyStats> {
+    const [updated] = await db
+      .update(weeklyStats)
+      .set({ /* no updatedAt field in schema */ })
+      .where(and(eq(weeklyStats.userId, userId), eq(weeklyStats.weekStart, weekStart)))
+      .returning();
+    
+    if (updated) return updated;
+    
+    // Create if doesn't exist
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekEnd.getDate() + 6);
+    
+    const [created] = await db
+      .insert(weeklyStats)
+      .values({ 
+        userId, 
+        weekStart, 
+        weekEnd: weekEnd.toISOString().split('T')[0],
+        entriesCount: 0, 
+        avgMood: 0, 
+        avgEnergy: 0 
+      })
+      .returning();
+    return created;
+  }
+
+  async getMonthlyAIRequests(userId: number, month: string): Promise<number> {
+    const result = await db
+      .select({ count: count() })
+      .from(aiRequests)
+      .where(and(
+        eq(aiRequests.userId, userId),
+        sql`date_trunc('month', ${aiRequests.createdAt}) = ${month}::date`
+      ));
+    return result[0]?.count || 0;
+  }
+
+  async createAIRequest(request: InsertAIRequest): Promise<AIRequest> {
+    const [newRequest] = await db
+      .insert(aiRequests)
+      .values(request)
+      .returning();
+    return newRequest;
+  }
+
+  async getCachedAIResponse(hash: string): Promise<AICache | undefined> {
+    const [cached] = await db
+      .select()
+      .from(aiCache)
+      .where(eq(aiCache.questionHash, hash))
+      .limit(1);
+    return cached;
+  }
+
+  async cacheAIResponse(cache: InsertAICache): Promise<AICache> {
+    const [newCache] = await db
+      .insert(aiCache)
+      .values(cache)
+      .returning();
+    return newCache;
+  }
+
+  async deleteCachedAIResponse(hash: string): Promise<void> {
+    await db
+      .delete(aiCache)
+      .where(eq(aiCache.questionHash, hash));
+  }
+
+  async cleanExpiredAICache(): Promise<void> {
+    await db
+      .delete(aiCache)
+      .where(lte(aiCache.expiresAt, new Date()));
+  }
+
+  async getUserAchievements(userId: number): Promise<Achievement[]> {
+    return await db
+      .select()
+      .from(achievements)
+      .where(eq(achievements.userId, userId))
+      .orderBy(desc(achievements.unlockedAt));
+  }
+
+  async createAchievement(achievement: InsertAchievement): Promise<Achievement> {
+    const [newAchievement] = await db
+      .insert(achievements)
+      .values(achievement)
+      .returning();
+    return newAchievement;
+  }
+
+  async markAchievementAsNotified(achievementId: number): Promise<void> {
+    await db
+      .update(achievements)
+      .set({ notified: true })
+      .where(eq(achievements.id, achievementId));
   }
 }
 
