@@ -256,21 +256,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardDescription>Загальна карма</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {(user?.stats?.principleCompletions?.reduce((sum: number, pc: any) => sum + (pc.entriesCount * 5), 0)) || 0}
-                <span className="text-sm font-normal text-muted-foreground ml-2">
-                  +{Math.floor((user?.stats?.principleCompletions?.reduce((sum: number, pc: any) => sum + (pc.entriesCount * 5), 0) || 0) * 0.1)} сьогодні
-                </span>
-              </div>
-            </CardContent>
-          </Card>
-
+        <div className="grid grid-cols-1 gap-4 mb-8 max-w-md">
           <Card>
             <CardHeader className="pb-2">
               <CardDescription>Поточна серія</CardDescription>
@@ -278,34 +264,6 @@ export default function DashboardPage() {
             <CardContent>
               <div className="text-2xl font-bold">
                 {user?.stats?.streakDays || 0} днів
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-2">
-              <CardDescription>Записи</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{user?.stats?.totalEntries || 0}</div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-2">
-              <CardDescription>Підписка</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center gap-2">
-                <Badge variant={subscription?.plan === 'pro' ? 'default' : 'secondary'}>
-                  {subscription?.plan || 'Безкоштовна'}
-                </Badge>
-                {subscription?.plan !== 'pro' && (
-                  <Button variant="ghost" size="sm" onClick={() => setLocation('/subscriptions')}>
-                    Оновити
-                    <ChevronRight className="w-4 h-4 ml-1" />
-                  </Button>
-                )}
               </div>
             </CardContent>
           </Card>
