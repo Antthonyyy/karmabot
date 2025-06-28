@@ -78,21 +78,32 @@ export default function TodaysPlan({ className }: TodaysPlanProps) {
               План на сьогодні
             </CardTitle>
             <CardDescription>
-              Налаштуйте нагадування, щоб побачити свій план
+              Розпочніть свій шлях до кращої карми
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="text-center py-8">
-              <div className="text-4xl mb-4">🎯</div>
+              <div className="text-4xl mb-4">🌟</div>
               <p className="text-muted-foreground mb-4">
-                Щоб бачити свій щоденний план, потрібно налаштувати нагадування
+                Сьогодні ви можете почати працювати з першим принципом карми.
               </p>
-              <Link href="/settings">
-                <Button className="flex items-center gap-2">
-                  <Settings className="h-4 w-4" />
-                  Налаштувати нагадування
-                </Button>
-              </Link>
+              <p className="text-sm text-muted-foreground mb-4">
+                Створіть запис у щоденнику, відзначте свої добрі справи і почніть формувати позитивну карму!
+              </p>
+              <div className="flex flex-col gap-2">
+                <Link href="/journal">
+                  <Button className="flex items-center gap-2 w-full">
+                    <Plus className="h-4 w-4" />
+                    Створити запис у щоденнику
+                  </Button>
+                </Link>
+                <Link href="/settings">
+                  <Button variant="outline" className="flex items-center gap-2 w-full">
+                    <Settings className="h-4 w-4" />
+                    Налаштувати нагадування
+                  </Button>
+                </Link>
+              </div>
             </div>
           </CardContent>
         </Card>
