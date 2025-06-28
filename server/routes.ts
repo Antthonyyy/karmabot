@@ -30,6 +30,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use("/api/ai", aiRoutes);
   // NEW: Webhook routes (важно - БЕЗ аутентификации!)
   app.use("/api/webhooks", webhookRoutes);
+  
+  // TEST: Simple test endpoint
+  app.get('/api/test-webhook', (req, res) => {
+    res.json({ message: 'Webhook routing works!' });
+  });
+
   // Auth routes - Session-based Telegram authentication
   app.post("/api/auth/telegram/start-session", (req, res) => {
     try {
