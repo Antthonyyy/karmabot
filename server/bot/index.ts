@@ -1,10 +1,10 @@
-import TelegramBot from 'node-telegram-bot-api';
-import { storage } from '../storage.js';
-import { subscriptionService } from '../services/subscriptionService.js';
-import { AIAssistant } from '../services/ai-assistant.js';
-import { db } from '../db.js';
-import { journalEntries, achievements } from '@shared/schema.js';
-import { eq, gte, and } from 'drizzle-orm';
+import TelegramBot from "node-telegram-bot-api";
+import { storage } from "../storage.js";
+import { subscriptionService } from "../services/subscriptionService.js";
+import { AIAssistant } from "../services/ai-assistant.js";
+import { db } from "../db.js";
+import { journalEntries, achievements } from "@shared/schema.js";
+import { eq, gte, and } from "drizzle-orm";
 
 const token = process.env.TELEGRAM_BOT_TOKEN;
 
@@ -13,7 +13,8 @@ if (!token) {
   process.exit(0);
 }
 
-const bot = new TelegramBot(token, { polling: true });
+// Временно отключено для настройки webhook
+// const bot = new TelegramBot(token, { polling: true });
 const aiAssistant = new AIAssistant();
 
 // User sessions for multi-step interactions
@@ -29,7 +30,7 @@ function getGreeting(name: string): string {
 // Helper functions
 async function getUserKarma(userId: number): Promise<number> {
   const entries = await db.query.journalEntries.findMany({
-    where: eq(journalEntries.userId, userId)
+    where: eq(journalEntries.userId, userId),
   });
   return entries.reduce((sum, entry) => sum + (entry.karmaPoints || 0), 0);
 }
@@ -42,14 +43,14 @@ async function getUserStreak(userId: number): Promise<number> {
 async function getTodayKarma(userId: number): Promise<number> {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  
+
   const entries = await db.query.journalEntries.findMany({
     where: and(
       eq(journalEntries.userId, userId),
-      gte(journalEntries.createdAt, today)
-    )
+      gte(journalEntries.createdAt, today),
+    ),
   });
-  
+
   return entries.reduce((sum, entry) => sum + (entry.karmaPoints || 0), 0);
 }
 
@@ -61,21 +62,33 @@ async function getTotalEntries(userId: number): Promise<number> {
 async function checkAndNotifyAchievements(chatId: number, userId: number) {
   const totalEntries = await getTotalEntries(userId);
   const streak = await getUserStreak(userId);
-  
+
   let newAchievement = null;
-  
+
   if (totalEntries === 1) {
-    newAchievement = { type: 'first_entry', title: '🌟 Перший крок', description: 'Ваш перший запис у щоденнику!' };
+    newAchievement = {
+      type: "first_entry",
+      title: "🌟 Перший крок",
+      description: "Ваш перший запис у щоденнику!",
+    };
   } else if (streak === 7) {
-    newAchievement = { type: '7_days_streak', title: '🔥 Тижнева серія', description: '7 днів поспіль!' };
+    newAchievement = {
+      type: "7_days_streak",
+      title: "🔥 Тижнева серія",
+      description: "7 днів поспіль!",
+    };
   } else if (totalEntries === 10) {
-    newAchievement = { type: 'gratitude_master', title: '🙏 Майстер вдячності', description: '10 записів у щоденнику!' };
+    newAchievement = {
+      type: "gratitude_master",
+      title: "🙏 Майстер вдячності",
+      description: "10 записів у щоденнику!",
+    };
   }
-  
+
   if (newAchievement) {
     await bot.sendMessage(
       chatId,
-      `🏆 Нове досягнення!\n\n${newAchievement.title}\n${newAchievement.description}\n\nВітаємо! 🎉`
+      `🏆 Нове досягнення!\n\n${newAchievement.title}\n${newAchievement.description}\n\nВітаємо! 🎉`,
     );
   }
 }
@@ -85,29 +98,33 @@ async function showMainMenu(chatId: number, user: any, messageId?: number) {
   const greeting = getGreeting(user.firstName || "друже");
   const totalKarma = await getUserKarma(user.id);
   const streak = await getUserStreak(user.id);
-  
+
   const options = {
     reply_markup: {
       inline_keyboard: [
         [
           { text: "📝 Додати запис", callback_data: "add_entry" },
-          { text: "📊 Статистика", callback_data: "stats" }
+          { text: "📊 Статистика", callback_data: "stats" },
         ],
         [
           { text: "🏆 Досягнення", callback_data: "achievements" },
-          { text: "💬 AI-порада", callback_data: "ai_advice" }
+          { text: "💬 AI-порада", callback_data: "ai_advice" },
         ],
+        [{ text: "💎 Підписка", callback_data: "subscription" }],
         [
-          { text: "💎 Підписка", callback_data: "subscription" }
+          {
+            text: "📱 Відкрити додаток",
+            web_app: {
+              url: process.env.FRONTEND_URL || "https://karma-diary.replit.app",
+            },
+          },
         ],
-        [
-          { text: "📱 Відкрити додаток", web_app: { url: process.env.FRONTEND_URL || "https://karma-diary.replit.app" } }
-        ]
-      ]
-    }
+      ],
+    },
   };
 
-  const message = `${greeting}\n\n` +
+  const message =
+    `${greeting}\n\n` +
     `💫 Твоя карма: ${totalKarma} балів\n` +
     `🔥 Серія днів: ${streak}\n\n` +
     `Що бажаєш зробити?`;
@@ -116,7 +133,7 @@ async function showMainMenu(chatId: number, user: any, messageId?: number) {
     await bot.editMessageText(message, {
       chat_id: chatId,
       message_id: messageId,
-      ...options
+      ...options,
     });
   } else {
     await bot.sendMessage(chatId, message, options);
@@ -135,7 +152,7 @@ bot.onText(/\/start/, async (msg) => {
 
   try {
     const existingUser = await storage.getUserByTelegramId(telegramId);
-    
+
     if (existingUser) {
       await showMainMenu(chatId, existingUser);
     } else {
@@ -143,26 +160,30 @@ bot.onText(/\/start/, async (msg) => {
         reply_markup: {
           inline_keyboard: [
             [
-              { 
-                text: "🚀 Почати реєстрацію", 
-                web_app: { url: process.env.FRONTEND_URL || "https://karma-diary.replit.app" }
-              }
-            ]
-          ]
-        }
+              {
+                text: "🚀 Почати реєстрацію",
+                web_app: {
+                  url:
+                    process.env.FRONTEND_URL ||
+                    "https://karma-diary.replit.app",
+                },
+              },
+            ],
+          ],
+        },
       };
 
       return bot.sendMessage(
         chatId,
         `${getGreeting(firstName)}\n\n` +
-        `🙏 Ласкаво просимо до Кармічного Щоденника!\n\n` +
-        `Я допоможу тобі:\n` +
-        `• 📝 Записувати добрі справи\n` +
-        `• 📊 Відстежувати карму\n` +
-        `• 💬 Отримувати AI-поради\n` +
-        `• 🏆 Святкувати досягнення\n\n` +
-        `Для початку роботи завершіть реєстрацію в додатку:`,
-        options
+          `🙏 Ласкаво просимо до Кармічного Щоденника!\n\n` +
+          `Я допоможу тобі:\n` +
+          `• 📝 Записувати добрі справи\n` +
+          `• 📊 Відстежувати карму\n` +
+          `• 💬 Отримувати AI-поради\n` +
+          `• 🏆 Святкувати досягнення\n\n` +
+          `Для початку роботи завершіть реєстрацію в додатку:`,
+        options,
       );
     }
   } catch (error) {
@@ -182,11 +203,14 @@ bot.on("callback_query", async (callbackQuery) => {
 
   try {
     await bot.answerCallbackQuery(callbackQuery.id);
-    
+
     const user = await storage.getUserByTelegramId(telegramId);
-    
+
     if (!user) {
-      return bot.sendMessage(chatId, "❌ Користувача не знайдено. Використайте /start для реєстрації.");
+      return bot.sendMessage(
+        chatId,
+        "❌ Користувача не знайдено. Використайте /start для реєстрації.",
+      );
     }
 
     switch (data) {
@@ -196,56 +220,49 @@ bot.on("callback_query", async (callbackQuery) => {
             inline_keyboard: [
               [
                 { text: "💝 Доброта", callback_data: "entry_kindness" },
-                { text: "🙏 Вдячність", callback_data: "entry_gratitude" }
+                { text: "🙏 Вдячність", callback_data: "entry_gratitude" },
               ],
-              [
-                { text: "🤝 Допомога", callback_data: "entry_help" }
-              ],
-              [
-                { text: "⬅️ Назад", callback_data: "main_menu" }
-              ]
-            ]
-          }
+              [{ text: "🤝 Допомога", callback_data: "entry_help" }],
+              [{ text: "⬅️ Назад", callback_data: "main_menu" }],
+            ],
+          },
         };
-        
-        await bot.editMessageText(
-          "Обери категорію для свого запису:",
-          {
-            chat_id: chatId,
-            message_id: msg.message_id,
-            ...entryOptions
-          }
-        );
+
+        await bot.editMessageText("Обери категорію для свого запису:", {
+          chat_id: chatId,
+          message_id: msg.message_id,
+          ...entryOptions,
+        });
         break;
 
       case "entry_kindness":
       case "entry_gratitude":
       case "entry_help":
-        const category = data.replace('entry_', '');
+        const category = data.replace("entry_", "");
         const categoryNames = {
-          kindness: 'Доброта 💝',
-          gratitude: 'Вдячність 🙏',
-          help: 'Допомога 🤝'
+          kindness: "Доброта 💝",
+          gratitude: "Вдячність 🙏",
+          help: "Допомога 🤝",
         };
-        
-        userSessions.set(telegramId, { 
-          waitingForEntry: true, 
-          category: category 
+
+        userSessions.set(telegramId, {
+          waitingForEntry: true,
+          category: category,
         });
-        
+
         await bot.editMessageText(
           `Категорія: ${categoryNames[category]}\n\n` +
-          `Опиши свою добру справу або за що ти вдячний.\n` +
-          `Напиши повідомлення нижче:`,
+            `Опиши свою добру справу або за що ти вдячний.\n` +
+            `Напиши повідомлення нижче:`,
           {
             chat_id: chatId,
             message_id: msg.message_id,
             reply_markup: {
               inline_keyboard: [
-                [{ text: "❌ Скасувати", callback_data: "main_menu" }]
-              ]
-            }
-          }
+                [{ text: "❌ Скасувати", callback_data: "main_menu" }],
+              ],
+            },
+          },
         );
         break;
 
@@ -255,8 +272,8 @@ bot.on("callback_query", async (callbackQuery) => {
         const streak = await getUserStreak(user.id);
         const todayKarma = await getTodayKarma(user.id);
         const totalEntries = await getTotalEntries(user.id);
-        
-        const statsMessage = 
+
+        const statsMessage =
           `📊 Твоя статистика:\n\n` +
           `💫 Загальна карма: ${totalKarma} балів\n` +
           `🔥 Серія днів: ${streak}\n` +
@@ -265,91 +282,112 @@ bot.on("callback_query", async (callbackQuery) => {
           `😊 Середній настрій: ${(userStats?.averageMood || 0).toFixed(1)}/10\n` +
           `⚡ Середня енергія: ${(userStats?.averageEnergy || 0).toFixed(1)}/10\n\n` +
           `Продовжуй у тому ж дусі! 🌟`;
-        
+
         await bot.editMessageText(statsMessage, {
           chat_id: chatId,
           message_id: msg.message_id,
           reply_markup: {
             inline_keyboard: [
-              [{ text: "📈 Детальна статистика", web_app: { url: `${process.env.FRONTEND_URL}/analytics` } }],
-              [{ text: "🔙 Назад", callback_data: "main_menu" }]
-            ]
-          }
+              [
+                {
+                  text: "📈 Детальна статистика",
+                  web_app: { url: `${process.env.FRONTEND_URL}/analytics` },
+                },
+              ],
+              [{ text: "🔙 Назад", callback_data: "main_menu" }],
+            ],
+          },
         });
         break;
 
       case "achievements":
         const userAchievements = await db.query.achievements.findMany({
-          where: eq(achievements.userId, user.id)
+          where: eq(achievements.userId, user.id),
         });
-        
+
         const achievementTitles = {
-          'first_entry': '🌟 Перший крок',
-          '7_days_streak': '🔥 Тижнева серія',
-          'gratitude_master': '🙏 Майстер вдячності',
-          'karma_collector': '🏆 Збирач карми',
-          'month_champion': '📅 Чемпіон місяця',
-          'mood_master': '😊 Майстер настрою'
+          first_entry: "🌟 Перший крок",
+          "7_days_streak": "🔥 Тижнева серія",
+          gratitude_master: "🙏 Майстер вдячності",
+          karma_collector: "🏆 Збирач карми",
+          month_champion: "📅 Чемпіон місяця",
+          mood_master: "😊 Майстер настрою",
         };
-        
-        let achievementsMessage = '🏆 Твої досягнення:\n\n';
-        
+
+        let achievementsMessage = "🏆 Твої досягнення:\n\n";
+
         if (userAchievements.length === 0) {
-          achievementsMessage += 'Поки що немає досягнень.\nПродовжуй вести щоденник! 💪';
+          achievementsMessage +=
+            "Поки що немає досягнень.\nПродовжуй вести щоденник! 💪";
         } else {
-          userAchievements.forEach(achievement => {
-            const title = achievementTitles[achievement.type] || achievement.type;
+          userAchievements.forEach((achievement) => {
+            const title =
+              achievementTitles[achievement.type] || achievement.type;
             achievementsMessage += `${title}\n`;
           });
           achievementsMessage += `\n✨ Відкрито: ${userAchievements.length} досягнень`;
         }
-        
+
         await bot.editMessageText(achievementsMessage, {
           chat_id: chatId,
           message_id: msg.message_id,
           reply_markup: {
             inline_keyboard: [
-              [{ text: "🏆 Всі досягнення", web_app: { url: `${process.env.FRONTEND_URL}/dashboard` } }],
-              [{ text: "🔙 Назад", callback_data: "main_menu" }]
-            ]
-          }
+              [
+                {
+                  text: "🏆 Всі досягнення",
+                  web_app: { url: `${process.env.FRONTEND_URL}/dashboard` },
+                },
+              ],
+              [{ text: "🔙 Назад", callback_data: "main_menu" }],
+            ],
+          },
         });
         break;
 
       case "ai_advice":
         // Check subscription
-        const subscription = await subscriptionService.getUserSubscription(user.id);
-        
-        if (!subscription.features.aiRequests || subscription.features.aiRequests === 0) {
+        const subscription = await subscriptionService.getUserSubscription(
+          user.id,
+        );
+
+        if (
+          !subscription.features.aiRequests ||
+          subscription.features.aiRequests === 0
+        ) {
           await bot.editMessageText(
-            '💎 AI-поради доступні тільки для підписок Plus та Pro.\n\n' +
-            'Оформи підписку, щоб отримувати персоналізовані поради від AI!',
+            "💎 AI-поради доступні тільки для підписок Plus та Pro.\n\n" +
+              "Оформи підписку, щоб отримувати персоналізовані поради від AI!",
             {
               chat_id: chatId,
               message_id: msg.message_id,
               reply_markup: {
                 inline_keyboard: [
-                  [{ text: "💎 Оформити підписку", web_app: { url: `${process.env.FRONTEND_URL}/subscriptions` } }],
-                  [{ text: "🔙 Назад", callback_data: "main_menu" }]
-                ]
-              }
-            }
+                  [
+                    {
+                      text: "💎 Оформити підписку",
+                      web_app: {
+                        url: `${process.env.FRONTEND_URL}/subscriptions`,
+                      },
+                    },
+                  ],
+                  [{ text: "🔙 Назад", callback_data: "main_menu" }],
+                ],
+              },
+            },
           );
           return;
         }
-        
+
         // Show loading
-        await bot.editMessageText(
-          '🤔 AI генерує пораду...',
-          {
-            chat_id: chatId,
-            message_id: msg.message_id
-          }
-        );
-        
+        await bot.editMessageText("🤔 AI генерує пораду...", {
+          chat_id: chatId,
+          message_id: msg.message_id,
+        });
+
         try {
-          const advice = await aiAssistant.analyzeUserEntries(user.id, 'uk');
-          
+          const advice = await aiAssistant.analyzeUserEntries(user.id, "uk");
+
           await bot.editMessageText(
             `💡 AI-порада для тебе:\n\n${advice}\n\n✨ Продовжуй творити добро!`,
             {
@@ -358,68 +396,75 @@ bot.on("callback_query", async (callbackQuery) => {
               reply_markup: {
                 inline_keyboard: [
                   [{ text: "💡 Ще порада", callback_data: "ai_advice" }],
-                  [{ text: "🔙 Назад", callback_data: "main_menu" }]
-                ]
-              }
-            }
+                  [{ text: "🔙 Назад", callback_data: "main_menu" }],
+                ],
+              },
+            },
           );
         } catch (error) {
           await bot.editMessageText(
-            '❌ Не вдалося отримати пораду. Спробуй пізніше.\n\n' +
-            'Можливо, вичерпано ліміт AI-запитів.',
+            "❌ Не вдалося отримати пораду. Спробуй пізніше.\n\n" +
+              "Можливо, вичерпано ліміт AI-запитів.",
             {
               chat_id: chatId,
               message_id: msg.message_id,
               reply_markup: {
                 inline_keyboard: [
-                  [{ text: "🔙 Назад", callback_data: "main_menu" }]
-                ]
-              }
-            }
+                  [{ text: "🔙 Назад", callback_data: "main_menu" }],
+                ],
+              },
+            },
           );
         }
         break;
 
       case "subscription":
-        const currentSubscription = await subscriptionService.getUserSubscription(user.id);
-        
-        let subscriptionMessage = '💎 Твоя підписка:\n\n';
-        
-        if (currentSubscription.plan === 'none') {
-          subscriptionMessage += 'У тебе безкоштовний план.\n\n' +
-            'Переваги платних підписок:\n' +
-            '• 🌟 Light: Розширена статистика\n' +
-            '• ⭐ Plus: AI-поради (5/місяць)\n' +
-            '• 💎 Pro: AI-чат (необмежено)';
+        const currentSubscription =
+          await subscriptionService.getUserSubscription(user.id);
+
+        let subscriptionMessage = "💎 Твоя підписка:\n\n";
+
+        if (currentSubscription.plan === "none") {
+          subscriptionMessage +=
+            "У тебе безкоштовний план.\n\n" +
+            "Переваги платних підписок:\n" +
+            "• 🌟 Light: Розширена статистика\n" +
+            "• ⭐ Plus: AI-поради (5/місяць)\n" +
+            "• 💎 Pro: AI-чат (необмежено)";
         } else {
           const planNames = {
-            light: '🌟 Light',
-            plus: '⭐ Plus', 
-            pro: '💎 Pro'
+            light: "🌟 Light",
+            plus: "⭐ Plus",
+            pro: "💎 Pro",
           };
-          
+
           subscriptionMessage += `План: ${planNames[currentSubscription.plan]}\n`;
-          
+
           if (currentSubscription.endDate) {
-            subscriptionMessage += `Діє до: ${new Date(currentSubscription.endDate).toLocaleDateString('uk-UA')}\n\n`;
+            subscriptionMessage += `Діє до: ${new Date(currentSubscription.endDate).toLocaleDateString("uk-UA")}\n\n`;
           }
-          
-          if (currentSubscription.plan === 'plus') {
-            subscriptionMessage += 'Ти маєш доступ до AI-порад! 💡';
-          } else if (currentSubscription.plan === 'pro') {
-            subscriptionMessage += 'Ти маєш повний доступ до всіх функцій! 🚀';
+
+          if (currentSubscription.plan === "plus") {
+            subscriptionMessage += "Ти маєш доступ до AI-порад! 💡";
+          } else if (currentSubscription.plan === "pro") {
+            subscriptionMessage += "Ти маєш повний доступ до всіх функцій! 🚀";
           }
         }
-        
+
         await bot.editMessageText(subscriptionMessage, {
           chat_id: chatId,
           message_id: msg.message_id,
           reply_markup: {
             inline_keyboard: [
-              [{ text: "💎 Керувати підпискою", web_app: { url: `${process.env.FRONTEND_URL}/subscriptions` } }],
-              [{ text: "🔙 Назад", callback_data: "main_menu" }]
-            ]
-          }
+              [
+                {
+                  text: "💎 Керувати підпискою",
+                  web_app: { url: `${process.env.FRONTEND_URL}/subscriptions` },
+                },
+              ],
+              [{ text: "🔙 Назад", callback_data: "main_menu" }],
+            ],
+          },
         });
         break;
 
@@ -435,33 +480,37 @@ bot.on("callback_query", async (callbackQuery) => {
 
 // Handle text messages for journal entries
 bot.on("message", async (msg) => {
-  if (msg.text && !msg.text.startsWith('/')) {
+  if (msg.text && !msg.text.startsWith("/")) {
     const chatId = msg.chat.id;
     const telegramId = msg.from?.id.toString();
-    
+
     if (!telegramId) return;
-    
+
     const session = userSessions.get(telegramId);
-    
+
     if (session?.waitingForEntry) {
       try {
         const user = await storage.getUserByTelegramId(telegramId);
-        
+
         if (!user) {
-          await bot.sendMessage(chatId, "❌ Користувача не знайдено. Використайте /start");
+          await bot.sendMessage(
+            chatId,
+            "❌ Користувача не знайдено. Використайте /start",
+          );
           return;
         }
-        
+
         const category = session.category;
         const description = msg.text;
-        
+
         // Determine karma points
-        const karmaPoints = {
-          kindness: 10,
-          gratitude: 5, 
-          help: 15
-        }[category] || 5;
-        
+        const karmaPoints =
+          {
+            kindness: 10,
+            gratitude: 5,
+            help: 15,
+          }[category] || 5;
+
         // Add journal entry
         await storage.createJournalEntry({
           userId: user.id,
@@ -470,40 +519,43 @@ bot.on("message", async (msg) => {
           description,
           mood: 7, // Default mood
           energy: 7, // Default energy
-          karmaPoints
+          karmaPoints,
         });
-        
+
         // Update user stats
         await storage.updateUserStats(user.id);
-        
+
         // Check achievements
         await checkAndNotifyAchievements(chatId, user.id);
-        
+
         // Clear session
         userSessions.delete(telegramId);
-        
+
         const totalKarma = await getUserKarma(user.id);
-        
+
         await bot.sendMessage(
           chatId,
           `✅ Запис додано!\n\n` +
-          `Ти отримав ${karmaPoints} балів карми.\n` +
-          `Твоя загальна карма: ${totalKarma} балів\n\n` +
-          `Продовжуй творити добро! 🌟`,
+            `Ти отримав ${karmaPoints} балів карми.\n` +
+            `Твоя загальна карма: ${totalKarma} балів\n\n` +
+            `Продовжуй творити добро! 🌟`,
           {
             reply_markup: {
               inline_keyboard: [
                 [
                   { text: "📝 Додати ще", callback_data: "add_entry" },
-                  { text: "🏠 Головне меню", callback_data: "main_menu" }
-                ]
-              ]
-            }
-          }
+                  { text: "🏠 Головне меню", callback_data: "main_menu" },
+                ],
+              ],
+            },
+          },
         );
       } catch (error) {
         console.error("❌ Error adding journal entry:", error);
-        await bot.sendMessage(chatId, "❌ Не вдалося додати запис. Спробуйте пізніше.");
+        await bot.sendMessage(
+          chatId,
+          "❌ Не вдалося додати запис. Спробуйте пізніше.",
+        );
         userSessions.delete(telegramId);
       }
     }
