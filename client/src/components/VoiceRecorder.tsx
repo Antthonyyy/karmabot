@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Mic, Square, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { authUtils } from '@/utils/auth';
+import { useTranslation } from 'react-i18next';
 
 interface VoiceRecorderProps {
   onTranscript: (text: string) => void;
@@ -10,12 +11,13 @@ interface VoiceRecorderProps {
   language?: string;
 }
 
-export function VoiceRecorder({ onTranscript, disabled, language = 'uk' }: VoiceRecorderProps) {
+export function VoiceRecorder({ onTranscript, disabled }: VoiceRecorderProps) {
   const [isRecording, setIsRecording] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const { toast } = useToast();
+  const { i18n } = useTranslation();
 
   const startRecording = async () => {
     if (disabled || isRecording || isProcessing) return;
@@ -99,41 +101,20 @@ export function VoiceRecorder({ onTranscript, disabled, language = 'uk' }: Voice
 
   const processAudio = async () => {
     try {
-      // Create audio blob
-      const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-      console.log('Audio blob created:', {
-        size: audioBlob.size,
-        type: audioBlob.type,
-        chunksCount: audioChunksRef.current.length,
-        language: language
-      });
-      
-      // Convert to FormData
-      const formData = new FormData();
-      formData.append('audio', audioBlob, 'recording.webm');
-      formData.append('language', language); // User's preferred language
-      
-      console.log('Sending audio to transcription API...');
-      
-      // Send to OpenAI transcription endpoint
-      const response = await fetch('/api/audio/transcribe', {
+      const file = new File(audioChunksRef.current, 'voice.webm', { type: 'audio/webm' });
+      const fd = new FormData();
+      fd.append('audio', file);
+      fd.append('language', i18n.language.slice(0, 2));
+
+      const token = authUtils.getToken();
+      const res = await fetch('/api/audio/transcribe', {
         method: 'POST',
-        headers: {
-          ...authUtils.getAuthHeaders(),
-        },
-        body: formData
+        headers: { Authorization: `Bearer ${token}` },
+        body: fd
       });
-      
-      console.log('Response status:', response.status);
-      
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('API Error:', errorText);
-        throw new Error(`Помилка транскрипції: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      console.log('Transcription response:', data);
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'TRANSCRIBE_ERROR');
       
       if (data.text && data.text.trim()) {
         onTranscript(data.text.trim());
