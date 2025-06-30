@@ -97,6 +97,18 @@ export default function DashboardPage() {
     }
   });
 
+  // Fetch principles data
+  const { data: principles } = useQuery({
+    queryKey: ['principles'],
+    queryFn: async () => {
+      const res = await fetch('/api/principles', {
+        headers: authUtils.getAuthHeaders()
+      });
+      if (!res.ok) throw new Error('Failed to fetch principles');
+      return res.json();
+    }
+  });
+
   const getGreeting = () => {
     const name = user?.firstName || 'Користувач';
     return `Вітаю, ${name}!`;
