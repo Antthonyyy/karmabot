@@ -246,20 +246,35 @@ export default function DashboardPage() {
         {/* Tab Content */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsContent value="overview" className="space-y-6">
-            {/* Quick Add - Mobile Optimized */}
-            <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border border-white/20 dark:border-slate-700/50 rounded-2xl p-4 sm:p-6 shadow-lg">
-              <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                <Zap className="w-5 h-5 text-violet-500" />
-                Швидкий запис
-              </h2>
-              <JournalQuickAdd onSuccess={() => {
-                toast({
-                  title: "Успіх",
-                  description: "Запис додано до щоденника"
-                });
-                queryClient.invalidateQueries({ queryKey: ["user"] });
-              }} />
-            </div>
+            {/* Quick Add - Enhanced Mobile Design */}
+            <Card className="relative overflow-hidden bg-gradient-to-br from-violet-50/50 via-purple-50/30 to-blue-50/50 dark:from-violet-950/30 dark:via-purple-950/20 dark:to-blue-950/30 backdrop-blur-xl border-gradient shadow-xl">
+              <div className="absolute inset-0 bg-gradient-to-r from-violet-500/5 via-purple-500/5 to-blue-500/5"></div>
+              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-violet-500 via-purple-500 to-blue-500"></div>
+              <CardHeader className="relative pb-4">
+                <CardTitle className="text-xl font-bold flex items-center gap-3">
+                  <div className="p-2 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 text-white shadow-lg">
+                    <Zap className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <div className="bg-gradient-to-r from-violet-600 via-purple-600 to-blue-600 bg-clip-text text-transparent">
+                      Швидкий запис
+                    </div>
+                    <div className="text-sm font-normal text-muted-foreground mt-1">
+                      Поділіться своїми думками та переживаннями
+                    </div>
+                  </div>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="relative">
+                <JournalQuickAdd onSuccess={() => {
+                  toast({
+                    title: "Успіх",
+                    description: "Запис додано до щоденника"
+                  });
+                  queryClient.invalidateQueries({ queryKey: ["user"] });
+                }} />
+              </CardContent>
+            </Card>
 
             {/* Stats Cards Grid - Mobile Responsive */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -306,7 +321,6 @@ export default function DashboardPage() {
               <div className="lg:col-span-2 space-y-6">
                 {/* Today's Plan */}
                 <Card className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-white/20 dark:border-slate-700/50 overflow-hidden shadow-lg">
-                  <div className="h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500"></div>
                   <TodaysPlan />
                 </Card>
 
@@ -321,11 +335,7 @@ export default function DashboardPage() {
                   </Card>
                 )}
 
-                {/* AI Daily Insight */}
-                <Card className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-white/20 dark:border-slate-700/50 overflow-hidden shadow-lg">
-                  <div className="h-1 bg-gradient-to-r from-violet-500 via-purple-500 to-fuchsia-500"></div>
-                  <AIDailyInsight principleId={user?.currentPrinciple || 1} />
-                </Card>
+
               </div>
 
               {/* Right Column - Sidebar */}

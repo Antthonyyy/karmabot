@@ -8,10 +8,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { CheckCircle2, Circle, Clock, Target, Plus, Settings } from "lucide-react";
 import { Link } from "wouter";
 import DiaryForm from "./DiaryForm";
+import AIDailyInsight from "./AIDailyInsight";
 
 
 interface TodaysPlanProps {
   className?: string;
+  currentPrincipleId?: number;
 }
 
 interface PrincipleItem {
@@ -33,7 +35,7 @@ interface TodaysPlanData {
   date: string;
 }
 
-export default function TodaysPlan({ className }: TodaysPlanProps) {
+export default function TodaysPlan({ className, currentPrincipleId = 1 }: TodaysPlanProps) {
   const [showDiaryForm, setShowDiaryForm] = useState(false);
   const [selectedPrinciple, setSelectedPrinciple] = useState<any>(null);
   
@@ -257,6 +259,16 @@ export default function TodaysPlan({ className }: TodaysPlanProps) {
               </p>
             </div>
           )}
+
+          {/* Додамо невеликий розділювач перед AI підказкою */}
+          <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+            <div className="text-center mb-4">
+              <p className="text-sm text-muted-foreground font-medium">
+                💫 Карма — це не покарання, а можливість...
+              </p>
+            </div>
+            <AIDailyInsight principleId={currentPrincipleId} />
+          </div>
         </CardContent>
       </Card>
 
