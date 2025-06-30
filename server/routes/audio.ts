@@ -26,6 +26,11 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
+// Check if OpenAI API key is configured
+if (!process.env.OPENAI_API_KEY) {
+  console.error('OPENAI_API_KEY is not configured');
+}
+
 // Transcribe audio using OpenAI Whisper
 router.post('/transcribe', authenticateToken, upload.single('audio'), async (req: AuthRequest, res) => {
   try {
