@@ -2,6 +2,7 @@ import { Switch, Route, useLocation } from "wouter";
 import { AnimatePresence } from "framer-motion";
 import { Toaster } from "@/components/ui/toaster";
 import { PageTransition } from "@/components/PageTransition";
+import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import HomePage from "@/pages/HomePage";
 import DashboardPage from "@/pages/DashboardPage";
 import AnalyticsPage from "@/pages/AnalyticsPage";
@@ -45,6 +46,7 @@ function App() {
     <div className="min-h-screen bg-background">
       <Router />
       <Toaster />
+      <PWAInstallPrompt />
     </div>
   );
 }
