@@ -907,6 +907,99 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Push notification routes
+  app.post("/api/push/subscribe", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const { endpoint, keys } = req.body;
+      const user = req.user;
+      
+      if (!endpoint || !keys || !keys.p256dh || !keys.auth) {
+        return res.status(400).json({ 
+          message: "Invalid subscription data" 
+        });
+      }
+
+      const subscription = await storage.createPushSubscription({
+        userId: user.id,
+        endpoint,
+        p256dh: keys.p256dh,
+        auth: keys.auth,
+        userAgent: req.headers['user-agent'] || null
+      });
+
+      res.json({ 
+        message: "Push subscription created successfully",
+        subscriptionId: subscription.id
+      });
+    } catch (error) {
+      console.error("Error creating push subscription:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post("/api/push/unsubscribe", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const { endpoint } = req.body;
+      
+      if (!endpoint) {
+        return res.status(400).json({ 
+          message: "Endpoint is required" 
+        });
+      }
+
+      await storage.deletePushSubscription(endpoint);
+      
+      res.json({ 
+        message: "Push subscription removed successfully" 
+      });
+    } catch (error) {
+      console.error("Error removing push subscription:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post("/api/push/test", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const user = req.user;
+      const subscriptions = await storage.getUserPushSubscriptions(user.id);
+      
+      if (subscriptions.length === 0) {
+        return res.status(400).json({ 
+          message: "No push subscriptions found" 
+        });
+      }
+
+      res.json({ 
+        message: "Test notification would be sent",
+        subscriptions: subscriptions.length,
+        note: "Web push requires VAPID keys configuration"
+      });
+    } catch (error) {
+      console.error("Error sending test notification:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Get user's push subscriptions
+  app.get("/api/push/subscriptions", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const user = req.user;
+      const subscriptions = await storage.getUserPushSubscriptions(user.id);
+      
+      res.json({ 
+        subscriptions: subscriptions.map(sub => ({
+          id: sub.id,
+          endpoint: sub.endpoint,
+          userAgent: sub.userAgent,
+          createdAt: sub.createdAt
+        }))
+      });
+    } catch (error) {
+      console.error("Error fetching push subscriptions:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
@@ -1176,103 +1269,4 @@ async function initializePrinciples() {
   for (const principleData of principlesData) {
     await storage.createOrUpdatePrinciple(principleData);
   }
-}
-
-  // Push notification routes
-  app.post("/api/push/subscribe", authenticateToken, async (req: AuthRequest, res) => {
-    try {
-      const { endpoint, keys } = req.body;
-      const user = req.user;
-      
-      if (!endpoint || !keys || !keys.p256dh || !keys.auth) {
-        return res.status(400).json({ 
-          message: "Invalid subscription data" 
-        });
-      }
-
-      const subscription = await storage.createPushSubscription({
-        userId: user.id,
-        endpoint,
-        p256dh: keys.p256dh,
-        auth: keys.auth,
-        userAgent: req.headers['user-agent'] || null
-      });
-
-      res.json({ 
-        message: "Push subscription created successfully",
-        subscriptionId: subscription.id
-      });
-    } catch (error) {
-      console.error("Error creating push subscription:", error);
-      res.status(500).json({ message: "Internal server error" });
-    }
-  });
-
-  app.post("/api/push/unsubscribe", authenticateToken, async (req: AuthRequest, res) => {
-    try {
-      const { endpoint } = req.body;
-      
-      if (!endpoint) {
-        return res.status(400).json({ 
-          message: "Endpoint is required" 
-        });
-      }
-
-      await storage.deletePushSubscription(endpoint);
-      
-      res.json({ 
-        message: "Push subscription removed successfully" 
-      });
-    } catch (error) {
-      console.error("Error removing push subscription:", error);
-      res.status(500).json({ message: "Internal server error" });
-    }
-  });
-
-  app.post("/api/push/test", authenticateToken, async (req: AuthRequest, res) => {
-    try {
-      const user = req.user;
-      const subscriptions = await storage.getUserPushSubscriptions(user.id);
-      
-      if (subscriptions.length === 0) {
-        return res.status(400).json({ 
-          message: "No push subscriptions found" 
-        });
-      }
-
-      res.json({ 
-        message: "Test notification would be sent",
-        subscriptions: subscriptions.length,
-        note: "Web push requires VAPID keys configuration"
-      });
-    } catch (error) {
-      console.error("Error sending test notification:", error);
-      res.status(500).json({ message: "Internal server error" });
-    }
-  });
-
-  // Get user's push subscriptions
-  app.get("/api/push/subscriptions", authenticateToken, async (req: AuthRequest, res) => {
-    try {
-      const user = req.user;
-      const subscriptions = await storage.getUserPushSubscriptions(user.id);
-      
-      res.json({ 
-        subscriptions: subscriptions.map(sub => ({
-          id: sub.id,
-          endpoint: sub.endpoint,
-          userAgent: sub.userAgent,
-          createdAt: sub.createdAt
-        }))
-      });
-    } catch (error) {
-      console.error("Error fetching push subscriptions:", error);
-      res.status(500).json({ message: "Internal server error" });
-    }
-  });
-
-  // Run reminder check immediately for testing
-  console.log("✅ Server setup complete with routes and reminder scheduling");
-  
-  return server;
 }
