@@ -165,12 +165,64 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.username, username));
+    const [user] = await db.select({
+      id: users.id,
+      telegramId: users.telegramId,
+      telegramChatId: users.telegramChatId,
+      firstName: users.firstName,
+      lastName: users.lastName,
+      username: users.username,
+      currentPrinciple: users.currentPrinciple,
+      timezoneOffset: users.timezoneOffset,
+      notificationType: users.notificationType,
+      customTimes: users.customTimes,
+      language: users.language,
+      isActive: users.isActive,
+      reminderMode: users.reminderMode,
+      dailyPrinciplesCount: users.dailyPrinciplesCount,
+      timezone: users.timezone,
+      remindersEnabled: users.remindersEnabled,
+      lastReminderSent: users.lastReminderSent,
+      hasCompletedOnboarding: users.hasCompletedOnboarding,
+      subscription: users.subscription,
+      subscriptionStartDate: users.subscriptionStartDate,
+      subscriptionEndDate: users.subscriptionEndDate,
+      preferredLanguage: users.preferredLanguage,
+      avatarUrl: users.avatarUrl,
+      createdAt: users.createdAt,
+      updatedAt: users.updatedAt
+    }).from(users).where(eq(users.username, username));
     return user || undefined;
   }
 
   async getUserByTelegramId(telegramId: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.telegramId, telegramId));
+    const [user] = await db.select({
+      id: users.id,
+      telegramId: users.telegramId,
+      telegramChatId: users.telegramChatId,
+      firstName: users.firstName,
+      lastName: users.lastName,
+      username: users.username,
+      currentPrinciple: users.currentPrinciple,
+      timezoneOffset: users.timezoneOffset,
+      notificationType: users.notificationType,
+      customTimes: users.customTimes,
+      language: users.language,
+      isActive: users.isActive,
+      reminderMode: users.reminderMode,
+      dailyPrinciplesCount: users.dailyPrinciplesCount,
+      timezone: users.timezone,
+      remindersEnabled: users.remindersEnabled,
+      lastReminderSent: users.lastReminderSent,
+      hasCompletedOnboarding: users.hasCompletedOnboarding,
+      subscription: users.subscription,
+      subscriptionStartDate: users.subscriptionStartDate,
+      subscriptionEndDate: users.subscriptionEndDate,
+      preferredLanguage: users.preferredLanguage,
+      avatarUrl: users.avatarUrl,
+      createdAt: users.createdAt,
+      updatedAt: users.updatedAt
+    }).from(users).where(eq(users.telegramId, telegramId));
     return user || undefined;
   }
 
@@ -193,7 +245,33 @@ export class DatabaseStorage implements IStorage {
 
   async getActiveUsers(): Promise<User[]> {
     return await db
-      .select()
+      .select({
+        id: users.id,
+        telegramId: users.telegramId,
+        telegramChatId: users.telegramChatId,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        username: users.username,
+        currentPrinciple: users.currentPrinciple,
+        timezoneOffset: users.timezoneOffset,
+        notificationType: users.notificationType,
+        customTimes: users.customTimes,
+        language: users.language,
+        isActive: users.isActive,
+        reminderMode: users.reminderMode,
+        dailyPrinciplesCount: users.dailyPrinciplesCount,
+        timezone: users.timezone,
+        remindersEnabled: users.remindersEnabled,
+        lastReminderSent: users.lastReminderSent,
+        hasCompletedOnboarding: users.hasCompletedOnboarding,
+        subscription: users.subscription,
+        subscriptionStartDate: users.subscriptionStartDate,
+        subscriptionEndDate: users.subscriptionEndDate,
+        preferredLanguage: users.preferredLanguage,
+        avatarUrl: users.avatarUrl,
+        createdAt: users.createdAt,
+        updatedAt: users.updatedAt
+      })
       .from(users)
       .where(eq(users.isActive, true));
   }
@@ -924,7 +1002,16 @@ export class DatabaseStorage implements IStorage {
   // Push Subscription methods
   async getUserPushSubscriptions(userId: number): Promise<PushSubscription[]> {
     return await db
-      .select()
+      .select({
+        id: pushSubscriptions.id,
+        userId: pushSubscriptions.userId,
+        endpoint: pushSubscriptions.endpoint,
+        p256dh: pushSubscriptions.p256dh,
+        auth: pushSubscriptions.auth,
+        userAgent: pushSubscriptions.userAgent,
+        createdAt: pushSubscriptions.createdAt,
+        updatedAt: pushSubscriptions.updatedAt
+      })
       .from(pushSubscriptions)
       .where(eq(pushSubscriptions.userId, userId));
   }
