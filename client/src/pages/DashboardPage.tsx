@@ -158,7 +158,7 @@ export default function DashboardPage() {
               <div className="flex items-center gap-3">
                 <Logo size={40} />
                 <div className="flex flex-col">
-                  <h1 className="text-xl font-bold bg-gradient-to-r from-purple-600 to-purple-800 dark:from-purple-400 dark:to-purple-600 bg-clip-text text-transparent">
+                  <h1 className="font-bold bg-gradient-to-r from-purple-600 to-purple-800 dark:from-purple-400 dark:to-purple-600 bg-clip-text text-transparent text-[19px]">
                     Кармічний Щоденник
                   </h1>
                   <p className="text-xs text-purple-600/70 dark:text-purple-400/70">
@@ -351,7 +351,6 @@ export default function DashboardPage() {
           </div>
         )}
       </nav>
-
       {/* Onboarding Modal */}
       {showOnboarding && (
         <OnboardingModal 
@@ -359,7 +358,6 @@ export default function DashboardPage() {
           onComplete={completeOnboarding}
         />
       )}
-
       {/* Main Content */}
       <div className="container max-w-7xl mx-auto py-8 px-4">
         {/* Header */}
