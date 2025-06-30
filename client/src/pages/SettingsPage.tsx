@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Bell, Clock, Settings, Save, Plus, Trash2, ArrowRight, Play } from "lucide-react";
+import { ArrowLeft, Bell, Clock, Settings, Save, Plus, Trash2, ArrowRight, Play, Palette, Sun, Moon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -13,6 +13,7 @@ import ReminderModeSelector from "@/components/ReminderModeSelector";
 import CustomScheduleEditor from "@/components/CustomScheduleEditor";
 import { BackButton } from "@/components/BackButton";
 import VideoInstructionModal from "@/components/VideoInstructionModal";
+import { SafeThemeToggle } from "@/components/SafeThemeToggle";
 
 interface Schedule {
   id?: number;
@@ -328,6 +329,46 @@ export default function SettingsPage() {
             </Button>
 
             
+          </CardContent>
+        </Card>
+
+        {/* Налаштування теми */}
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Palette className="h-6 w-6" />
+              Налаштування теми
+            </CardTitle>
+            <CardDescription>
+              Виберіть зовнішній вигляд додатку
+            </CardDescription>
+          </CardHeader>
+          
+          <CardContent>
+            <div className="flex items-center justify-between p-4 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-950/20 dark:to-blue-950/20 rounded-lg border border-purple-200 dark:border-purple-800">
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 text-purple-600 dark:text-purple-400">
+                  <Sun className="h-5 w-5" />
+                  <Moon className="h-5 w-5" />
+                </div>
+                <div>
+                  <Label className="font-medium text-gray-900 dark:text-gray-100">
+                    Перемикач теми
+                  </Label>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    Переключайтеся між світлою та темною темою
+                  </p>
+                </div>
+              </div>
+              
+              <SafeThemeToggle />
+            </div>
+            
+            <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
+              <p className="text-sm text-blue-800 dark:text-blue-300">
+                <strong>Підказка:</strong> Темна тема зменшує навантаження на очі, особливо під час вечірньої медитації та рефлексії.
+              </p>
+            </div>
           </CardContent>
         </Card>
         
