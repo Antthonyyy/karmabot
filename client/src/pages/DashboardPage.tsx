@@ -9,7 +9,7 @@ import { Brain, TrendingUp, Trophy, Sparkles, ChevronRight, LogOut, Menu, X, Set
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useLocation } from "wouter";
 import { AIChat } from '@/components/AIChat';
-import { JournalQuickAdd } from '@/components/JournalQuickAdd';
+import { EntryFab } from '@/components/EntryFab';
 import { KarmaStats } from '@/components/KarmaStats';
 import { Achievements } from '@/components/Achievements';
 import { Logo } from '@/components/Logo';
@@ -252,35 +252,7 @@ export default function DashboardPage() {
         {/* Tab Content */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsContent value="overview" className="space-y-6">
-            {/* Quick Add - Enhanced Mobile Design */}
-            <Card className="relative overflow-hidden bg-gradient-to-br from-violet-50/50 via-purple-50/30 to-blue-50/50 dark:from-violet-950/30 dark:via-purple-950/20 dark:to-blue-950/30 backdrop-blur-xl border-gradient shadow-xl">
-              <div className="absolute inset-0 bg-gradient-to-r from-violet-500/5 via-purple-500/5 to-blue-500/5"></div>
-              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-violet-500 via-purple-500 to-blue-500"></div>
-              <CardHeader className="relative pb-4">
-                <CardTitle className="text-xl font-bold flex items-center gap-3">
-                  <div className="p-2 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 text-white shadow-lg">
-                    <Zap className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <div className="bg-gradient-to-r from-violet-600 via-purple-600 to-blue-600 bg-clip-text text-transparent">
-                      Швидкий запис
-                    </div>
-                    <div className="text-sm font-normal text-muted-foreground mt-1">
-                      Поділіться своїми думками та переживаннями
-                    </div>
-                  </div>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="relative">
-                <JournalQuickAdd onSuccess={() => {
-                  toast({
-                    title: "Успіх",
-                    description: "Запис додано до щоденника"
-                  });
-                  queryClient.invalidateQueries({ queryKey: ["user"] });
-                }} />
-              </CardContent>
-            </Card>
+
 
             {/* Stats Cards Grid - Mobile Responsive */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
