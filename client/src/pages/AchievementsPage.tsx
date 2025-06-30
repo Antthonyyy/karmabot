@@ -1,162 +1,35 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Trophy, Star, Target, Zap, Award, Medal } from 'lucide-react';
+import { Achievements } from '@/components/Achievements';
+import { Trophy } from 'lucide-react';
 
 export default function AchievementsPage() {
-  const achievements = [
-    {
-      id: 1,
-      title: 'Перший запис',
-      description: 'Створіть свій перший запис у щоденнику',
-      icon: Trophy,
-      unlocked: false,
-      progress: 0,
-      total: 1,
-    },
-    {
-      id: 2,
-      title: 'Серія з 7 днів',
-      description: 'Ведіть щоденник 7 днів поспіль',
-      icon: Star,
-      unlocked: false,
-      progress: 0,
-      total: 7,
-    },
-    {
-      id: 3,
-      title: 'Перший принцип',
-      description: 'Завершіть роботу з першим принципом карми',
-      icon: Target,
-      unlocked: false,
-      progress: 0,
-      total: 1,
-    },
-    {
-      id: 4,
-      title: 'Енергійний',
-      description: 'Досягніть високого рівня енергії 10 разів',
-      icon: Zap,
-      unlocked: false,
-      progress: 0,
-      total: 10,
-    },
-    {
-      id: 5,
-      title: 'Медитатор',
-      description: 'Проведіть 30 днів з регулярними записами',
-      icon: Award,
-      unlocked: false,
-      progress: 0,
-      total: 30,
-    },
-    {
-      id: 6,
-      title: 'Майстер карми',
-      description: 'Завершіть роботу з усіма 10 принципами',
-      icon: Medal,
-      unlocked: false,
-      progress: 0,
-      total: 10,
-    },
-  ];
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50/50 via-white to-orange-50/50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 p-4">
-      <div className="max-w-6xl mx-auto">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">
-            Досягнення
-          </h1>
-          <p className="text-muted-foreground mt-2">
-            Відстежуйте свій прогрес та святкуйте успіхи
-          </p>
-        </div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-yellow-50 to-orange-50 dark:from-slate-900 dark:via-yellow-900 dark:to-orange-900 pt-20 pb-24 px-4">
+      {/* Decorative background elements */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-20 left-10 w-72 h-72 bg-gradient-to-r from-yellow-400/20 to-orange-600/20 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute top-60 right-20 w-96 h-96 bg-gradient-to-r from-orange-400/15 to-red-600/15 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        <div className="absolute bottom-20 left-1/3 w-80 h-80 bg-gradient-to-r from-amber-400/10 to-yellow-600/10 rounded-full blur-3xl animate-pulse delay-2000"></div>
+      </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {achievements.map((achievement) => {
-            const IconComponent = achievement.icon;
-            const progressPercent = Math.round((achievement.progress / achievement.total) * 100);
-            
-            return (
-              <Card 
-                key={achievement.id} 
-                className={`transition-all duration-300 ${
-                  achievement.unlocked 
-                    ? 'border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20' 
-                    : 'opacity-75 hover:opacity-100'
-                }`}
-              >
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <div className={`p-2 rounded-lg ${
-                      achievement.unlocked 
-                        ? 'bg-amber-100 text-amber-600 dark:bg-amber-900/30' 
-                        : 'bg-muted text-muted-foreground'
-                    }`}>
-                      <IconComponent className="h-6 w-6" />
-                    </div>
-                    {achievement.unlocked && (
-                      <Badge variant="secondary" className="bg-amber-100 text-amber-800 dark:bg-amber-900/30">
-                        Відкрито
-                      </Badge>
-                    )}
-                  </div>
-                  <CardTitle className="text-lg">{achievement.title}</CardTitle>
-                </CardHeader>
-                
-                <CardContent>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    {achievement.description}
-                  </p>
-                  
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span>Прогрес</span>
-                      <span>{achievement.progress}/{achievement.total}</span>
-                    </div>
-                    <div className="w-full bg-muted rounded-full h-2">
-                      <div 
-                        className={`h-2 rounded-full transition-all duration-300 ${
-                          achievement.unlocked 
-                            ? 'bg-gradient-to-r from-amber-400 to-orange-500' 
-                            : 'bg-muted-foreground/30'
-                        }`}
-                        style={{ width: `${progressPercent}%` }}
-                      />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
-
-        <Card className="mt-8">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Trophy className="h-5 w-5" />
-              Загальна статистика
-            </CardTitle>
+      <div className="max-w-4xl mx-auto relative z-10">
+        <Card className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-white/20 dark:border-slate-700/50 shadow-xl mb-6">
+          <div className="h-1 bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500"></div>
+          <CardHeader className="text-center">
+            <div className="flex items-center justify-center gap-3 mb-2">
+              <div className="p-3 rounded-xl bg-gradient-to-br from-yellow-500 to-orange-600 text-white shadow-lg">
+                <Trophy className="w-6 h-6" />
+              </div>
+              <CardTitle className="text-2xl font-bold bg-gradient-to-r from-yellow-600 via-orange-600 to-red-600 bg-clip-text text-transparent">
+                Досягнення
+              </CardTitle>
+            </div>
+            <p className="text-muted-foreground">
+              Відстежуйте свій прогрес та святкуйте досягнення на шляху розвитку
+            </p>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-amber-600">0</div>
-                <div className="text-sm text-muted-foreground">Відкритих досягнень</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-orange-600">6</div>
-                <div className="text-sm text-muted-foreground">Всього досягнень</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-amber-600">0%</div>
-                <div className="text-sm text-muted-foreground">Завершено</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-orange-600">0</div>
-                <div className="text-sm text-muted-foreground">Очки досягнень</div>
-              </div>
-            </div>
+            <Achievements />
           </CardContent>
         </Card>
       </div>

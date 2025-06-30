@@ -68,8 +68,8 @@ export function ModalEntryForm({ isOpen, onClose }: ModalEntryFormProps) {
       const response = await fetch('/api/entries', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
           ...authUtils.getAuthHeaders(),
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify(data),
       });

@@ -426,6 +426,9 @@ export default function DashboardPage() {
           onComplete={completeOnboarding}
         />
       )}
+
+      {/* Entry FAB */}
+      <EntryFab />
     </div>
   );
 }

@@ -1,21 +1,14 @@
 import { Link, useLocation } from 'wouter';
-import { 
-  LayoutDashboard, 
-  MessageCircle, 
-  BarChart3, 
-  Trophy, 
-  User, 
-  Settings 
-} from 'lucide-react';
+import { Home, MessageCircle, BarChart3, Trophy, User, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-const navItems = [
-  { path: '/dashboard', label: 'Огляд', icon: LayoutDashboard },
-  { path: '/chat', label: 'AI Чат', icon: MessageCircle },
-  { path: '/analytics', label: 'Аналітика', icon: BarChart3 },
-  { path: '/achievements', label: 'Досягнення', icon: Trophy },
-  { path: '/profile', label: 'Профіль', icon: User },
-  { path: '/settings', label: 'Налаштування', icon: Settings },
+const navigationItems = [
+  { path: '/dashboard', icon: Home, label: 'Головна', mobileLabel: 'Головна' },
+  { path: '/chat', icon: MessageCircle, label: 'AI Чат', mobileLabel: 'Чат' },
+  { path: '/analytics', icon: BarChart3, label: 'Аналітика', mobileLabel: 'Статистика' },
+  { path: '/achievements', icon: Trophy, label: 'Досягнення', mobileLabel: 'Нагороди' },
+  { path: '/profile', icon: User, label: 'Профіль', mobileLabel: 'Профіль' },
+  { path: '/settings', icon: Settings, label: 'Налаштування', mobileLabel: 'Налаштування' },
 ];
 
 export function MainNav() {
@@ -23,50 +16,66 @@ export function MainNav() {
 
   return (
     <>
-      {/* Desktop Navigation */}
-      <nav className="hidden lg:flex items-center gap-6 px-6 py-4 border-b border-border/40 bg-background/80 backdrop-blur-sm">
-        {navItems.map(({ path, label, icon: Icon }) => {
-          const isActive = location === path;
-          return (
-            <Link key={path} href={path}>
-              <a className={cn(
-                "flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg transition-colors",
-                isActive 
-                  ? "bg-primary text-primary-foreground" 
-                  : "text-muted-foreground hover:text-foreground hover:bg-accent"
-              )}>
-                <Icon className="h-4 w-4" />
-                {label}
-              </a>
-            </Link>
-          );
-        })}
+      {/* Desktop Navigation - Top Header */}
+      <nav className="hidden md:block fixed top-0 left-0 right-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-white/20 dark:border-slate-700/50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center space-x-8">
+              {navigationItems.map((item) => {
+                const IconComponent = item.icon;
+                const isActive = location === item.path;
+                
+                return (
+                  <Link
+                    key={item.path}
+                    href={item.path}
+                    className={cn(
+                      "flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200",
+                      isActive
+                        ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg"
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                    )}
+                  >
+                    <IconComponent className="w-4 h-4" />
+                    <span>{item.label}</span>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        </div>
       </nav>
 
-      {/* Mobile Navigation */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-background/95 backdrop-blur-lg border-t border-border/40">
+      {/* Mobile Navigation - Bottom Bar */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-white/20 dark:border-slate-700/50">
         <div className="grid grid-cols-6 h-16">
-          {navItems.map(({ path, label, icon: Icon }) => {
-            const isActive = location === path;
+          {navigationItems.map((item) => {
+            const IconComponent = item.icon;
+            const isActive = location === item.path;
+            
             return (
-              <Link key={path} href={path}>
-                <a className={cn(
-                  "flex flex-col items-center justify-center h-full text-xs font-medium transition-colors",
-                  isActive 
-                    ? "text-primary bg-primary/10" 
-                    : "text-muted-foreground hover:text-foreground"
-                )}>
-                  <Icon className="h-5 w-5 mb-1" />
-                  <span className="truncate">{label}</span>
-                </a>
+              <Link
+                key={item.path}
+                href={item.path}
+                className={cn(
+                  "flex flex-col items-center justify-center gap-1 text-xs font-medium transition-all duration-200",
+                  isActive
+                    ? "text-blue-600 dark:text-blue-400"
+                    : "text-muted-foreground"
+                )}
+              >
+                <IconComponent className={cn(
+                  "w-5 h-5 transition-all duration-200",
+                  isActive && "scale-110"
+                )} />
+                <span className="text-[10px] leading-none">
+                  {item.mobileLabel}
+                </span>
               </Link>
             );
           })}
         </div>
       </nav>
-
-      {/* Bottom padding for mobile content */}
-      <div className="lg:hidden h-16" />
     </>
   );
 }
