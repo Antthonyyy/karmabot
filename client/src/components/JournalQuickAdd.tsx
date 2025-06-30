@@ -16,7 +16,7 @@ interface JournalQuickAddProps {
 }
 
 export function JournalQuickAdd({ onSuccess }: JournalQuickAddProps) {
-  const { t } = useTranslation(['journal', 'common']);
+  const { t, i18n } = useTranslation(['journal', 'common']);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [category, setCategory] = useState('kindness');

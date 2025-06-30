@@ -33,7 +33,30 @@ router.post('/transcribe', authenticateToken, upload.single('audio'), async (req
       return res.status(400).json({ error: 'No audio file provided' });
     }
 
-    const { language = 'uk' } = req.body;
+    // Detect user's preferred language for better transcription
+    const user = req.user;
+    let language = 'uk'; // Default to Ukrainian
+    let prompt = 'Це запис українською мовою про кармічний розвиток та духовну практику.';
+    
+    // Check user's language preference or request body
+    const requestedLanguage = req.body.language || user?.language;
+    
+    if (requestedLanguage) {
+      switch (requestedLanguage) {
+        case 'ru':
+          language = 'ru';
+          prompt = 'Это запись на русском языке о кармическом развитии и духовной практике.';
+          break;
+        case 'en':
+          language = 'en';
+          prompt = 'This is a recording in English about karmic development and spiritual practice.';
+          break;
+        case 'uk':
+        default:
+          language = 'uk';
+          prompt = 'Це запис українською мовою про кармічний розвиток та духовну практику.';
+      }
+    }
 
     // Convert audio buffer to File-like object for OpenAI
     const audioFile = new File([req.file.buffer], req.file.originalname || 'audio.webm', {
@@ -46,7 +69,7 @@ router.post('/transcribe', authenticateToken, upload.single('audio'), async (req
       file: audioFile,
       model: 'whisper-1',
       language: language,
-      prompt: 'Це запис українською мовою про кармічний розвиток та духовну практику.',
+      prompt: prompt,
       response_format: 'json',
     });
 

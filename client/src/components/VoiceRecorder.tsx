@@ -7,9 +7,10 @@ import { authUtils } from '@/utils/auth';
 interface VoiceRecorderProps {
   onTranscript: (text: string) => void;
   disabled?: boolean;
+  language?: string;
 }
 
-export function VoiceRecorder({ onTranscript, disabled }: VoiceRecorderProps) {
+export function VoiceRecorder({ onTranscript, disabled, language = 'uk' }: VoiceRecorderProps) {
   const [isRecording, setIsRecording] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -104,7 +105,7 @@ export function VoiceRecorder({ onTranscript, disabled }: VoiceRecorderProps) {
       // Convert to FormData
       const formData = new FormData();
       formData.append('audio', audioBlob, 'recording.webm');
-      formData.append('language', 'uk'); // Ukrainian language
+      formData.append('language', language); // User's preferred language
       
       // Send to OpenAI transcription endpoint
       const response = await fetch('/api/audio/transcribe', {
