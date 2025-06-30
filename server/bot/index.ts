@@ -220,7 +220,10 @@ bot.on("callback_query", async (callbackQuery) => {
                 { text: "💝 Доброта", callback_data: "entry_kindness" },
                 { text: "🙏 Вдячність", callback_data: "entry_gratitude" },
               ],
-              [{ text: "🤝 Допомога", callback_data: "entry_help" }],
+              [
+                { text: "🤝 Допомога", callback_data: "entry_help" },
+                { text: "🛡️ Антидот", callback_data: "entry_antidote" }
+              ],
               [{ text: "⬅️ Назад", callback_data: "main_menu" }],
             ],
           },
@@ -236,11 +239,13 @@ bot.on("callback_query", async (callbackQuery) => {
       case "entry_kindness":
       case "entry_gratitude":
       case "entry_help":
+      case "entry_antidote":
         const category = data.replace("entry_", "");
         const categoryNames = {
           kindness: "Доброта 💝",
           gratitude: "Вдячність 🙏",
           help: "Допомога 🤝",
+          antidote: "Антидот 🛡️",
         };
 
         userSessions.set(telegramId, {
@@ -248,10 +253,15 @@ bot.on("callback_query", async (callbackQuery) => {
           category: category,
         });
 
+        const promptText = category === 'antidote' 
+          ? `Опиши антидот до негативної думки або дії.\n` +
+            `Що допоможе тобі перетворити негатив на позитив?`
+          : `Опиши свою добру справу або за що ти вдячний.\n` +
+            `Напиши повідомлення нижче:`;
+
         await bot.editMessageText(
           `Категорія: ${categoryNames[category]}\n\n` +
-            `Опиши свою добру справу або за що ти вдячний.\n` +
-            `Напиши повідомлення нижче:`,
+            promptText,
           {
             chat_id: chatId,
             message_id: msg.message_id,
