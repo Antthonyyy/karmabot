@@ -1273,4 +1273,6 @@ async function initializePrinciples() {
 
   // Run reminder check immediately for testing
   console.log("✅ Server setup complete with routes and reminder scheduling");
+  
   return server;
+}

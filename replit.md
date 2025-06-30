@@ -128,6 +128,11 @@ FRONTEND_URL=https://your-domain.com
 
 ```
 Changelog:
+- June 30, 2025. Completed Web Push notification system integration with comprehensive settings page and API endpoints
+- June 30, 2025. Added pushSubscriptions database table with full CRUD operations for managing user push subscriptions
+- June 30, 2025. Created PushNotificationSettings component with permission management, subscription status, and test functionality
+- June 30, 2025. Enhanced service worker with push event handlers and notification display capabilities
+- June 30, 2025. Integrated Web Push settings into main SettingsPage alongside Telegram notifications for dual notification support
 - June 30, 2025. Completed comprehensive PWA setup with PNG and SVG icons for maximum browser compatibility
 - June 30, 2025. Created intelligent PWA install prompt component with iOS-specific instructions and session management
 - June 30, 2025. Updated HTML meta tags and manifest.json for optimal PWA installation experience across all devices
