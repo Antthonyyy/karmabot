@@ -128,6 +128,11 @@ FRONTEND_URL=https://your-domain.com
 
 ```
 Changelog:
+- June 30, 2025. Implemented complete Progressive Web App (PWA) functionality with manifest.json, service worker, and offline support
+- June 30, 2025. Created comprehensive PWA icons in SVG format (192x192, 512x512, Apple touch icon) using animated lotus design
+- June 30, 2025. Added advanced service worker with cache-first strategy for static assets and network-first for API requests
+- June 30, 2025. Integrated PWA install prompts and update notifications in main application
+- June 30, 2025. Moved theme toggle from main navigation to dedicated settings page for improved UX
 - June 30, 2025. Redesigned main logo to animated lotus flower with multi-layered petals, rotation animations, and energy particles
 - June 30, 2025. Added "Antidote" category to journal quick add feature with 2x2 grid layout (kindness, gratitude, help, antidote)
 - June 30, 2025. Implemented antidote reminder system in Telegram bot with time-specific prompts 30 minutes before main reminders
