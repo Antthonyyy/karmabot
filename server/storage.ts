@@ -128,40 +128,17 @@ export interface IStorage {
 }
 
 export class DatabaseStorage implements IStorage {
-  async getUser(id: number): Promise<User | undefined> {
-    try {
-      const result = await db.select({
+  async getUser(userId: number) {
+    const [user] = await db
+      .select({
         id: users.id,
-        telegramId: users.telegramId,
-        telegramChatId: users.telegramChatId,
         firstName: users.firstName,
-        lastName: users.lastName,
-        username: users.username,
-        currentPrinciple: users.currentPrinciple,
-        timezoneOffset: users.timezoneOffset,
-        notificationType: users.notificationType,
-        customTimes: users.customTimes,
-        language: users.language,
-        isActive: users.isActive,
-        reminderMode: users.reminderMode,
-        dailyPrinciplesCount: users.dailyPrinciplesCount,
-        timezone: users.timezone,
-        remindersEnabled: users.remindersEnabled,
-        lastReminderSent: users.lastReminderSent,
-        hasCompletedOnboarding: users.hasCompletedOnboarding,
-        subscription: users.subscription,
-        subscriptionStartDate: users.subscriptionStartDate,
-        subscriptionEndDate: users.subscriptionEndDate,
-        preferredLanguage: users.preferredLanguage,
-        avatarUrl: users.avatarUrl,
-        createdAt: users.createdAt,
-        updatedAt: users.updatedAt
-      }).from(users).where(eq(users.id, id)).limit(1);
-      return result[0] || undefined;
-    } catch (error) {
-      console.error('Error in getUser:', error);
-      return undefined;
-    }
+        lastName: users.lastName
+      })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+    return user ?? null;
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
