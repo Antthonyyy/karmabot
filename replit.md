@@ -128,6 +128,10 @@ FRONTEND_URL=https://your-domain.com
 
 ```
 Changelog:
+- June 30, 2025. Redesigned main logo to animated lotus flower with multi-layered petals, rotation animations, and energy particles
+- June 30, 2025. Added "Antidote" category to journal quick add feature with 2x2 grid layout (kindness, gratitude, help, antidote)
+- June 30, 2025. Implemented antidote reminder system in Telegram bot with time-specific prompts 30 minutes before main reminders
+- June 30, 2025. Updated favicon to match new lotus logo design for consistent branding
 - June 30, 2025. Switched from temporary Replit PostgreSQL to Supabase database for production use
 - June 30, 2025. Fixed database connection issues by cleaning malformed DATABASE_URL environment variable
 - June 27, 2025. Upgraded OpenAI model from gpt-3.5-turbo to gpt-4o for better psychological coaching capabilities
