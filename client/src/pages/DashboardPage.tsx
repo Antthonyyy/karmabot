@@ -369,7 +369,7 @@ export default function DashboardPage() {
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
 
           <TabsContent value="overview" className="space-y-4">
-            <div className="grid md:grid-cols-2 gap-4">
+            <div className="grid md:grid-cols-1 gap-4">
               {/* Quick Add Journal Entry */}
               <JournalQuickAdd onSuccess={() => {
                 toast({
@@ -378,30 +378,6 @@ export default function DashboardPage() {
                 });
                 queryClient.invalidateQueries({ queryKey: ["user"] });
               }} />
-
-              {/* Today's Progress */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Прогрес дня</CardTitle>
-                  <CardDescription>Ваші досягнення сьогодні</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <div className="flex justify-between text-sm mb-2">
-                      <span>Позитивні дії</span>
-                      <span>{Math.min(5, user?.stats?.totalEntries || 0)}/5</span>
-                    </div>
-                    <Progress value={Math.min(100, ((user?.stats?.totalEntries || 0) / 5) * 100)} />
-                  </div>
-                  <div>
-                    <div className="flex justify-between text-sm mb-2">
-                      <span>Настрій</span>
-                      <span>{(user?.stats?.averageMood || 0).toFixed(1)}/10</span>
-                    </div>
-                    <Progress value={(user?.stats?.averageMood || 0) * 10} />
-                  </div>
-                </CardContent>
-              </Card>
             </div>
 
             {/* Main dashboard content */}
