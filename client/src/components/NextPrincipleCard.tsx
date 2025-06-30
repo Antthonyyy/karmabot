@@ -1,43 +1,57 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { BookOpen, ArrowRight } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { ArrowRight, Clock } from "lucide-react";
 
-export function NextPrincipleCard() {
-  const { data: user } = useQuery({ queryKey: ['/api/user/me'] });
-  const { data: principle } = useQuery({ 
-    queryKey: ['/api/principles', user?.currentPrinciple],
-    enabled: !!user?.currentPrinciple 
-  });
+interface NextPrincipleCardProps {
+  currentPrinciple: number;
+  principles: any[];
+}
+
+export default function NextPrincipleCard({ currentPrinciple, principles }: NextPrincipleCardProps) {
+  const nextPrinciple = currentPrinciple === 10 ? 1 : currentPrinciple + 1;
+  const principle = principles?.find(p => p.number === nextPrinciple);
+
+  if (!principle) {
+    return null;
+  }
 
   return (
-    <Card className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-white/20 dark:border-slate-700/50 shadow-xl">
-      <div className="h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-indigo-500"></div>
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-lg font-semibold flex items-center gap-2">
-            <div className="p-2 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 text-white">
-              <BookOpen className="w-4 h-4" />
-            </div>
-            Поточний принцип
-          </CardTitle>
-          <div className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            {user?.currentPrinciple || 1}
-          </div>
-        </div>
+    <Card className="border-orange-200 bg-gradient-to-br from-orange-50/50 to-yellow-50/50">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-orange-900">
+          <Clock className="w-5 h-5 text-orange-600" />
+          Наступний принцип в фокусі
+        </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="space-y-3">
-          <div className="text-sm font-medium">
-            {principle?.title || 'Принцип доброти та співчуття'}
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
+            <span className="text-orange-600 font-bold">{nextPrinciple}</span>
           </div>
-          <div className="text-xs text-muted-foreground line-clamp-2">
-            {principle?.description || 'Розвивайте доброту до себе та інших через щоденну практику'}
-          </div>
-          <div className="flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400 font-medium">
-            <span>Продовжити вивчення</span>
-            <ArrowRight className="w-4 h-4" />
+          <div className="flex-1">
+            <h3 className="font-semibold text-orange-900 mb-1">
+              Принцип {nextPrinciple}: {principle.title}
+            </h3>
+            <p className="text-sm text-orange-700 mb-3">
+              {principle.description}
+            </p>
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className="bg-orange-100 text-orange-700 border-orange-200">
+                Готується
+              </Badge>
+              <ArrowRight className="w-4 h-4 text-orange-500" />
+            </div>
           </div>
         </div>
+        
+        {principle.reflections && principle.reflections.length > 0 && (
+          <div className="mt-4 p-3 bg-orange-50 rounded-lg border border-orange-100">
+            <p className="text-xs font-medium text-orange-700 mb-1">💭 Підготуйтеся до роздумів:</p>
+            <p className="text-xs text-orange-600 italic">
+              "{principle.reflections[0]}"
+            </p>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
