@@ -56,9 +56,12 @@ export default function TelegramLoginButton({ onAuthSuccess }: TelegramLoginButt
   
   const checkAuthStatus = (currentSessionId: string) => {
     let attempts = 0;
+    let authSuccess = false; // Flag to track successful auth
     const maxAttempts = 150; // 5 minutes (150 * 2 seconds)
     
     const checkInterval = setInterval(async () => {
+      if (authSuccess) return; // Stop if already successful
+      
       attempts++;
       
       try {
@@ -72,6 +75,7 @@ export default function TelegramLoginButton({ onAuthSuccess }: TelegramLoginButt
         
         if (data.authorized && data.token && data.user) {
           // Successful authorization
+          authSuccess = true;
           clearInterval(checkInterval);
           setIsChecking(false);
           setSessionId(null);
@@ -87,13 +91,14 @@ export default function TelegramLoginButton({ onAuthSuccess }: TelegramLoginButt
           
           // Call callback
           onAuthSuccess();
+          return;
         }
       } catch (error) {
         console.error("Error checking auth status:", error);
       }
       
-      // Stop after maximum attempts
-      if (attempts >= maxAttempts) {
+      // Stop after maximum attempts only if auth was not successful
+      if (attempts >= maxAttempts && !authSuccess) {
         clearInterval(checkInterval);
         setIsChecking(false);
         setSessionId(null);
