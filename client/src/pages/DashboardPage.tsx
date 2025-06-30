@@ -151,43 +151,66 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Navigation */}
-      <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <nav className="border-b bg-gradient-to-r from-purple-50 to-purple-100 dark:from-purple-950/50 dark:to-purple-900/50 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container max-w-7xl mx-auto px-4">
-          <div className="flex h-16 items-center justify-between">
+          <div className="flex h-20 items-center justify-between">
             <div className="flex items-center gap-6">
-              <Logo size={32} />
-              <h1 className="text-xl font-bold">Кармічний щоденник</h1>
+              <div className="flex items-center gap-3">
+                <Logo size={40} />
+                <div className="flex flex-col">
+                  <h1 className="text-xl font-bold bg-gradient-to-r from-purple-600 to-purple-800 dark:from-purple-400 dark:to-purple-600 bg-clip-text text-transparent">
+                    Кармічний Щоденник
+                  </h1>
+                  <p className="text-xs text-purple-600/70 dark:text-purple-400/70">
+                    День {user?.stats?.streakDays || 0} • Принцип {user?.currentPrinciple || 1}
+                  </p>
+                </div>
+              </div>
               
               {/* Desktop Navigation */}
-              <div className="hidden md:flex items-center gap-4">
+              <div className="hidden lg:flex items-center gap-2 ml-8">
                 <Button
-                  variant="ghost"
-                  onClick={() => setLocation("/dashboard")}
-                  className="flex items-center gap-2"
+                  variant={activeTab === "overview" ? "default" : "ghost"}
+                  onClick={() => setActiveTab("overview")}
+                  className="flex items-center gap-2 h-9"
+                  size="sm"
                 >
                   <Sparkles className="w-4 h-4" />
-                  Дашборд
+                  Огляд
                 </Button>
                 <Button
-                  variant="ghost"
-                  onClick={() => setLocation("/analytics")}
-                  className="flex items-center gap-2"
+                  variant={activeTab === "ai-chat" ? "default" : "ghost"}
+                  onClick={() => setActiveTab("ai-chat")}
+                  className="flex items-center gap-2 h-9"
+                  size="sm"
+                >
+                  <Brain className="w-4 h-4" />
+                  AI-чат
+                </Button>
+                <Button
+                  variant={activeTab === "analytics" ? "default" : "ghost"}
+                  onClick={() => setActiveTab("analytics")}
+                  className="flex items-center gap-2 h-9"
+                  size="sm"
                 >
                   <TrendingUp className="w-4 h-4" />
                   Аналітика
                 </Button>
                 <Button
-                  variant="ghost"
-                  onClick={() => setLocation("/subscriptions")}
-                  className="flex items-center gap-2"
+                  variant={activeTab === "achievements" ? "default" : "ghost"}
+                  onClick={() => setActiveTab("achievements")}
+                  className="flex items-center gap-2 h-9"
+                  size="sm"
                 >
                   <Trophy className="w-4 h-4" />
-                  Підписки
+                  Досягнення
                 </Button>
+                <div className="w-px h-6 bg-border mx-2" />
                 <Button
                   variant="ghost"
                   onClick={() => setLocation("/settings")}
-                  className="flex items-center gap-2"
+                  className="flex items-center gap-2 h-9"
+                  size="sm"
                 >
                   <Settings className="w-4 h-4" />
                   Налаштування
@@ -196,23 +219,43 @@ export default function DashboardPage() {
             </div>
 
             <div className="flex items-center gap-4">
-              <div className="hidden md:flex items-center gap-3">
-                <Avatar className="w-8 h-8">
-                  <AvatarFallback>
+              {/* User info with karma points */}
+              <div className="hidden md:flex items-center gap-4">
+                <div className="text-right">
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1 text-sm font-medium text-purple-600 dark:text-purple-400">
+                      <Sparkles className="w-3 h-3" />
+                      {user?.stats?.totalEntries || 0} записів
+                    </div>
+                    <div className="w-px h-4 bg-border" />
+                    <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                      <Trophy className="w-3 h-3" />
+                      {user?.stats?.streakDays || 0} днів
+                    </div>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {user.firstName}
+                  </p>
+                </div>
+                <Avatar className="w-9 h-9 ring-2 ring-purple-200 dark:ring-purple-800">
+                  <AvatarFallback className="bg-gradient-to-br from-purple-100 to-purple-200 dark:from-purple-800 dark:to-purple-900 text-purple-700 dark:text-purple-300">
                     {user.firstName?.charAt(0) || "U"}
                   </AvatarFallback>
                 </Avatar>
-                <span className="font-medium">{user.firstName}</span>
               </div>
+
               <SafeThemeToggle />
-              <Button variant="ghost" size="sm" onClick={handleLogout} className="hidden md:flex">
+              
+              <Button variant="ghost" size="sm" onClick={handleLogout} className="hidden md:flex items-center gap-2">
                 <LogOut className="w-4 h-4" />
+                Вихід
               </Button>
+              
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="md:hidden"
+                className="lg:hidden"
               >
                 {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
               </Button>
@@ -222,28 +265,88 @@ export default function DashboardPage() {
 
         {/* Mobile Menu */}
         {mobileMenuOpen && (
-          <div className="md:hidden border-t">
-            <div className="container px-4 py-2 space-y-1">
-              <Button variant="ghost" className="w-full justify-start" onClick={() => setLocation("/dashboard")}>
-                <Sparkles className="w-4 h-4 mr-2" />
-                Дашборд
-              </Button>
-              <Button variant="ghost" className="w-full justify-start" onClick={() => setLocation("/analytics")}>
-                <TrendingUp className="w-4 h-4 mr-2" />
-                Аналітика
-              </Button>
-              <Button variant="ghost" className="w-full justify-start" onClick={() => setLocation("/subscriptions")}>
-                <Trophy className="w-4 h-4 mr-2" />
-                Підписки
-              </Button>
-              <Button variant="ghost" className="w-full justify-start" onClick={() => setLocation("/settings")}>
-                <Settings className="w-4 h-4 mr-2" />
-                Налаштування
-              </Button>
-              <Button variant="ghost" className="w-full justify-start" onClick={handleLogout}>
-                <LogOut className="w-4 h-4 mr-2" />
-                Вихід
-              </Button>
+          <div className="lg:hidden border-t bg-gradient-to-r from-purple-50/50 to-purple-100/50 dark:from-purple-950/20 dark:to-purple-900/20">
+            <div className="container px-4 py-4 space-y-3">
+              {/* User info in mobile */}
+              <div className="flex items-center gap-3 pb-3 border-b border-purple-200 dark:border-purple-800">
+                <Avatar className="w-10 h-10 ring-2 ring-purple-200 dark:ring-purple-800">
+                  <AvatarFallback className="bg-gradient-to-br from-purple-100 to-purple-200 dark:from-purple-800 dark:to-purple-900 text-purple-700 dark:text-purple-300">
+                    {user.firstName?.charAt(0) || "U"}
+                  </AvatarFallback>
+                </Avatar>
+                <div>
+                  <p className="font-medium">{user.firstName}</p>
+                  <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                    <span className="flex items-center gap-1">
+                      <Sparkles className="w-3 h-3" />
+                      {user?.stats?.totalEntries || 0} записів
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Trophy className="w-3 h-3" />
+                      {user?.stats?.streakDays || 0} днів
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Navigation tabs */}
+              <div className="space-y-1">
+                <Button 
+                  variant={activeTab === "overview" ? "default" : "ghost"} 
+                  className="w-full justify-start h-10" 
+                  onClick={() => {
+                    setActiveTab("overview");
+                    setMobileMenuOpen(false);
+                  }}
+                >
+                  <Sparkles className="w-4 h-4 mr-3" />
+                  Огляд
+                </Button>
+                <Button 
+                  variant={activeTab === "ai-chat" ? "default" : "ghost"} 
+                  className="w-full justify-start h-10" 
+                  onClick={() => {
+                    setActiveTab("ai-chat");
+                    setMobileMenuOpen(false);
+                  }}
+                >
+                  <Brain className="w-4 h-4 mr-3" />
+                  AI-чат
+                </Button>
+                <Button 
+                  variant={activeTab === "analytics" ? "default" : "ghost"} 
+                  className="w-full justify-start h-10" 
+                  onClick={() => {
+                    setActiveTab("analytics");
+                    setMobileMenuOpen(false);
+                  }}
+                >
+                  <TrendingUp className="w-4 h-4 mr-3" />
+                  Аналітика
+                </Button>
+                <Button 
+                  variant={activeTab === "achievements" ? "default" : "ghost"} 
+                  className="w-full justify-start h-10" 
+                  onClick={() => {
+                    setActiveTab("achievements");
+                    setMobileMenuOpen(false);
+                  }}
+                >
+                  <Trophy className="w-4 h-4 mr-3" />
+                  Досягнення
+                </Button>
+                
+                <div className="w-full h-px bg-border my-2" />
+                
+                <Button variant="ghost" className="w-full justify-start h-10" onClick={() => setLocation("/settings")}>
+                  <Settings className="w-4 h-4 mr-3" />
+                  Налаштування
+                </Button>
+                <Button variant="ghost" className="w-full justify-start h-10" onClick={handleLogout}>
+                  <LogOut className="w-4 h-4 mr-3" />
+                  Вихід
+                </Button>
+              </div>
             </div>
           </div>
         )}
@@ -268,25 +371,7 @@ export default function DashboardPage() {
         
 
         {/* Main Content */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="overview" className="flex items-center gap-2">
-              <Sparkles className="w-4 h-4" />
-              Огляд
-            </TabsTrigger>
-            <TabsTrigger value="ai-chat" className="flex items-center gap-2">
-              <Brain className="w-4 h-4" />
-              AI-чат
-            </TabsTrigger>
-            <TabsTrigger value="analytics" className="flex items-center gap-2">
-              <TrendingUp className="w-4 h-4" />
-              Аналітика
-            </TabsTrigger>
-            <TabsTrigger value="achievements" className="flex items-center gap-2">
-              <Trophy className="w-4 h-4" />
-              Досягнення
-            </TabsTrigger>
-          </TabsList>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
 
           <TabsContent value="overview" className="space-y-4">
             <div className="grid md:grid-cols-2 gap-4">
