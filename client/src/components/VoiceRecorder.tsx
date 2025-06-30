@@ -58,6 +58,8 @@ export function VoiceRecorder({ onTranscript, disabled }: VoiceRecorderProps) {
     }
     
     try {
+      setShowLanguageHint(true);
+      
       // Request microphone permission
       const stream = await navigator.mediaDevices.getUserMedia({ 
         audio: {
@@ -91,6 +93,7 @@ export function VoiceRecorder({ onTranscript, disabled }: VoiceRecorderProps) {
       };
       
       mediaRecorder.onstop = async () => {
+        setShowLanguageHint(false);
         stream.getTracks().forEach(track => track.stop());
         
         if (audioChunksRef.current.length > 0) {
@@ -105,10 +108,11 @@ export function VoiceRecorder({ onTranscript, disabled }: VoiceRecorderProps) {
       
       toast({
         title: "Запис розпочато",
-        description: "Говоріть у мікрофон",
+        description: `Говоріть ${getCurrentLanguageOption().name.toLowerCase()}`,
       });
     } catch (error) {
       console.error('Microphone access error:', error);
+      setShowLanguageHint(false);
       toast({
         title: "Помилка доступу",
         description: "Не вдається отримати доступ до мікрофона",

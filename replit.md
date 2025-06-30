@@ -128,6 +128,9 @@ FRONTEND_URL=https://your-domain.com
 
 ```
 Changelog:
+- June 30, 2025. Completed adaptive voice input UI with intelligent language hints and multi-language selector
+- June 30, 2025. Added dynamic language selection with flag icons and contextual hints for Ukrainian, Russian, and English
+- June 30, 2025. Implemented visual recording status indicators with language-specific prompts and real-time feedback
 - June 30, 2025. Enhanced voice recording with multi-language support for Ukrainian, Russian, and English through OpenAI Whisper API
 - June 30, 2025. Updated audio transcription endpoint to detect user language preferences from profile and i18next settings
 - June 30, 2025. Improved VoiceRecorder component with better browser compatibility detection and error handling
