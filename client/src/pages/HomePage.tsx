@@ -6,6 +6,7 @@ import { CheckCircle } from "lucide-react";
 import { authUtils } from '@/utils/auth';
 import { useTranslation } from 'react-i18next';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
+import { Logo, LogoWithText } from '@/components/Logo';
 
 export default function HomePage() {
   const [, setLocation] = useLocation();
@@ -34,10 +35,7 @@ export default function HomePage() {
       <nav className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-2">
-              <div className="text-2xl">🪷</div>
-              <span className="text-xl font-bold text-gray-900">{t('app.name')}</span>
-            </div>
+            <LogoWithText size={32} showText={false} />
             <LanguageSwitcher />
           </div>
         </div>
@@ -48,13 +46,10 @@ export default function HomePage() {
         <section className="min-h-screen flex items-center justify-center px-4 py-12">
           <div className="max-w-md w-full">
             <div className="text-center mb-8">
-              <div className="mb-6 animate-bounce">
-                <div className="text-6xl">🪷</div>
+              <div className="mb-6 animate-pulse">
+                <Logo size={80} className="mx-auto" />
               </div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-4">{t('app.name')}</h1>
-              <p className="text-gray-600 text-lg mb-8">
-                {t('app.tagline')}
-              </p>
+              <LogoWithText size={0} showText={true} className="justify-center" />
             </div>
 
             <Card className="shadow-lg">
