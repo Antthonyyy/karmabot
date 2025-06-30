@@ -1036,7 +1036,16 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAllPushSubscriptions(): Promise<PushSubscription[]> {
-    return await db.select().from(pushSubscriptions);
+    return await db.select({
+      id: pushSubscriptions.id,
+      userId: pushSubscriptions.userId,
+      endpoint: pushSubscriptions.endpoint,
+      p256dh: pushSubscriptions.p256dh,
+      auth: pushSubscriptions.auth,
+      userAgent: pushSubscriptions.userAgent,
+      createdAt: pushSubscriptions.createdAt,
+      updatedAt: pushSubscriptions.updatedAt
+    }).from(pushSubscriptions);
   }
 }
 
