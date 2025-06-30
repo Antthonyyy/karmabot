@@ -12,24 +12,30 @@ export function Logo({ size = 40, className = "" }: LogoProps) {
         viewBox="0 0 120 120" 
         fill="none" 
         xmlns="http://www.w3.org/2000/svg"
-        className="drop-shadow-sm"
+        className="drop-shadow-lg"
       >
         <defs>
-          <linearGradient id="mainGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" style={{stopColor:"#8B5CF6", stopOpacity:1}} />
-            <stop offset="50%" style={{stopColor:"#A855F7", stopOpacity:1}} />
-            <stop offset="100%" style={{stopColor:"#C084FC", stopOpacity:1}} />
+          <linearGradient id="lotusMainGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style={{stopColor:"#C084FC", stopOpacity:1}} />
+            <stop offset="30%" style={{stopColor:"#A855F7", stopOpacity:1}} />
+            <stop offset="70%" style={{stopColor:"#8B5CF6", stopOpacity:1}} />
+            <stop offset="100%" style={{stopColor:"#7C3AED", stopOpacity:1}} />
           </linearGradient>
-          <linearGradient id="bookGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" style={{stopColor:"#F3E8FF", stopOpacity:1}} />
+          
+          <linearGradient id="petalGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style={{stopColor:"#FFFFFF", stopOpacity:1}} />
+            <stop offset="50%" style={{stopColor:"#F3E8FF", stopOpacity:1}} />
             <stop offset="100%" style={{stopColor:"#E9D5FF", stopOpacity:1}} />
           </linearGradient>
-          <linearGradient id="penGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" style={{stopColor:"#FB923C", stopOpacity:1}} />
-            <stop offset="100%" style={{stopColor:"#F97316", stopOpacity:1}} />
-          </linearGradient>
-          <filter id="glow">
-            <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+
+          <radialGradient id="centerGlow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" style={{stopColor:"#FFFFFF", stopOpacity:0.9}} />
+            <stop offset="70%" style={{stopColor:"#C084FC", stopOpacity:0.6}} />
+            <stop offset="100%" style={{stopColor:"#8B5CF6", stopOpacity:0.3}} />
+          </radialGradient>
+
+          <filter id="softGlow">
+            <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
             <feMerge> 
               <feMergeNode in="coloredBlur"/>
               <feMergeNode in="SourceGraphic"/>
@@ -37,54 +43,150 @@ export function Logo({ size = 40, className = "" }: LogoProps) {
           </filter>
         </defs>
         
-        {/* Background circle with gradient */}
-        <circle cx="60" cy="60" r="55" fill="url(#mainGradient)" filter="url(#glow)" opacity="0.9"/>
+        {/* Animated background glow */}
+        <circle 
+          cx="60" 
+          cy="60" 
+          r="55" 
+          fill="url(#lotusMainGradient)"
+          filter="url(#softGlow)"
+          opacity="0.8"
+          className="animate-pulse"
+          style={{animationDuration: '3s'}}
+        />
         
-        {/* Inner circle for depth */}
-        <circle cx="60" cy="60" r="45" fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth="1"/>
-        
-        {/* Book base */}
-        <rect x="30" y="35" width="35" height="45" rx="3" fill="url(#bookGradient)" stroke="rgba(139,92,246,0.3)" strokeWidth="1"/>
-        
-        {/* Book spine */}
-        <rect x="28" y="35" width="4" height="45" rx="2" fill="rgba(139,92,246,0.6)"/>
-        
-        {/* Book pages */}
-        <rect x="32" y="38" width="30" height="39" fill="white" opacity="0.9"/>
-        
-        {/* Page lines */}
-        <line x1="35" y1="45" x2="58" y2="45" stroke="rgba(139,92,246,0.4)" strokeWidth="1"/>
-        <line x1="35" y1="50" x2="55" y2="50" stroke="rgba(139,92,246,0.4)" strokeWidth="1"/>
-        <line x1="35" y1="55" x2="58" y2="55" stroke="rgba(139,92,246,0.4)" strokeWidth="1"/>
-        <line x1="35" y1="60" x2="50" y2="60" stroke="rgba(139,92,246,0.4)" strokeWidth="1"/>
-        
-        {/* Pen */}
-        <rect x="55" y="25" width="3" height="25" rx="1.5" fill="url(#penGradient)" transform="rotate(25 56.5 37.5)"/>
-        
-        {/* Pen tip */}
-        <circle cx="65" cy="28" r="2" fill="#DC2626" transform="rotate(25 56.5 37.5)"/>
-        
-        {/* Karma symbols (infinity-like curves) */}
-        <path d="M 20 25 Q 25 15, 35 25 Q 25 35, 20 25" fill="none" stroke="rgba(255,255,255,0.6)" strokeWidth="2" opacity="0.8"/>
-        <path d="M 85 25 Q 90 15, 100 25 Q 90 35, 85 25" fill="none" stroke="rgba(255,255,255,0.6)" strokeWidth="2" opacity="0.8"/>
-        
-        {/* Sparkle effects */}
-        <g opacity="0.8">
-          <path d="M 25 50 L 27 52 L 25 54 L 23 52 Z" fill="white"/>
-          <path d="M 85 70 L 87 72 L 85 74 L 83 72 Z" fill="white"/>
-          <path d="M 90 45 L 92 47 L 90 49 L 88 47 Z" fill="white"/>
+        {/* Outer lotus petals - large layer */}
+        <g className="animate-spin origin-center" style={{animationDuration: '20s'}}>
+          {[0, 60, 120, 180, 240, 300].map((angle, i) => (
+            <g key={`outer-${i}`} transform={`rotate(${angle} 60 60)`}>
+              <path
+                d="M60 15 Q50 35 60 50 Q70 35 60 15"
+                fill="url(#petalGradient)"
+                stroke="#8B5CF6"
+                strokeWidth="0.5"
+                opacity="0.85"
+                filter="url(#softGlow)"
+                className="animate-pulse"
+                style={{ 
+                  animationDelay: `${i * 0.3}s`,
+                  animationDuration: '2s'
+                }}
+              />
+            </g>
+          ))}
         </g>
         
-        {/* Lotus petals around the circle */}
-        <g opacity="0.6">
-          <ellipse cx="60" cy="15" rx="3" ry="8" fill="rgba(255,255,255,0.7)" transform="rotate(0 60 60)"/>
-          <ellipse cx="60" cy="15" rx="3" ry="8" fill="rgba(255,255,255,0.7)" transform="rotate(45 60 60)"/>
-          <ellipse cx="60" cy="15" rx="3" ry="8" fill="rgba(255,255,255,0.7)" transform="rotate(90 60 60)"/>
-          <ellipse cx="60" cy="15" rx="3" ry="8" fill="rgba(255,255,255,0.7)" transform="rotate(135 60 60)"/>
-          <ellipse cx="60" cy="15" rx="3" ry="8" fill="rgba(255,255,255,0.7)" transform="rotate(180 60 60)"/>
-          <ellipse cx="60" cy="15" rx="3" ry="8" fill="rgba(255,255,255,0.7)" transform="rotate(225 60 60)"/>
-          <ellipse cx="60" cy="15" rx="3" ry="8" fill="rgba(255,255,255,0.7)" transform="rotate(270 60 60)"/>
-          <ellipse cx="60" cy="15" rx="3" ry="8" fill="rgba(255,255,255,0.7)" transform="rotate(315 60 60)"/>
+        {/* Middle lotus petals */}
+        <g className="animate-spin origin-center" style={{animationDuration: '15s', animationDirection: 'reverse'}}>
+          {[30, 90, 150, 210, 270, 330].map((angle, i) => (
+            <g key={`middle-${i}`} transform={`rotate(${angle} 60 60)`}>
+              <path
+                d="M60 25 Q52 40 60 50 Q68 40 60 25"
+                fill="url(#petalGradient)"
+                stroke="#A855F7"
+                strokeWidth="0.5"
+                opacity="0.9"
+                className="animate-pulse"
+                style={{ 
+                  animationDelay: `${i * 0.4}s`,
+                  animationDuration: '2.5s'
+                }}
+              />
+            </g>
+          ))}
+        </g>
+        
+        {/* Inner lotus petals - small layer */}
+        <g className="animate-spin origin-center" style={{animationDuration: '12s'}}>
+          {[0, 45, 90, 135, 180, 225, 270, 315].map((angle, i) => (
+            <g key={`inner-${i}`} transform={`rotate(${angle} 60 60)`}>
+              <path
+                d="M60 35 Q56 45 60 50 Q64 45 60 35"
+                fill="#FFFFFF"
+                stroke="#C084FC"
+                strokeWidth="0.3"
+                opacity="0.95"
+                className="animate-pulse"
+                style={{ 
+                  animationDelay: `${i * 0.2}s`,
+                  animationDuration: '1.8s'
+                }}
+              />
+            </g>
+          ))}
+        </g>
+        
+        {/* Sacred center with mandala */}
+        <g className="animate-spin origin-center" style={{animationDuration: '8s', animationDirection: 'reverse'}}>
+          <circle 
+            cx="60" 
+            cy="60" 
+            r="8" 
+            fill="url(#centerGlow)"
+            className="animate-pulse"
+            style={{animationDuration: '2s'}}
+          />
+          <circle 
+            cx="60" 
+            cy="60" 
+            r="5" 
+            fill="#FFFFFF"
+            opacity="0.9"
+            className="animate-pulse"
+            style={{ 
+              animationDelay: '0.5s',
+              animationDuration: '2s'
+            }}
+          />
+          <circle 
+            cx="60" 
+            cy="60" 
+            r="2" 
+            fill="url(#lotusMainGradient)"
+            className="animate-pulse"
+            style={{ 
+              animationDelay: '1s',
+              animationDuration: '2s'
+            }}
+          />
+        </g>
+        
+        {/* Floating energy particles */}
+        {[0, 72, 144, 216, 288].map((angle, i) => (
+          <circle
+            key={`particle-${i}`}
+            cx={60 + 35 * Math.cos((angle * Math.PI) / 180)}
+            cy={60 + 35 * Math.sin((angle * Math.PI) / 180)}
+            r="1.5"
+            fill="#FFFFFF"
+            opacity="0.7"
+            className="animate-ping"
+            style={{ 
+              animationDelay: `${i * 0.6}s`, 
+              animationDuration: '3s'
+            }}
+          />
+        ))}
+
+        {/* Subtle mandala lines */}
+        <g opacity="0.3" className="animate-spin origin-center" style={{animationDuration: '25s'}}>
+          {[0, 30, 60, 90, 120, 150].map((angle, i) => (
+            <line
+              key={`line-${i}`}
+              x1="60"
+              y1="20"
+              x2="60"
+              y2="100"
+              stroke="#FFFFFF"
+              strokeWidth="0.5"
+              transform={`rotate(${angle} 60 60)`}
+              className="animate-pulse"
+              style={{ 
+                animationDelay: `${i * 0.5}s`,
+                animationDuration: '4s'
+              }}
+            />
+          ))}
         </g>
       </svg>
     </div>
