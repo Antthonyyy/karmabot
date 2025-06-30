@@ -14,6 +14,7 @@ import {
   aiRequests,
   aiCache,
   achievements,
+  pushSubscriptions,
   type User, 
   type InsertUser,
   type Principle,
@@ -39,7 +40,9 @@ import {
   type AICache,
   type InsertAICache,
   type Achievement,
-  type InsertAchievement
+  type InsertAchievement,
+  type PushSubscription,
+  type InsertPushSubscription
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, sql, and, gte, lte, count } from "drizzle-orm";
@@ -885,6 +888,37 @@ export class DatabaseStorage implements IStorage {
       .update(achievements)
       .set({ notified: true })
       .where(eq(achievements.id, achievementId));
+  }
+
+  // Push Subscription methods
+  async getUserPushSubscriptions(userId: number): Promise<PushSubscription[]> {
+    return await db
+      .select()
+      .from(pushSubscriptions)
+      .where(eq(pushSubscriptions.userId, userId));
+  }
+
+  async createPushSubscription(subscription: InsertPushSubscription): Promise<PushSubscription> {
+    // First delete existing subscription with same endpoint
+    await db
+      .delete(pushSubscriptions)
+      .where(eq(pushSubscriptions.endpoint, subscription.endpoint));
+
+    const [created] = await db
+      .insert(pushSubscriptions)
+      .values(subscription)
+      .returning();
+    return created;
+  }
+
+  async deletePushSubscription(endpoint: string): Promise<void> {
+    await db
+      .delete(pushSubscriptions)
+      .where(eq(pushSubscriptions.endpoint, endpoint));
+  }
+
+  async getAllPushSubscriptions(): Promise<PushSubscription[]> {
+    return await db.select().from(pushSubscriptions);
   }
 }
 
