@@ -1,4 +1,5 @@
 import { cn } from '@/lib/utils';
+import AvatarUpload from './AvatarUpload';
 
 export default function WelcomeHero({ user, streak = 0 }) {
   return (
@@ -27,8 +28,8 @@ export default function WelcomeHero({ user, streak = 0 }) {
       <div className="
           h-20 w-20 md:h-24 md:w-24
           rounded-full bg-white/20
-          flex items-center justify-center text-4xl md:text-5xl">
-        🦋
+          flex items-center justify-center text-4xl md:text-5xl overflow-hidden">
+        <AvatarUpload user={user} />
       </div>
     </section>
   );

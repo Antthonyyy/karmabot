@@ -24,7 +24,7 @@ export const db = drizzle({ client: pool, schema });
 export async function testConnection() {
   try {
     console.log('🔌 Testing database connection...');
-    const result = await db.select().from(schema.users).limit(1);
+    const result = await db.select({ id: schema.users.id }).from(schema.users).limit(1);
     console.log('✅ Database connection successful');
     console.log(`📊 Found ${result.length} users in database`);
     return true;
