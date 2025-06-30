@@ -1,0 +1,67 @@
+# ПОЧИНИ 500 ОШИБКУ /api/user/me  +  ЗАЩИТИ FRONT ОТ NULL user
+# Бот-409 игнорируем (dev). PWA/Push/VoiceRecorder не трогаем.
+
+────────────────────────────────────────────
+1. СХЕМА  (shared/schema.ts)
+────────────────────────────────────────────
+Убедись, что колонка описана:
+
+export const users = pgTable('users', {
+  id: serial('id').primaryKey(),
+  firstName: text('first_name'),
+  lastName: text('last_name'),
+  /* … существующие поля … */
+  avatarUrl: text('avatar_url'),   // ← camelCase поле, snake_case колонка
+});
+
+Если уже есть — не меняй.
+
+────────────────────────────────────────────
+2. BACKEND  (server/storage.ts  или routes/user.ts)
+────────────────────────────────────────────
+Во всём коде, где берётся юзер (endpoint /api/user/me, Storage.getUser):
+замени «звёздочный» select на явный список колонок:
+
+```ts
+const user = await db.select({
+  id: users.id,
+  firstName: users.firstName,
+  lastName: users.lastName,
+  username: users.username,       // если есть
+  avatarUrl: users.avatarUrl      // ← добавить
+}).from(users).where(eq(users.id, authUserId)).limit(1);
+Не нужно run, all, select(). Главное — НЕ вызывать
+orderSelectedFields на undefined.
+
+────────────────────────────────────────────
+3. FRONT (client/src/components/AvatarUpload.tsx)
+────────────────────────────────────────────
+Безопасный рендер:
+
+tsx
+Копировать
+Редактировать
+const { user } = useAuth();
+if (!user) return (
+  <div className="h-20 w-20 rounded-full bg-gray-200 animate-pulse" />
+);
+
+const avatarSrc = user.avatarUrl ?? undefined;
+────────────────────────────────────────────
+4. ПРОВЕРКА
+────────────────────────────────────────────
+npm run dev →
+✔ GET /api/user/me → 200, body содержит avatarUrl (может быть null)
+✔ Dashboard рендерится, без белого экрана
+✔ В консоли браузера и сервера нет TypeError
+✔ Telegram-409 остаётся (нормально)
+
+────────────────────────────────────────────
+ЗАПРЕЩЕНО
+────────────────────────────────────────────
+• Новые npm-пакеты
+• Любые изменения PWA / Push / VoiceRecorder
+• Более одного commit/run
+• Самовольные «улучшения»
+
+После успешного теста — СТОП.

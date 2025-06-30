@@ -20,6 +20,13 @@ export default function AvatarUpload({ user, size = 'md' }: AvatarUploadProps) {
     lg: 'h-32 w-32 text-4xl'
   };
 
+  // Защита от null user
+  if (!user) {
+    return (
+      <div className={`${sizeClasses[size]} rounded-full bg-gray-200 animate-pulse`} />
+    );
+  }
+
   const getInitials = () => {
     if (!user?.firstName) return '?';
     const firstInitial = user.firstName.charAt(0).toUpperCase();
@@ -86,7 +93,7 @@ export default function AvatarUpload({ user, size = 'md' }: AvatarUploadProps) {
       onMouseLeave={() => setIsHovered(false)}
       onClick={() => fileInputRef.current?.click()}
     >
-      {user?.avatarUrl ? (
+      {user.avatarUrl ? (
         <img 
           src={user.avatarUrl} 
           alt="Аватар" 
