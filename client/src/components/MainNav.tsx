@@ -15,67 +15,33 @@ export function MainNav() {
   const [location] = useLocation();
 
   return (
-    <>
-      {/* Desktop Navigation - Top Header */}
-      <nav className="hidden md:block fixed top-0 left-0 right-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-white/20 dark:border-slate-700/50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center space-x-8">
-              {navigationItems.map((item) => {
-                const IconComponent = item.icon;
-                const isActive = location === item.path;
-                
-                return (
-                  <Link
-                    key={item.path}
-                    href={item.path}
-                    className={cn(
-                      "flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200",
-                      isActive
-                        ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg"
-                        : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                    )}
-                  >
-                    <IconComponent className="w-4 h-4" />
-                    <span>{item.label}</span>
-                  </Link>
-                );
-              })}
-            </div>
+    <nav className="fixed top-0 left-0 right-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-white/20 dark:border-slate-700/50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16">
+          <div className="flex items-center space-x-8">
+            {navigationItems.map((item) => {
+              const IconComponent = item.icon;
+              const isActive = location === item.path;
+              
+              return (
+                <Link
+                  key={item.path}
+                  href={item.path}
+                  className={cn(
+                    "flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200",
+                    isActive
+                      ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                  )}
+                >
+                  <IconComponent className="w-4 h-4" />
+                  <span className="hidden sm:inline">{item.label}</span>
+                </Link>
+              );
+            })}
           </div>
         </div>
-      </nav>
-
-      {/* Mobile Navigation - Bottom Bar */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-white/20 dark:border-slate-700/50">
-        <div className="grid grid-cols-6 h-16">
-          {navigationItems.map((item) => {
-            const IconComponent = item.icon;
-            const isActive = location === item.path;
-            
-            return (
-              <Link
-                key={item.path}
-                href={item.path}
-                className={cn(
-                  "flex flex-col items-center justify-center gap-1 text-xs font-medium transition-all duration-200",
-                  isActive
-                    ? "text-blue-600 dark:text-blue-400"
-                    : "text-muted-foreground"
-                )}
-              >
-                <IconComponent className={cn(
-                  "w-5 h-5 transition-all duration-200",
-                  isActive && "scale-110"
-                )} />
-                <span className="text-[10px] leading-none">
-                  {item.mobileLabel}
-                </span>
-              </Link>
-            );
-          })}
-        </div>
-      </nav>
-    </>
+      </div>
+    </nav>
   );
 }
