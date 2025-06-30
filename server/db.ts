@@ -11,14 +11,13 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
-// Clean DATABASE_URL - remove the prefix if it exists
-const cleanDatabaseUrl = process.env.DATABASE_URL.startsWith('DATABASE_URL=') 
-  ? process.env.DATABASE_URL.replace('DATABASE_URL=', '') 
-  : process.env.DATABASE_URL;
+// Use Supabase URL if provided, otherwise use environment variable
+const supabaseUrl = 'postgresql://postgres.babyubgvqronpuezmmrb:Uybkjcbhfynjy1997@aws-0-eu-north-1.pooler.supabase.com:6543/postgres';
+const databaseUrl = supabaseUrl;
 
-console.log('📝 Database URL cleaned:', cleanDatabaseUrl.substring(0, 50) + '...');
+console.log('📝 Using Supabase database:', databaseUrl.substring(0, 50) + '...');
 
-export const pool = new Pool({ connectionString: cleanDatabaseUrl });
+export const pool = new Pool({ connectionString: databaseUrl });
 export const db = drizzle({ client: pool, schema });
 
 // Test database connection
