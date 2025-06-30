@@ -128,6 +128,10 @@ FRONTEND_URL=https://your-domain.com
 
 ```
 Changelog:
+- June 30, 2025. Enhanced dashboard with glass morphism design, animated background elements, and gradient card styling
+- June 30, 2025. Added decorative floating gradient orbs with pulsing animations for immersive visual experience
+- June 30, 2025. Implemented gradient text headers and enhanced card layouts with backdrop blur effects
+- June 30, 2025. Created additional sidebar card with daily goal tracking and activity status indicators
 - June 30, 2025. Implemented complete Progressive Web App (PWA) functionality with manifest.json, service worker, and offline support
 - June 30, 2025. Created comprehensive PWA icons in SVG format (192x192, 512x512, Apple touch icon) using animated lotus design
 - June 30, 2025. Added advanced service worker with cache-first strategy for static assets and network-first for API requests

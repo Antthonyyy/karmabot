@@ -356,64 +356,148 @@ export default function DashboardPage() {
         />
       )}
       {/* Main Content */}
-      <div className="container max-w-7xl mx-auto py-8 px-4">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">{getGreeting()}</h1>
-          <p className="text-muted-foreground">{getMotivationalQuote()}</p>
+      <div className="relative">
+        {/* Background decorative elements */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-20 left-10 w-72 h-72 bg-gradient-to-br from-purple-400/10 to-pink-400/10 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute top-40 right-20 w-64 h-64 bg-gradient-to-br from-blue-400/10 to-indigo-400/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
+          <div className="absolute bottom-20 left-1/3 w-80 h-80 bg-gradient-to-br from-emerald-400/8 to-teal-400/8 rounded-full blur-3xl animate-pulse delay-2000"></div>
         </div>
 
-        
-
-        {/* Main Content */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-
-          <TabsContent value="overview" className="space-y-4">
-            <div className="grid md:grid-cols-1 gap-4">
-              {/* Quick Add Journal Entry */}
-              <JournalQuickAdd onSuccess={() => {
-                toast({
-                  title: "Успіх",
-                  description: "Запис додано до щоденника"
-                });
-                queryClient.invalidateQueries({ queryKey: ["user"] });
-              }} />
+        <div className="container max-w-7xl mx-auto py-8 px-4 relative z-10">
+          {/* Enhanced Header */}
+          <div className="mb-12 text-center">
+            <div className="inline-flex items-center gap-3 mb-4">
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-lg">
+                <span className="text-2xl">🌸</span>
+              </div>
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent">
+                {getGreeting()}
+              </h1>
             </div>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+              {getMotivationalQuote()}
+            </p>
+          </div>
 
-            {/* Main dashboard content */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2 space-y-6">
-                <TodaysPlan />
-                
-                {user && principles && (
-                  <NextPrincipleCard 
-                    currentPrinciple={user.currentPrinciple}
-                    principles={principles}
-                  />
-                )}
-                
-                <AIDailyInsight principleId={user?.currentPrinciple || 1} />
+          {/* Enhanced Tabs */}
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
+            <TabsContent value="overview" className="space-y-8">
+              {/* Quick Add Section with enhanced styling */}
+              <div className="relative">
+                <div className="absolute inset-0 bg-gradient-to-r from-purple-500/5 via-pink-500/5 to-blue-500/5 rounded-3xl blur-xl"></div>
+                <div className="relative bg-background/80 backdrop-blur-sm border border-border/50 rounded-3xl p-6 shadow-lg">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center">
+                      <span className="text-lg">✨</span>
+                    </div>
+                    <h2 className="text-xl font-semibold">Швидкий запис</h2>
+                  </div>
+                  <JournalQuickAdd onSuccess={() => {
+                    toast({
+                      title: "Успіх",
+                      description: "Запис додано до щоденника"
+                    });
+                    queryClient.invalidateQueries({ queryKey: ["user"] });
+                  }} />
+                </div>
               </div>
 
-              <div className="lg:col-span-1 space-y-6">
+              {/* Main dashboard content with enhanced grid */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div className="lg:col-span-2 space-y-8">
+                  {/* Today's Plan with glass morphism */}
+                  <div className="relative group">
+                    <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-indigo-500/10 rounded-3xl blur-xl group-hover:blur-2xl transition-all duration-300"></div>
+                    <div className="relative bg-background/90 backdrop-blur-sm border border-border/50 rounded-3xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300">
+                      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500"></div>
+                      <TodaysPlan />
+                    </div>
+                  </div>
+                  
+                  {/* Next Principle Card with enhanced styling */}
+                  {user && principles && (
+                    <div className="relative group">
+                      <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 rounded-3xl blur-xl group-hover:blur-2xl transition-all duration-300"></div>
+                      <div className="relative bg-background/90 backdrop-blur-sm border border-border/50 rounded-3xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300">
+                        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 via-green-500 to-teal-500"></div>
+                        <NextPrincipleCard 
+                          currentPrinciple={user.currentPrinciple}
+                          principles={principles}
+                        />
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* AI Daily Insight with enhanced styling */}
+                  <div className="relative group">
+                    <div className="absolute inset-0 bg-gradient-to-r from-violet-500/10 to-purple-500/10 rounded-3xl blur-xl group-hover:blur-2xl transition-all duration-300"></div>
+                    <div className="relative bg-background/90 backdrop-blur-sm border border-border/50 rounded-3xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300">
+                      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-violet-500 via-purple-500 to-fuchsia-500"></div>
+                      <AIDailyInsight principleId={user?.currentPrinciple || 1} />
+                    </div>
+                  </div>
+                </div>
 
-                <AIBudgetStatus />
+                {/* Sidebar with enhanced styling */}
+                <div className="lg:col-span-1 space-y-8">
+                  <div className="relative group">
+                    <div className="absolute inset-0 bg-gradient-to-r from-orange-500/10 to-red-500/10 rounded-3xl blur-xl group-hover:blur-2xl transition-all duration-300"></div>
+                    <div className="relative bg-background/90 backdrop-blur-sm border border-border/50 rounded-3xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300">
+                      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-orange-500 via-red-500 to-pink-500"></div>
+                      <AIBudgetStatus />
+                    </div>
+                  </div>
+
+                  {/* Additional decorative card */}
+                  <div className="relative group">
+                    <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 to-blue-500/10 rounded-3xl blur-xl group-hover:blur-2xl transition-all duration-300"></div>
+                    <div className="relative bg-background/90 backdrop-blur-sm border border-border/50 rounded-3xl p-6 shadow-lg hover:shadow-xl transition-all duration-300">
+                      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-500 via-blue-500 to-indigo-500"></div>
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center">
+                          <span className="text-lg">🎯</span>
+                        </div>
+                        <h3 className="text-lg font-semibold">Сьогоднішня мета</h3>
+                      </div>
+                      <p className="text-sm text-muted-foreground mb-3">
+                        Сфокусуйтесь на поточному принципі та знайдіть можливості для його практики
+                      </p>
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                        <span>Активний день</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
-          </TabsContent>
+            </TabsContent>
 
-          <TabsContent value="ai-chat">
-            <AIChat />
-          </TabsContent>
+            <TabsContent value="ai-chat" className="relative">
+              <div className="absolute inset-0 bg-gradient-to-r from-purple-500/5 to-blue-500/5 rounded-3xl blur-xl"></div>
+              <div className="relative bg-background/90 backdrop-blur-sm border border-border/50 rounded-3xl overflow-hidden shadow-lg">
+                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 via-pink-500 to-blue-500"></div>
+                <AIChat />
+              </div>
+            </TabsContent>
 
-          <TabsContent value="analytics">
-            <KarmaStats />
-          </TabsContent>
+            <TabsContent value="analytics" className="relative">
+              <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/5 to-teal-500/5 rounded-3xl blur-xl"></div>
+              <div className="relative bg-background/90 backdrop-blur-sm border border-border/50 rounded-3xl overflow-hidden shadow-lg">
+                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 via-green-500 to-teal-500"></div>
+                <KarmaStats />
+              </div>
+            </TabsContent>
 
-          <TabsContent value="achievements">
-            <Achievements />
-          </TabsContent>
-        </Tabs>
+            <TabsContent value="achievements" className="relative">
+              <div className="absolute inset-0 bg-gradient-to-r from-yellow-500/5 to-orange-500/5 rounded-3xl blur-xl"></div>
+              <div className="relative bg-background/90 backdrop-blur-sm border border-border/50 rounded-3xl overflow-hidden shadow-lg">
+                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500"></div>
+                <Achievements />
+              </div>
+            </TabsContent>
+          </Tabs>
+        </div>
       </div>
     </div>
   );
