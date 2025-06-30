@@ -13,6 +13,7 @@ import { JournalQuickAdd } from '@/components/JournalQuickAdd';
 import { KarmaStats } from '@/components/KarmaStats';
 import { Achievements } from '@/components/Achievements';
 import { Logo } from '@/components/Logo';
+import UserMenu from '@/components/UserMenu';
 
 import { AIBudgetStatus } from "@/components/AIBudgetStatus";
 import TodaysPlan from "@/components/TodaysPlan";
@@ -208,13 +209,18 @@ export default function DashboardPage() {
       <div className="container mx-auto px-4 py-6 relative z-10">
         {/* Mobile-First Header */}
         <div className="mb-8">
-          <div className="text-center mb-6">
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-violet-600 via-purple-600 to-blue-600 bg-clip-text text-transparent mb-2">
-              {getGreeting()}
-            </h1>
-            <p className="text-sm sm:text-base text-muted-foreground px-4">
-              {getMotivationalQuote()}
-            </p>
+          <div className="flex items-start justify-between mb-6">
+            <div className="flex-1 text-center">
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-violet-600 via-purple-600 to-blue-600 bg-clip-text text-transparent mb-2">
+                {getGreeting()}
+              </h1>
+              <p className="text-sm sm:text-base text-muted-foreground px-4">
+                {getMotivationalQuote()}
+              </p>
+            </div>
+            <div className="flex-shrink-0 ml-4">
+              <UserMenu />
+            </div>
           </div>
 
           {/* Mobile-optimized Navigation Tabs */}
