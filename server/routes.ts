@@ -169,6 +169,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Profile update endpoint
+  app.patch("/api/user/profile", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const user = req.user!;
+      const { firstName, lastName, username } = req.body;
+
+      const updatedUser = await storage.updateUser(user.id, {
+        firstName,
+        lastName,
+        username
+      });
+
+      res.json({
+        id: updatedUser.id,
+        firstName: updatedUser.firstName,
+        lastName: updatedUser.lastName,
+        username: updatedUser.username
+      });
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      res.status(500).json({ message: "Failed to update profile" });
+    }
+  });
+
+  // User stats endpoint
+  app.get("/api/user/stats", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const user = req.user!;
+      const stats = await storage.getUserStats(user.id);
+
+      if (!stats) {
+        // Initialize stats if they don't exist
+        const newStats = await storage.initializeUserStats(user.id);
+        return res.json(newStats);
+      }
+
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching user stats:", error);
+      res.status(500).json({ message: "Failed to fetch user stats" });
+    }
+  });
+
   // New endpoint for practice state
   app.get(
     "/api/user/practice-state",
