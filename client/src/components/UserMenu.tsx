@@ -35,9 +35,12 @@ export default function UserMenu({ className }: UserMenuProps) {
   });
 
   const handleLogout = () => {
+    console.log("Logout clicked");
     authUtils.clearAuth();
     setLocation("/login");
   };
+
+  console.log("UserMenu render - user:", user);
 
   const getInitials = (firstName?: string, lastName?: string) => {
     if (!firstName) return "U";
@@ -114,7 +117,7 @@ export default function UserMenu({ className }: UserMenuProps) {
         
         <DropdownMenuItem 
           onClick={handleLogout}
-          className="flex items-center gap-2 cursor-pointer text-red-600 dark:text-red-400 focus:text-red-600 dark:focus:text-red-400"
+          className="flex items-center gap-2 cursor-pointer text-red-600 dark:text-red-400 focus:text-red-600 dark:focus:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
         >
           <LogOut className="h-4 w-4" />
           Вийти з акаунта
