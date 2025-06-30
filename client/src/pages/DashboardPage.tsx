@@ -1,11 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent } from '@/components/ui/tabs';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { Brain, TrendingUp, Trophy, Sparkles, ChevronRight, LogOut, Menu, X, Settings } from 'lucide-react';
+import { Brain, TrendingUp, Trophy, Sparkles, ChevronRight, LogOut, Menu, X, Settings, Calendar, Target, Zap, BookOpen } from 'lucide-react';
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useLocation } from "wouter";
 import { AIChat } from '@/components/AIChat';
@@ -23,6 +23,7 @@ import { useOnboarding } from "@/hooks/useOnboarding";
 import { authUtils } from '@/utils/auth';
 import { checkAuthError, handleAuthError } from '@/utils/auth-recovery';
 import { useToast } from '@/hooks/use-toast';
+import type { User, Principle } from '@shared/schema';
 
 export default function DashboardPage() {
   const { toast } = useToast();
@@ -97,408 +98,347 @@ export default function DashboardPage() {
   });
 
   // Fetch principles data
-  const { data: principles } = useQuery({
-    queryKey: ['principles'],
-    queryFn: async () => {
-      const res = await fetch('/api/principles', {
-        headers: authUtils.getAuthHeaders()
-      });
-      if (!res.ok) throw new Error('Failed to fetch principles');
-      return res.json();
-    }
+  const { data: principles } = useQuery<Principle[]>({
+    queryKey: ["/api/principles"],
   });
 
-  const getGreeting = () => {
-    const name = user?.firstName || 'Користувач';
-    return `Вітаю, ${name}!`;
-  };
+  // Handle authentication errors
+  useEffect(() => {
+    if (userError) {
+      const errorObj = userError as any;
+      if (errorObj?.status === 401) {
+        localStorage.removeItem('token');
+        window.location.href = '/auth';
+      }
+    }
+  }, [userError]);
 
-  const getMotivationalQuote = () => {
-    const quotes = [
-      'Кожен день - новий шанс стати кращим',
-      'Ваші дії сьогодні формують вашу карму завтра',
-      'Доброта - це мова, яку розуміють усі',
-      'Позитивна енергія притягує позитивні зміни',
-      'Розвиток душі - найважливіша подорож'
-    ];
-    const today = new Date().getDay();
-    return quotes[today % quotes.length];
-  };
-
+  // Loading state
   if (userLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-violet-500"></div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (userError) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Завантаження...</p>
+          <h1 className="text-2xl font-bold text-red-600 mb-4">Помилка</h1>
+          <p className="text-muted-foreground">Не вдалося завантажити дані користувача</p>
         </div>
       </div>
     );
   }
 
-  if (userError || !user) {
+  // Not authenticated state
+  if (!user) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800 flex items-center justify-center">
         <div className="text-center">
-          <p className="text-red-600 mb-4">Помилка завантаження профілю</p>
-          <Button onClick={handleLogout}>Повернутися на головну</Button>
+          <h1 className="text-2xl font-bold mb-4">Авторизація потрібна</h1>
+          <p className="text-muted-foreground mb-4">Будь ласка, увійдіть в систему</p>
+          <a 
+            href="/auth" 
+            className="inline-flex items-center px-4 py-2 bg-violet-600 text-white rounded-md hover:bg-violet-700"
+          >
+            Увійти
+          </a>
         </div>
       </div>
     );
   }
+
+  function getGreeting() {
+    const hour = new Date().getHours();
+    const name = user?.firstName || "Друже";
+    
+    if (hour < 12) return `Доброго ранку, ${name}!`;
+    if (hour < 17) return `Добрий день, ${name}!`;
+    return `Добрий вечір, ${name}!`;
+  }
+
+  function getMotivationalQuote() {
+    const quotes = [
+      "Кожен день - це новий початок для створення позитивної карми",
+      "Ваші добрі справи сьогодні формують ваше щасливе завтра",
+      "Маленькі кроки кожен день ведуть до великих змін",
+      "Карма - це не покарання, а можливість для зростання",
+      "Ваша позитивна енергія змінює світ навколо вас"
+    ];
+    
+    return quotes[Math.floor(Math.random() * quotes.length)];
+  }
+
+  const tabsConfig = [
+    {
+      value: "overview",
+      label: "Огляд",
+      icon: BookOpen,
+    },
+    {
+      value: "ai-chat", 
+      label: "AI Чат",
+      icon: Brain,
+    },
+    {
+      value: "analytics",
+      label: "Аналітика", 
+      icon: TrendingUp,
+    },
+    {
+      value: "achievements",
+      label: "Досягнення",
+      icon: Trophy,
+    }
+  ];
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Navigation */}
-      <nav className="border-b bg-gradient-to-r from-purple-50 to-purple-100 dark:from-purple-950/50 dark:to-purple-900/50 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container max-w-7xl mx-auto px-4">
-          <div className="flex h-20 items-center justify-between">
-            <div className="flex items-center gap-6">
-              <div className="flex items-center gap-3">
-                <Logo size={40} />
-                <div className="flex flex-col">
-                  <h1 className="font-bold bg-gradient-to-r from-purple-600 to-purple-800 dark:from-purple-400 dark:to-purple-600 bg-clip-text text-transparent text-[19px]">
-                    Кармічний Щоденник
-                  </h1>
-                  <p className="text-xs text-purple-600/70 dark:text-purple-400/70">
-                    День {user?.stats?.streakDays || 0} • Принцип {user?.currentPrinciple || 1}
-                  </p>
-                </div>
-              </div>
-              
-              {/* Desktop Navigation */}
-              <div className="hidden lg:flex items-center gap-2 ml-8">
-                <Button
-                  variant={activeTab === "overview" ? "default" : "ghost"}
-                  onClick={() => setActiveTab("overview")}
-                  className="flex items-center gap-2 h-9"
-                  size="sm"
-                >
-                  <Sparkles className="w-4 h-4" />
-                  Огляд
-                </Button>
-                <Button
-                  variant={activeTab === "ai-chat" ? "default" : "ghost"}
-                  onClick={() => setActiveTab("ai-chat")}
-                  className="flex items-center gap-2 h-9"
-                  size="sm"
-                >
-                  <Brain className="w-4 h-4" />
-                  AI-чат
-                </Button>
-                <Button
-                  variant={activeTab === "analytics" ? "default" : "ghost"}
-                  onClick={() => setActiveTab("analytics")}
-                  className="flex items-center gap-2 h-9"
-                  size="sm"
-                >
-                  <TrendingUp className="w-4 h-4" />
-                  Аналітика
-                </Button>
-                <Button
-                  variant={activeTab === "achievements" ? "default" : "ghost"}
-                  onClick={() => setActiveTab("achievements")}
-                  className="flex items-center gap-2 h-9"
-                  size="sm"
-                >
-                  <Trophy className="w-4 h-4" />
-                  Досягнення
-                </Button>
-                <div className="w-px h-6 bg-border mx-2" />
-                <Button
-                  variant="ghost"
-                  onClick={() => setLocation("/settings")}
-                  className="flex items-center gap-2 h-9"
-                  size="sm"
-                >
-                  <Settings className="w-4 h-4" />
-                  Налаштування
-                </Button>
-              </div>
-            </div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800">
+      {/* Background Decorative Elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-20 left-10 w-32 h-32 bg-gradient-to-r from-violet-500/10 to-purple-500/10 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute top-40 right-20 w-24 h-24 bg-gradient-to-r from-blue-500/10 to-cyan-500/10 rounded-full blur-2xl animate-pulse" style={{ animationDelay: '2s' }}></div>
+        <div className="absolute bottom-20 left-1/4 w-28 h-28 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 rounded-full blur-2xl animate-pulse" style={{ animationDelay: '4s' }}></div>
+      </div>
 
-            <div className="flex items-center gap-4">
-              {/* User info with karma points */}
-              <div className="hidden md:flex items-center gap-4">
-                <div className="text-right">
-                  <div className="flex items-center gap-2">
-                    <div className="flex items-center gap-1 text-sm font-medium text-purple-600 dark:text-purple-400">
-                      <Sparkles className="w-3 h-3" />
-                      {user?.stats?.totalEntries || 0} записів
-                    </div>
-                    <div className="w-px h-4 bg-border" />
-                    <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                      <Trophy className="w-3 h-3" />
-                      {user?.stats?.streakDays || 0} днів
-                    </div>
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    {user.firstName}
-                  </p>
-                </div>
-                <Avatar className="w-9 h-9 ring-2 ring-purple-200 dark:ring-purple-800">
-                  <AvatarFallback className="bg-gradient-to-br from-purple-100 to-purple-200 dark:from-purple-800 dark:to-purple-900 text-purple-700 dark:text-purple-300">
-                    {user.firstName?.charAt(0) || "U"}
-                  </AvatarFallback>
-                </Avatar>
-              </div>
-
-              <Button variant="ghost" size="sm" onClick={handleLogout} className="hidden md:flex items-center gap-2">
-                <LogOut className="w-4 h-4" />
-                Вихід
-              </Button>
-              
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="lg:hidden"
-              >
-                {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-              </Button>
-            </div>
-          </div>
-        </div>
-
-        {/* Mobile Menu */}
-        {mobileMenuOpen && (
-          <div className="lg:hidden border-t bg-gradient-to-r from-purple-50/50 to-purple-100/50 dark:from-purple-950/20 dark:to-purple-900/20">
-            <div className="container px-4 py-4 space-y-3">
-              {/* User info in mobile */}
-              <div className="flex items-center gap-3 pb-3 border-b border-purple-200 dark:border-purple-800">
-                <Avatar className="w-10 h-10 ring-2 ring-purple-200 dark:ring-purple-800">
-                  <AvatarFallback className="bg-gradient-to-br from-purple-100 to-purple-200 dark:from-purple-800 dark:to-purple-900 text-purple-700 dark:text-purple-300">
-                    {user.firstName?.charAt(0) || "U"}
-                  </AvatarFallback>
-                </Avatar>
-                <div>
-                  <p className="font-medium">{user.firstName}</p>
-                  <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                    <span className="flex items-center gap-1">
-                      <Sparkles className="w-3 h-3" />
-                      {user?.stats?.totalEntries || 0} записів
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <Trophy className="w-3 h-3" />
-                      {user?.stats?.streakDays || 0} днів
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Navigation tabs */}
-              <div className="space-y-1">
-                <Button 
-                  variant={activeTab === "overview" ? "default" : "ghost"} 
-                  className="w-full justify-start h-10" 
-                  onClick={() => {
-                    setActiveTab("overview");
-                    setMobileMenuOpen(false);
-                  }}
-                >
-                  <Sparkles className="w-4 h-4 mr-3" />
-                  Огляд
-                </Button>
-                <Button 
-                  variant={activeTab === "ai-chat" ? "default" : "ghost"} 
-                  className="w-full justify-start h-10" 
-                  onClick={() => {
-                    setActiveTab("ai-chat");
-                    setMobileMenuOpen(false);
-                  }}
-                >
-                  <Brain className="w-4 h-4 mr-3" />
-                  AI-чат
-                </Button>
-                <Button 
-                  variant={activeTab === "analytics" ? "default" : "ghost"} 
-                  className="w-full justify-start h-10" 
-                  onClick={() => {
-                    setActiveTab("analytics");
-                    setMobileMenuOpen(false);
-                  }}
-                >
-                  <TrendingUp className="w-4 h-4 mr-3" />
-                  Аналітика
-                </Button>
-                <Button 
-                  variant={activeTab === "achievements" ? "default" : "ghost"} 
-                  className="w-full justify-start h-10" 
-                  onClick={() => {
-                    setActiveTab("achievements");
-                    setMobileMenuOpen(false);
-                  }}
-                >
-                  <Trophy className="w-4 h-4 mr-3" />
-                  Досягнення
-                </Button>
-                
-                <div className="w-full h-px bg-border my-2" />
-                
-                <Button variant="ghost" className="w-full justify-start h-10" onClick={() => setLocation("/settings")}>
-                  <Settings className="w-4 h-4 mr-3" />
-                  Налаштування
-                </Button>
-                <Button variant="ghost" className="w-full justify-start h-10" onClick={handleLogout}>
-                  <LogOut className="w-4 h-4 mr-3" />
-                  Вихід
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
-      </nav>
-      {/* Onboarding Modal */}
-      {showOnboarding && (
-        <OnboardingModal 
-          isOpen={showOnboarding}
-          onComplete={completeOnboarding}
-        />
-      )}
-      {/* Main Content */}
-      <div className="relative">
-        {/* Background decorative elements */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-20 left-10 w-72 h-72 bg-gradient-to-br from-purple-400/10 to-pink-400/10 rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute top-40 right-20 w-64 h-64 bg-gradient-to-br from-blue-400/10 to-indigo-400/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
-          <div className="absolute bottom-20 left-1/3 w-80 h-80 bg-gradient-to-br from-emerald-400/8 to-teal-400/8 rounded-full blur-3xl animate-pulse delay-2000"></div>
-        </div>
-
-        <div className="container max-w-7xl mx-auto py-8 px-4 relative z-10">
-          {/* Enhanced Header */}
-          <div className="mb-12 text-center">
-            <div className="inline-flex items-center gap-3 mb-4">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-lg">
-                <span className="text-2xl">🌸</span>
-              </div>
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent">
-                {getGreeting()}
-              </h1>
-            </div>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+      <div className="container mx-auto px-4 py-6 relative z-10">
+        {/* Mobile-First Header */}
+        <div className="mb-8">
+          <div className="text-center mb-6">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-violet-600 via-purple-600 to-blue-600 bg-clip-text text-transparent mb-2">
+              {getGreeting()}
+            </h1>
+            <p className="text-sm sm:text-base text-muted-foreground px-4">
               {getMotivationalQuote()}
             </p>
           </div>
 
-          {/* Enhanced Tabs */}
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
-            <TabsContent value="overview" className="space-y-8">
-              {/* Quick Add Section with enhanced styling */}
-              <div className="relative">
-                <div className="absolute inset-0 bg-gradient-to-r from-purple-500/5 via-pink-500/5 to-blue-500/5 rounded-3xl blur-xl"></div>
-                <div className="relative bg-background/80 backdrop-blur-sm border border-border/50 rounded-3xl p-6 shadow-lg">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center">
-                      <span className="text-lg">✨</span>
-                    </div>
-                    <h2 className="text-xl font-semibold">Швидкий запис</h2>
-                  </div>
-                  <JournalQuickAdd onSuccess={() => {
-                    toast({
-                      title: "Успіх",
-                      description: "Запис додано до щоденника"
-                    });
-                    queryClient.invalidateQueries({ queryKey: ["user"] });
-                  }} />
-                </div>
-              </div>
-
-              {/* Main dashboard content with enhanced grid */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div className="lg:col-span-2 space-y-8">
-                  {/* Today's Plan with glass morphism */}
-                  <div className="relative group">
-                    <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-indigo-500/10 rounded-3xl blur-xl group-hover:blur-2xl transition-all duration-300"></div>
-                    <div className="relative bg-background/90 backdrop-blur-sm border border-border/50 rounded-3xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300">
-                      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500"></div>
-                      <TodaysPlan />
-                    </div>
-                  </div>
-                  
-                  {/* Next Principle Card with enhanced styling */}
-                  {user && principles && (
-                    <div className="relative group">
-                      <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 rounded-3xl blur-xl group-hover:blur-2xl transition-all duration-300"></div>
-                      <div className="relative bg-background/90 backdrop-blur-sm border border-border/50 rounded-3xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300">
-                        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 via-green-500 to-teal-500"></div>
-                        <NextPrincipleCard 
-                          currentPrinciple={user.currentPrinciple}
-                          principles={principles}
-                        />
-                      </div>
-                    </div>
-                  )}
-                  
-                  {/* AI Daily Insight with enhanced styling */}
-                  <div className="relative group">
-                    <div className="absolute inset-0 bg-gradient-to-r from-violet-500/10 to-purple-500/10 rounded-3xl blur-xl group-hover:blur-2xl transition-all duration-300"></div>
-                    <div className="relative bg-background/90 backdrop-blur-sm border border-border/50 rounded-3xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300">
-                      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-violet-500 via-purple-500 to-fuchsia-500"></div>
-                      <AIDailyInsight principleId={user?.currentPrinciple || 1} />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Sidebar with enhanced styling */}
-                <div className="lg:col-span-1 space-y-8">
-                  <div className="relative group">
-                    <div className="absolute inset-0 bg-gradient-to-r from-orange-500/10 to-red-500/10 rounded-3xl blur-xl group-hover:blur-2xl transition-all duration-300"></div>
-                    <div className="relative bg-background/90 backdrop-blur-sm border border-border/50 rounded-3xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300">
-                      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-orange-500 via-red-500 to-pink-500"></div>
-                      <AIBudgetStatus />
-                    </div>
-                  </div>
-
-                  {/* Additional decorative card */}
-                  <div className="relative group">
-                    <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 to-blue-500/10 rounded-3xl blur-xl group-hover:blur-2xl transition-all duration-300"></div>
-                    <div className="relative bg-background/90 backdrop-blur-sm border border-border/50 rounded-3xl p-6 shadow-lg hover:shadow-xl transition-all duration-300">
-                      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-500 via-blue-500 to-indigo-500"></div>
-                      <div className="flex items-center gap-3 mb-4">
-                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center">
-                          <span className="text-lg">🎯</span>
-                        </div>
-                        <h3 className="text-lg font-semibold">Сьогоднішня мета</h3>
-                      </div>
-                      <p className="text-sm text-muted-foreground mb-3">
-                        Сфокусуйтесь на поточному принципі та знайдіть можливості для його практики
-                      </p>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-                        <span>Активний день</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="ai-chat" className="relative">
-              <div className="absolute inset-0 bg-gradient-to-r from-purple-500/5 to-blue-500/5 rounded-3xl blur-xl"></div>
-              <div className="relative bg-background/90 backdrop-blur-sm border border-border/50 rounded-3xl overflow-hidden shadow-lg">
-                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 via-pink-500 to-blue-500"></div>
-                <AIChat />
-              </div>
-            </TabsContent>
-
-            <TabsContent value="analytics" className="relative">
-              <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/5 to-teal-500/5 rounded-3xl blur-xl"></div>
-              <div className="relative bg-background/90 backdrop-blur-sm border border-border/50 rounded-3xl overflow-hidden shadow-lg">
-                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 via-green-500 to-teal-500"></div>
-                <KarmaStats />
-              </div>
-            </TabsContent>
-
-            <TabsContent value="achievements" className="relative">
-              <div className="absolute inset-0 bg-gradient-to-r from-yellow-500/5 to-orange-500/5 rounded-3xl blur-xl"></div>
-              <div className="relative bg-background/90 backdrop-blur-sm border border-border/50 rounded-3xl overflow-hidden shadow-lg">
-                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500"></div>
-                <Achievements />
-              </div>
-            </TabsContent>
-          </Tabs>
+          {/* Mobile-optimized Navigation Tabs */}
+          <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border border-white/20 dark:border-slate-700/50 rounded-2xl p-1 shadow-lg">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-1">
+              {tabsConfig.map((tab) => {
+                const IconComponent = tab.icon;
+                return (
+                  <button
+                    key={tab.value}
+                    onClick={() => setActiveTab(tab.value)}
+                    className={`
+                      flex flex-col items-center justify-center py-3 px-2 rounded-xl transition-all duration-200
+                      ${activeTab === tab.value 
+                        ? 'bg-gradient-to-r from-violet-500 to-purple-600 text-white shadow-lg scale-105' 
+                        : 'text-muted-foreground hover:text-foreground hover:bg-white/50 dark:hover:bg-slate-800/50'
+                      }
+                    `}
+                  >
+                    <IconComponent className="w-5 h-5 mb-1" />
+                    <span className="text-xs sm:text-sm font-medium">{tab.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
         </div>
+
+        {/* Tab Content */}
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsContent value="overview" className="space-y-6">
+            {/* Quick Add - Mobile Optimized */}
+            <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border border-white/20 dark:border-slate-700/50 rounded-2xl p-4 sm:p-6 shadow-lg">
+              <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                <Zap className="w-5 h-5 text-violet-500" />
+                Швидкий запис
+              </h2>
+              <JournalQuickAdd onSuccess={() => {
+                toast({
+                  title: "Успіх",
+                  description: "Запис додано до щоденника"
+                });
+                queryClient.invalidateQueries({ queryKey: ["user"] });
+              }} />
+            </div>
+
+            {/* Stats Cards Grid - Mobile Responsive */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              {/* Streak Card */}
+              <Card className="bg-gradient-to-br from-orange-500/10 to-red-500/10 dark:from-orange-500/20 dark:to-red-500/20 backdrop-blur-md border-orange-200/50 dark:border-orange-700/50">
+                <CardContent className="p-4 text-center">
+                  <div className="text-2xl mb-2">🔥</div>
+                  <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">{user?.stats?.streakDays || 0}</div>
+                  <div className="text-sm text-muted-foreground">Дні поспіль</div>
+                </CardContent>
+              </Card>
+
+              {/* Entries Card */}
+              <Card className="bg-gradient-to-br from-blue-500/10 to-purple-500/10 dark:from-blue-500/20 dark:to-purple-500/20 backdrop-blur-md border-blue-200/50 dark:border-blue-700/50">
+                <CardContent className="p-4 text-center">
+                  <div className="text-2xl mb-2">📝</div>
+                  <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{user?.stats?.totalEntries || 0}</div>
+                  <div className="text-sm text-muted-foreground">Записів</div>
+                </CardContent>
+              </Card>
+
+              {/* Principle Card */}
+              <Card className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 dark:from-green-500/20 dark:to-emerald-500/20 backdrop-blur-md border-green-200/50 dark:border-green-700/50">
+                <CardContent className="p-4 text-center">
+                  <div className="text-2xl mb-2">🌸</div>
+                  <div className="text-2xl font-bold text-green-600 dark:text-green-400">{user?.currentPrinciple || 1}</div>
+                  <div className="text-sm text-muted-foreground">Принцип</div>
+                </CardContent>
+              </Card>
+
+              {/* Weekly Goal Card */}
+              <Card className="bg-gradient-to-br from-yellow-500/10 to-orange-500/10 dark:from-yellow-500/20 dark:to-orange-500/20 backdrop-blur-md border-yellow-200/50 dark:border-yellow-700/50">
+                <CardContent className="p-4 text-center">
+                  <div className="text-2xl mb-2">🎯</div>
+                  <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">{Math.round(((user?.stats?.totalEntries || 0) / (user?.stats?.weeklyGoal || 7)) * 100)}%</div>
+                  <div className="text-sm text-muted-foreground">Прогрес</div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Main Content Grid - Responsive */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Left Column - Main Content */}
+              <div className="lg:col-span-2 space-y-6">
+                {/* Today's Plan */}
+                <Card className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-white/20 dark:border-slate-700/50 overflow-hidden shadow-lg">
+                  <div className="h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500"></div>
+                  <TodaysPlan />
+                </Card>
+
+                {/* Next Principle */}
+                {user && principles && (
+                  <Card className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-white/20 dark:border-slate-700/50 overflow-hidden shadow-lg">
+                    <div className="h-1 bg-gradient-to-r from-emerald-500 via-green-500 to-teal-500"></div>
+                    <NextPrincipleCard 
+                      currentPrinciple={user.currentPrinciple}
+                      principles={principles}
+                    />
+                  </Card>
+                )}
+
+                {/* AI Daily Insight */}
+                <Card className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-white/20 dark:border-slate-700/50 overflow-hidden shadow-lg">
+                  <div className="h-1 bg-gradient-to-r from-violet-500 via-purple-500 to-fuchsia-500"></div>
+                  <AIDailyInsight principleId={user?.currentPrinciple || 1} />
+                </Card>
+              </div>
+
+              {/* Right Column - Sidebar */}
+              <div className="space-y-6">
+                {/* AI Budget Status */}
+                <Card className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-white/20 dark:border-slate-700/50 overflow-hidden shadow-lg">
+                  <div className="h-1 bg-gradient-to-r from-orange-500 via-red-500 to-pink-500"></div>
+                  <AIBudgetStatus />
+                </Card>
+
+                {/* Quick Actions */}
+                <Card className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-white/20 dark:border-slate-700/50 shadow-lg">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <Sparkles className="w-5 h-5 text-violet-500" />
+                      Швидкі дії
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    <Button 
+                      variant="ghost" 
+                      className="w-full justify-start h-auto p-3 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 hover:from-blue-100 hover:to-indigo-100 dark:hover:from-blue-900/50 dark:hover:to-indigo-900/50"
+                      onClick={() => setLocation('/journal')}
+                    >
+                      <div className="flex items-center gap-3 w-full">
+                        <BookOpen className="w-4 h-4" />
+                        <div className="text-left">
+                          <div className="font-medium text-sm">Переглянути записи</div>
+                          <div className="text-xs text-muted-foreground">Останні записи щоденника</div>
+                        </div>
+                        <ChevronRight className="w-4 h-4 ml-auto" />
+                      </div>
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      className="w-full justify-start h-auto p-3 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/30 dark:to-pink-900/30 hover:from-purple-100 hover:to-pink-100 dark:hover:from-purple-900/50 dark:hover:to-pink-900/50"
+                      onClick={() => setLocation('/settings')}
+                    >
+                      <div className="flex items-center gap-3 w-full">
+                        <Target className="w-4 h-4" />
+                        <div className="text-left">
+                          <div className="font-medium text-sm">Налаштування</div>
+                          <div className="text-xs text-muted-foreground">Налаштувати цілі та нагадування</div>
+                        </div>
+                        <ChevronRight className="w-4 h-4 ml-auto" />
+                      </div>
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                {/* Current Principle Overview */}
+                {principles && (
+                  <Card className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-white/20 dark:border-slate-700/50 shadow-lg">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-lg flex items-center gap-2">
+                        <Calendar className="w-5 h-5 text-emerald-500" />
+                        Поточний принцип
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        <Badge variant="secondary" className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">
+                          Принцип {user?.currentPrinciple || 1}
+                        </Badge>
+                        <p className="text-sm text-muted-foreground">
+                          {principles.find(p => p.number === (user?.currentPrinciple || 1))?.title || "Завантаження..."}
+                        </p>
+                        <Progress 
+                          value={((user?.currentPrinciple || 1) / 10) * 100} 
+                          className="h-2" 
+                        />
+                        <div className="flex justify-between text-xs text-muted-foreground">
+                          <span>Прогрес</span>
+                          <span>{user?.currentPrinciple || 1}/10</span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="ai-chat">
+            <Card className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-white/20 dark:border-slate-700/50 overflow-hidden shadow-lg">
+              <div className="h-1 bg-gradient-to-r from-purple-500 via-pink-500 to-blue-500"></div>
+              <AIChat />
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="analytics">
+            <Card className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-white/20 dark:border-slate-700/50 overflow-hidden shadow-lg">
+              <div className="h-1 bg-gradient-to-r from-emerald-500 via-green-500 to-teal-500"></div>
+              <KarmaStats />
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="achievements">
+            <Card className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-white/20 dark:border-slate-700/50 overflow-hidden shadow-lg">
+              <div className="h-1 bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500"></div>
+              <Achievements />
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
+
+      {/* Onboarding Modal */}
+      {showOnboarding && (
+        <OnboardingModal 
+          isOpen={showOnboarding} 
+          onComplete={completeOnboarding}
+        />
+      )}
     </div>
   );
 }
