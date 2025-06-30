@@ -14,6 +14,7 @@ import CustomScheduleEditor from "@/components/CustomScheduleEditor";
 import { BackButton } from "@/components/BackButton";
 import VideoInstructionModal from "@/components/VideoInstructionModal";
 import { SafeThemeToggle } from "@/components/SafeThemeToggle";
+import { PushNotificationSettings } from "@/components/settings/PushNotificationSettings";
 
 interface Schedule {
   id?: number;
@@ -371,6 +372,9 @@ export default function SettingsPage() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Web Push Notification Settings */}
+        <PushNotificationSettings />
         
         {/* Информационная карточка */}
         <Card>
