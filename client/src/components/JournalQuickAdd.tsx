@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Heart, Sparkles, HandHeart, Loader2, Plus, Shield } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { authUtils } from '@/utils/auth';
+import { VoiceRecorder } from './VoiceRecorder';
 
 interface JournalQuickAddProps {
   onSuccess?: () => void;
@@ -79,6 +80,14 @@ export function JournalQuickAdd({ onSuccess }: JournalQuickAddProps) {
     addEntryMutation.mutate({ category, description });
   };
 
+  const handleVoiceTranscript = (text: string) => {
+    // Додати текст до існуючого опису
+    setDescription(prev => {
+      const newText = prev ? `${prev} ${text}` : text;
+      return newText;
+    });
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -111,17 +120,24 @@ export function JournalQuickAdd({ onSuccess }: JournalQuickAddProps) {
           </div>
         </RadioGroup>
 
-        <Textarea
-          placeholder={
-            category === 'antidote' 
-              ? "Опишіть антидот до негативної думки або дії..."
-              : "Опишіть свій добрий вчинок..."
-          }
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          rows={3}
-          className="resize-none"
-        />
+        <div className="space-y-3">
+          <Textarea
+            placeholder={
+              category === 'antidote' 
+                ? "Опишіть антидот до негативної думки або дії..."
+                : "Опишіть свій добрий вчинок..."
+            }
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            rows={3}
+            className="resize-none"
+          />
+          
+          <VoiceRecorder 
+            onTranscript={handleVoiceTranscript}
+            disabled={addEntryMutation.isPending}
+          />
+        </div>
 
         <Button
           onClick={handleSubmit}

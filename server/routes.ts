@@ -13,6 +13,7 @@ import { reminderService } from "./services/reminderService.js";
 import { insertJournalEntrySchema } from "@shared/schema.js";
 import { createSession, checkSession, deleteSession } from "./auth-sessions.js";
 import aiRoutes from "./routes/ai.js";
+import audioRoutes from "./routes/audio.js";
 import "./telegram-bot.js"; // Import to start the bot
 import webhookRoutes from "./routes/webhooks.js";
 
@@ -28,6 +29,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Register AI routes with proper prefix
   app.use("/api/ai", aiRoutes);
+  // Register audio routes
+  app.use("/api/audio", audioRoutes);
   // NEW: Webhook routes (важно - БЕЗ аутентификации!)
   app.use("/api/webhooks", webhookRoutes);
 

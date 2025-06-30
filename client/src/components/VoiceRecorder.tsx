@@ -1,7 +1,8 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { Mic, MicOff, Square } from 'lucide-react';
+import { Mic, Square, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { authUtils } from '@/utils/auth';
 
 interface VoiceRecorderProps {
   onTranscript: (text: string) => void;
@@ -10,87 +11,49 @@ interface VoiceRecorderProps {
 
 export function VoiceRecorder({ onTranscript, disabled }: VoiceRecorderProps) {
   const [isRecording, setIsRecording] = useState(false);
-  const [isSupported, setIsSupported] = useState(false);
-  const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
   const { toast } = useToast();
 
-  useEffect(() => {
-    // Check if Web Speech API is supported
-    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-      setIsSupported(true);
-      
-      // Initialize SpeechRecognition
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      const recognition = new SpeechRecognition();
-      
-      recognition.continuous = true;
-      recognition.interimResults = true;
-      recognition.lang = 'uk-UA'; // Ukrainian language
-      
-      recognition.onstart = () => {
-        setIsRecording(true);
-      };
-      
-      recognition.onend = () => {
-        setIsRecording(false);
-      };
-      
-      recognition.onresult = (event) => {
-        let finalTranscript = '';
-        
-        for (let i = event.resultIndex; i < event.results.length; i++) {
-          const transcript = event.results[i][0].transcript;
-          if (event.results[i].isFinal) {
-            finalTranscript += transcript;
-          }
-        }
-        
-        if (finalTranscript) {
-          onTranscript(finalTranscript);
-        }
-      };
-      
-      recognition.onerror = (event) => {
-        console.error('Speech recognition error:', event.error);
-        setIsRecording(false);
-        
-        let errorMessage = 'Помилка розпізнавання голосу';
-        switch (event.error) {
-          case 'not-allowed':
-            errorMessage = 'Доступ до мікрофона заборонено';
-            break;
-          case 'no-speech':
-            errorMessage = 'Мова не розпізнана';
-            break;
-          case 'network':
-            errorMessage = 'Помилка мережі';
-            break;
-        }
-        
-        toast({
-          title: "Помилка запису",
-          description: errorMessage,
-          variant: "destructive",
-        });
-      };
-      
-      recognitionRef.current = recognition;
-    }
-    
-    return () => {
-      if (recognitionRef.current) {
-        recognitionRef.current.stop();
-      }
-    };
-  }, [onTranscript, toast]);
-
   const startRecording = async () => {
-    if (!recognitionRef.current || disabled) return;
+    if (disabled || isRecording || isProcessing) return;
     
     try {
       // Request microphone permission
-      await navigator.mediaDevices.getUserMedia({ audio: true });
-      recognitionRef.current.start();
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          sampleRate: 16000
+        } 
+      });
+      
+      // Create MediaRecorder
+      const mediaRecorder = new MediaRecorder(stream, {
+        mimeType: 'audio/webm;codecs=opus'
+      });
+      
+      audioChunksRef.current = [];
+      
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+      
+      mediaRecorder.onstop = async () => {
+        stream.getTracks().forEach(track => track.stop());
+        
+        if (audioChunksRef.current.length > 0) {
+          setIsProcessing(true);
+          await processAudio();
+        }
+      };
+      
+      mediaRecorderRef.current = mediaRecorder;
+      mediaRecorder.start();
+      setIsRecording(true);
       
       toast({
         title: "Запис розпочато",
@@ -107,22 +70,66 @@ export function VoiceRecorder({ onTranscript, disabled }: VoiceRecorderProps) {
   };
 
   const stopRecording = () => {
-    if (recognitionRef.current) {
-      recognitionRef.current.stop();
-      toast({
-        title: "Запис завершено",
-        description: "Текст додано до запису",
-      });
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
     }
   };
 
-  if (!isSupported) {
-    return null; // Hide component if not supported
-  }
+  const processAudio = async () => {
+    try {
+      // Create audio blob
+      const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+      
+      // Convert to FormData
+      const formData = new FormData();
+      formData.append('audio', audioBlob, 'recording.webm');
+      formData.append('language', 'uk'); // Ukrainian language
+      
+      // Send to OpenAI transcription endpoint
+      const response = await fetch('/api/audio/transcribe', {
+        method: 'POST',
+        headers: {
+          ...authUtils.getAuthHeaders(),
+        },
+        body: formData
+      });
+      
+      if (!response.ok) {
+        throw new Error('Помилка транскрипції');
+      }
+      
+      const data = await response.json();
+      
+      if (data.text && data.text.trim()) {
+        onTranscript(data.text.trim());
+        toast({
+          title: "Голос розпізнано",
+          description: "Текст додано до запису",
+        });
+      } else {
+        toast({
+          title: "Мова не розпізнана",
+          description: "Спробуйте говорити чіткіше",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Audio processing error:', error);
+      toast({
+        title: "Помилка обробки",
+        description: "Не вдалося розпізнати мову",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessing(false);
+      audioChunksRef.current = [];
+    }
+  };
 
   return (
     <div className="flex items-center gap-2">
-      {!isRecording ? (
+      {!isRecording && !isProcessing ? (
         <Button
           type="button"
           variant="outline"
@@ -134,7 +141,7 @@ export function VoiceRecorder({ onTranscript, disabled }: VoiceRecorderProps) {
           <Mic className="h-4 w-4" />
           Голосовий запис
         </Button>
-      ) : (
+      ) : isRecording ? (
         <Button
           type="button"
           variant="destructive"
@@ -145,6 +152,17 @@ export function VoiceRecorder({ onTranscript, disabled }: VoiceRecorderProps) {
           <Square className="h-4 w-4" />
           Зупинити запис
         </Button>
+      ) : (
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          disabled
+          className="flex items-center gap-2"
+        >
+          <Loader2 className="h-4 w-4 animate-spin" />
+          Обробка...
+        </Button>
       )}
       
       {isRecording && (
@@ -153,14 +171,13 @@ export function VoiceRecorder({ onTranscript, disabled }: VoiceRecorderProps) {
           Записую...
         </div>
       )}
+      
+      {isProcessing && (
+        <div className="flex items-center gap-1 text-sm text-blue-500">
+          <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+          Розпізнаю...
+        </div>
+      )}
     </div>
   );
-}
-
-// Add types for Web Speech API if not already declared
-declare global {
-  interface Window {
-    SpeechRecognition: typeof SpeechRecognition;
-    webkitSpeechRecognition: typeof SpeechRecognition;
-  }
 }
