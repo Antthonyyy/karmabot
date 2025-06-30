@@ -321,7 +321,7 @@ export default function DashboardPage() {
               <div className="lg:col-span-2 space-y-6">
                 {/* Today's Plan */}
                 <Card className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-white/20 dark:border-slate-700/50 overflow-hidden shadow-lg">
-                  <TodaysPlan />
+                  <TodaysPlan currentPrincipleId={user?.currentPrinciple || 1} />
                 </Card>
 
                 {/* Next Principle */}
