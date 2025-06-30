@@ -13,6 +13,7 @@ import { AIChat } from '@/components/AIChat';
 import { JournalQuickAdd } from '@/components/JournalQuickAdd';
 import { KarmaStats } from '@/components/KarmaStats';
 import { Achievements } from '@/components/Achievements';
+import { Logo } from '@/components/Logo';
 
 import { AIBudgetStatus } from "@/components/AIBudgetStatus";
 import TodaysPlan from "@/components/TodaysPlan";
@@ -30,7 +31,7 @@ export default function DashboardPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
-  const { needsOnboarding, completeOnboarding } = useOnboarding();
+  const { showOnboarding, completeOnboarding } = useOnboarding();
 
   // Redirect if not authenticated
   if (!authUtils.getToken()) {
@@ -142,6 +143,7 @@ export default function DashboardPage() {
         <div className="container max-w-7xl mx-auto px-4">
           <div className="flex h-16 items-center justify-between">
             <div className="flex items-center gap-6">
+              <Logo size={32} />
               <h1 className="text-xl font-bold">Кармічний щоденник</h1>
               
               {/* Desktop Navigation */}
@@ -236,9 +238,9 @@ export default function DashboardPage() {
       </nav>
 
       {/* Onboarding Modal */}
-      {needsOnboarding && (
+      {showOnboarding && (
         <OnboardingModal 
-          isOpen={needsOnboarding}
+          isOpen={showOnboarding}
           onComplete={completeOnboarding}
         />
       )}
@@ -315,13 +317,10 @@ export default function DashboardPage() {
               <div className="lg:col-span-2 space-y-6">
                 <TodaysPlan />
                 
-                {user && (
+                {user && principles && (
                   <NextPrincipleCard 
-                    user={user}
-                    onAdvance={() => {
-                      queryClient.invalidateQueries({ queryKey: ["user"] });
-                      queryClient.invalidateQueries({ queryKey: ["dashboard-today-plan"] });
-                    }}
+                    currentPrinciple={user.currentPrinciple}
+                    principles={principles}
                   />
                 )}
                 
