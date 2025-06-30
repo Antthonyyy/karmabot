@@ -136,6 +136,7 @@ export function JournalQuickAdd({ onSuccess }: JournalQuickAddProps) {
           <VoiceRecorder 
             onTranscript={handleVoiceTranscript}
             disabled={addEntryMutation.isPending}
+            language={i18n.language}
           />
         </div>
 

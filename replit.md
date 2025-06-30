@@ -128,6 +128,9 @@ FRONTEND_URL=https://your-domain.com
 
 ```
 Changelog:
+- June 30, 2025. Enhanced voice recording with multi-language support for Ukrainian, Russian, and English through OpenAI Whisper API
+- June 30, 2025. Updated audio transcription endpoint to detect user language preferences from profile and i18next settings
+- June 30, 2025. Improved VoiceRecorder component with better browser compatibility detection and error handling
 - June 30, 2025. Successfully completed Web Push notification system integration with full API implementation and frontend components
 - June 30, 2025. Fixed routes.ts syntax errors and properly positioned push notification endpoints within registerRoutes function
 - June 30, 2025. Added complete Web Push API with four endpoints: subscribe, unsubscribe, test, and get subscriptions

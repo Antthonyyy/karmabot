@@ -79,17 +79,30 @@ router.post('/transcribe', authenticateToken, upload.single('audio'), async (req
 
   } catch (error) {
     console.error('Audio transcription error:', error);
+    console.error('Error details:', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      fileSize: req.file ? req.file.size : 'unknown',
+      mimeType: req.file ? req.file.mimetype : 'unknown',
+      language: requestedLanguage
+    });
     
     if (error instanceof Error) {
-      if (error.message.includes('Invalid file format')) {
+      if (error.message.includes('Invalid file format') || error.message.includes('unsupported')) {
         return res.status(400).json({ 
           error: 'Непідтримуваний формат аудіо файлу' 
         });
       }
       
-      if (error.message.includes('File too large')) {
+      if (error.message.includes('File too large') || error.message.includes('size')) {
         return res.status(400).json({ 
           error: 'Файл занадто великий (максимум 25MB)' 
+        });
+      }
+      
+      if (error.message.includes('API key') || error.message.includes('unauthorized')) {
+        return res.status(500).json({ 
+          error: 'Помилка конфігурації API'
         });
       }
     }
