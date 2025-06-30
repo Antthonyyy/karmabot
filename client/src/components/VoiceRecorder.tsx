@@ -19,6 +19,16 @@ export function VoiceRecorder({ onTranscript, disabled }: VoiceRecorderProps) {
   const startRecording = async () => {
     if (disabled || isRecording || isProcessing) return;
     
+    // Check for MediaRecorder support
+    if (!navigator.mediaDevices || !window.MediaRecorder) {
+      toast({
+        title: "Не підтримується",
+        description: "Ваш браузер не підтримує запис аудіо",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     try {
       // Request microphone permission
       const stream = await navigator.mediaDevices.getUserMedia({ 
@@ -29,10 +39,20 @@ export function VoiceRecorder({ onTranscript, disabled }: VoiceRecorderProps) {
         } 
       });
       
+      // Determine best supported MIME type
+      let mimeType = 'audio/webm;codecs=opus';
+      if (!MediaRecorder.isTypeSupported(mimeType)) {
+        mimeType = 'audio/webm';
+        if (!MediaRecorder.isTypeSupported(mimeType)) {
+          mimeType = 'audio/mp4';
+          if (!MediaRecorder.isTypeSupported(mimeType)) {
+            mimeType = ''; // Let browser choose
+          }
+        }
+      }
+      
       // Create MediaRecorder
-      const mediaRecorder = new MediaRecorder(stream, {
-        mimeType: 'audio/webm;codecs=opus'
-      });
+      const mediaRecorder = new MediaRecorder(stream, mimeType ? { mimeType } : {});
       
       audioChunksRef.current = [];
       
