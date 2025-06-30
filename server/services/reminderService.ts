@@ -8,6 +8,19 @@ export class ReminderService {
   }
 
   private initializeSchedules() {
+    // Antidote reminders - 30 minutes before main reminders
+    cron.schedule('30 8 * * *', async () => {
+      await this.sendAntidoteReminders('morning');
+    });
+
+    cron.schedule('30 14 * * *', async () => {
+      await this.sendAntidoteReminders('afternoon');
+    });
+
+    cron.schedule('30 19 * * *', async () => {
+      await this.sendAntidoteReminders('evening');
+    });
+
     // Morning reminders (9:00 AM)
     cron.schedule('0 9 * * *', async () => {
       await this.sendMorningReminders();
@@ -24,6 +37,46 @@ export class ReminderService {
     });
 
     console.log('🔔 Reminder service scheduled');
+  }
+
+  private async sendAntidoteReminders(timeOfDay: 'morning' | 'afternoon' | 'evening') {
+    const activeUsers = await storage.getActiveUsers();
+    
+    const timeMessages = {
+      morning: '🌅 Доброго ранку!',
+      afternoon: '☀️ Добрий день!',
+      evening: '🌙 Добрий вечір!'
+    };
+
+    const timeAdvice = {
+      morning: 'Перед початком дня подумай - чи є у тебе негативні думки, які можуть заважати? Створи антидот!',
+      afternoon: 'У середині дня варто зупинитися і переосмислити. Чи потрібен тобі антидот від негативу?',
+      evening: 'Перед сном добре очистити розум від негативних думок. Запиши антидот до того, що турбує.'
+    };
+    
+    for (const user of activeUsers) {
+      if (user.notificationType === 'daily' || user.notificationType === 'intensive') {
+        try {
+          await bot.sendMessage(
+            parseInt(user.telegramId!),
+            `${timeMessages[timeOfDay]} ${user.firstName}!\n\n` +
+            `🛡️ Час для антидоту!\n\n` +
+            `${timeAdvice[timeOfDay]}\n\n` +
+            `Антидот - це позитивна думка або дія, яка нейтралізує негатив і повертає тебе до гармонії. 💚`,
+            {
+              reply_markup: {
+                inline_keyboard: [
+                  [{ text: "🛡️ Додати антидот", callback_data: "add_antidote" }],
+                  [{ text: "📱 Відкрити додаток", web_app: { url: process.env.FRONTEND_URL } }]
+                ]
+              }
+            }
+          );
+        } catch (error) {
+          console.error(`Failed to send antidote reminder to user ${user.id}:`, error);
+        }
+      }
+    }
   }
 
   private async sendMorningReminders() {

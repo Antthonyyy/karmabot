@@ -6,7 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Heart, Sparkles, HandHeart, Loader2, Plus } from 'lucide-react';
+import { Heart, Sparkles, HandHeart, Loader2, Plus, Shield } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { authUtils } from '@/utils/auth';
 
@@ -62,7 +62,8 @@ export function JournalQuickAdd({ onSuccess }: JournalQuickAddProps) {
   const categories = [
     { value: 'kindness', label: 'Доброта', icon: Heart, color: 'text-pink-600' },
     { value: 'gratitude', label: 'Вдячність', icon: Sparkles, color: 'text-purple-600' },
-    { value: 'help', label: 'Допомога', icon: HandHeart, color: 'text-blue-600' }
+    { value: 'help', label: 'Допомога', icon: HandHeart, color: 'text-blue-600' },
+    { value: 'antidote', label: 'Антидот', icon: Shield, color: 'text-green-600' }
   ];
 
   const handleSubmit = () => {
@@ -88,7 +89,7 @@ export function JournalQuickAdd({ onSuccess }: JournalQuickAddProps) {
       </CardHeader>
       <CardContent className="space-y-4">
         <RadioGroup value={category} onValueChange={setCategory}>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-2 gap-2">
             {categories.map((cat) => {
               const Icon = cat.icon;
               return (
@@ -111,7 +112,11 @@ export function JournalQuickAdd({ onSuccess }: JournalQuickAddProps) {
         </RadioGroup>
 
         <Textarea
-          placeholder="Опишіть свій добрий вчинок..."
+          placeholder={
+            category === 'antidote' 
+              ? "Опишіть антидот до негативної думки або дії..."
+              : "Опишіть свій добрий вчинок..."
+          }
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           rows={3}
@@ -125,10 +130,12 @@ export function JournalQuickAdd({ onSuccess }: JournalQuickAddProps) {
         >
           {addEntryMutation.isPending ? (
             <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+          ) : category === 'antidote' ? (
+            <Shield className="w-4 h-4 mr-2" />
           ) : (
             <Heart className="w-4 h-4 mr-2" />
           )}
-          Додати запис
+          {category === 'antidote' ? 'Додати антидот' : 'Додати запис'}
         </Button>
       </CardContent>
     </Card>
