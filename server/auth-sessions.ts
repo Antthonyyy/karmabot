@@ -26,13 +26,16 @@ export function createSession(): string {
 }
 
 export function authorizeSession(sessionId: string, userData: Session['userData']): boolean {
+  console.log(`🔑 Attempting to authorize session: ${sessionId}`);
   const session = sessions.get(sessionId);
   if (session) {
+    console.log(`✅ Session found, authorizing user: ${userData?.firstName}`);
     session.authorized = true;
     session.userData = userData;
     return true;
   } else {
-    console.warn(`Attempted to authorize non-existent session: ${sessionId}`);
+    console.warn(`❌ Attempted to authorize non-existent session: ${sessionId}`);
+    console.log(`Available sessions: ${Array.from(sessions.keys()).join(', ')}`);
     return false;
   }
 }

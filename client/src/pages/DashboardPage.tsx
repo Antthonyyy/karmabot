@@ -348,7 +348,6 @@ export default function DashboardPage() {
               <div className="space-y-6">
                 {/* AI Budget Status */}
                 <Card className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-white/20 dark:border-slate-700/50 overflow-hidden shadow-lg">
-                  <div className="h-1 bg-gradient-to-r from-orange-500 via-red-500 to-pink-500"></div>
                   <AIBudgetStatus />
                 </Card>
 

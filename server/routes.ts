@@ -47,10 +47,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/auth/check-session/:sessionId", async (req, res) => {
     try {
       const { sessionId } = req.params;
+      console.log(`🔍 Checking session: ${sessionId}`);
       const session = checkSession(sessionId);
 
-      if (!session || !session.authorized) {
+      if (!session) {
+        console.log(`❌ Session not found: ${sessionId}`);
         return res.json({ authorized: false });
+      }
+
+      if (!session.authorized) {
+        console.log(`⏳ Session not yet authorized: ${sessionId}`);
+        return res.json({ authorized: false });
+      }
+
+      console.log(`✅ Session authorized: ${sessionId}`);
+
+      // Find or create user in database
+      if (!session.userData) {
+        console.error(`❌ Session userData missing for: ${sessionId}`);
+        return res.status(400).json({ error: "Session userData missing" });
       }
 
       // Find or create user in database
