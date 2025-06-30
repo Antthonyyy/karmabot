@@ -3,7 +3,6 @@ import { AnimatePresence } from "framer-motion";
 import { Toaster } from "@/components/ui/toaster";
 import { PageTransition } from "@/components/PageTransition";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
-import { MainNav } from "@/components/MainNav";
 import HomePage from "@/pages/HomePage";
 import DashboardPage from "@/pages/DashboardPage";
 import AnalyticsPage from "@/pages/AnalyticsPage";
@@ -11,8 +10,6 @@ import SettingsPage from "@/pages/SettingsPage";
 import ProfilePage from "@/pages/ProfilePage";
 import OnboardingPage from "@/pages/OnboardingPage";
 import SubscriptionsPage from "@/pages/SubscriptionsPage";
-import ChatPage from "@/pages/ChatPage";
-import AchievementsPage from "@/pages/AchievementsPage";
 import NotFound from "@/pages/not-found";
 
 
