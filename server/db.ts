@@ -11,7 +11,14 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
-export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+// Clean DATABASE_URL - remove the prefix if it exists
+const cleanDatabaseUrl = process.env.DATABASE_URL.startsWith('DATABASE_URL=') 
+  ? process.env.DATABASE_URL.replace('DATABASE_URL=', '') 
+  : process.env.DATABASE_URL;
+
+console.log('📝 Database URL cleaned:', cleanDatabaseUrl.substring(0, 50) + '...');
+
+export const pool = new Pool({ connectionString: cleanDatabaseUrl });
 export const db = drizzle({ client: pool, schema });
 
 // Test database connection
