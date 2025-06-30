@@ -101,11 +101,19 @@ export function VoiceRecorder({ onTranscript, disabled, language = 'uk' }: Voice
     try {
       // Create audio blob
       const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+      console.log('Audio blob created:', {
+        size: audioBlob.size,
+        type: audioBlob.type,
+        chunksCount: audioChunksRef.current.length,
+        language: language
+      });
       
       // Convert to FormData
       const formData = new FormData();
       formData.append('audio', audioBlob, 'recording.webm');
       formData.append('language', language); // User's preferred language
+      
+      console.log('Sending audio to transcription API...');
       
       // Send to OpenAI transcription endpoint
       const response = await fetch('/api/audio/transcribe', {
@@ -116,11 +124,16 @@ export function VoiceRecorder({ onTranscript, disabled, language = 'uk' }: Voice
         body: formData
       });
       
+      console.log('Response status:', response.status);
+      
       if (!response.ok) {
-        throw new Error('Помилка транскрипції');
+        const errorText = await response.text();
+        console.error('API Error:', errorText);
+        throw new Error(`Помилка транскрипції: ${response.status}`);
       }
       
       const data = await response.json();
+      console.log('Transcription response:', data);
       
       if (data.text && data.text.trim()) {
         onTranscript(data.text.trim());
