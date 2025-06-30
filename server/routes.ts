@@ -1275,4 +1275,3 @@ async function initializePrinciples() {
   console.log("✅ Server setup complete with routes and reminder scheduling");
   
   return server;
-}
