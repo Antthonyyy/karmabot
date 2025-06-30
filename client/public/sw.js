@@ -242,6 +242,84 @@ async function handleStaticRequest(request) {
   }
 }
 
+// Handle push notifications
+self.addEventListener('push', event => {
+  console.log('📱 Push notification received:', event);
+  
+  const options = {
+    body: 'Час для рефлексії та запису в щоденник',
+    icon: '/icon-192.png',
+    badge: '/icon-192.png',
+    tag: 'karma-reminder',
+    requireInteraction: true,
+    actions: [
+      {
+        action: 'open',
+        title: 'Відкрити щоденник',
+        icon: '/icon-192.png'
+      },
+      {
+        action: 'later',
+        title: 'Нагадати пізніше'
+      }
+    ],
+    data: {
+      url: '/',
+      timestamp: Date.now()
+    }
+  };
+
+  if (event.data) {
+    try {
+      const payload = event.data.json();
+      options.body = payload.body || options.body;
+      options.title = payload.title || 'Кармічний Щоденник';
+      options.icon = payload.icon || options.icon;
+      options.data = { ...options.data, ...payload.data };
+    } catch (error) {
+      console.log('❌ Error parsing push payload:', error);
+    }
+  }
+
+  event.waitUntil(
+    self.registration.showNotification('Кармічний Щоденник', options)
+  );
+});
+
+// Handle notification clicks
+self.addEventListener('notificationclick', event => {
+  console.log('🔔 Notification clicked:', event);
+  
+  event.notification.close();
+  
+  if (event.action === 'open' || !event.action) {
+    event.waitUntil(
+      clients.matchAll({ type: 'window' }).then(clientList => {
+        // Check if app is already open
+        for (const client of clientList) {
+          if (client.url === event.notification.data.url && 'focus' in client) {
+            return client.focus();
+          }
+        }
+        
+        // Open new window if app is not open
+        if (clients.openWindow) {
+          return clients.openWindow(event.notification.data.url || '/');
+        }
+      })
+    );
+  } else if (event.action === 'later') {
+    // Schedule reminder for later (30 minutes)
+    event.waitUntil(
+      self.registration.showNotification('Нагадування відкладено', {
+        body: 'Нагадаємо через 30 хвилин',
+        icon: '/icon-192.png',
+        tag: 'reminder-postponed'
+      })
+    );
+  }
+});
+
 // Handle background sync for offline actions
 self.addEventListener('sync', event => {
   console.log('🔄 Background sync triggered:', event.tag);

@@ -189,6 +189,17 @@ export const achievements = pgTable("achievements", {
   notified: boolean("notified").default(false),
 });
 
+export const pushSubscriptions = pgTable("push_subscriptions", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  endpoint: text("endpoint").notNull(),
+  p256dh: text("p256dh").notNull(),
+  auth: text("auth").notNull(),
+  userAgent: text("user_agent"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many, one }) => ({
   journalEntries: many(journalEntries),
@@ -201,6 +212,7 @@ export const usersRelations = relations(users, ({ many, one }) => ({
   subscriptions: many(subscriptions),
   aiRequests: many(aiRequests),
   achievements: many(achievements),
+  pushSubscriptions: many(pushSubscriptions),
 }));
 
 export const journalEntriesRelations = relations(journalEntries, ({ one }) => ({
@@ -299,6 +311,13 @@ export const achievementsRelations = relations(achievements, ({ one }) => ({
   }),
 }));
 
+export const pushSubscriptionsRelations = relations(pushSubscriptions, ({ one }) => ({
+  user: one(users, {
+    fields: [pushSubscriptions.userId],
+    references: [users.id],
+  }),
+}));
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -343,3 +362,5 @@ export type AICache = typeof aiCache.$inferSelect;
 export type InsertAICache = typeof aiCache.$inferInsert;
 export type Achievement = typeof achievements.$inferSelect;
 export type InsertAchievement = typeof achievements.$inferInsert;
+export type PushSubscription = typeof pushSubscriptions.$inferSelect;
+export type InsertPushSubscription = typeof pushSubscriptions.$inferInsert;

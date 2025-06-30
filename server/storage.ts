@@ -116,6 +116,12 @@ export interface IStorage {
   getUserAchievements(userId: number): Promise<Achievement[]>;
   createAchievement(achievement: InsertAchievement): Promise<Achievement>;
   markAchievementAsNotified(achievementId: number): Promise<void>;
+  
+  // Push Subscription methods
+  getUserPushSubscriptions(userId: number): Promise<PushSubscription[]>;
+  createPushSubscription(subscription: InsertPushSubscription): Promise<PushSubscription>;
+  deletePushSubscription(endpoint: string): Promise<void>;
+  getAllPushSubscriptions(): Promise<PushSubscription[]>;
 }
 
 export class DatabaseStorage implements IStorage {
