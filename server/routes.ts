@@ -1,5 +1,6 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import multer from "multer";
 import { storage } from "./storage.js";
 import {
   authenticateToken,
@@ -16,6 +17,7 @@ import aiRoutes from "./routes/ai.js";
 import audioRoutes from "./routes/audio.js";
 import "./telegram-bot.js"; // Import to start the bot
 import webhookRoutes from "./routes/webhooks.js";
+import { supabase } from "./supabase.js";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize principles data

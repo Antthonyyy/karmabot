@@ -15,8 +15,9 @@ export default function DashboardPage() {
   const [, setLocation] = useLocation();
   const { showOnboarding, completeOnboarding } = useOnboarding();
 
-  // Redirect if not authenticated
-  if (!authUtils.getToken()) {
+  // Check authentication once
+  const token = authUtils.getToken();
+  if (!token) {
     setLocation("/");
     return null;
   }
@@ -44,7 +45,6 @@ export default function DashboardPage() {
 
   // Not authenticated state
   if (!user) {
-    setLocation("/");
     return null;
   }
 
