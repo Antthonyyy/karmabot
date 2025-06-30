@@ -1,9 +1,17 @@
 import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { Mic, Square, Loader2 } from 'lucide-react';
+import { Mic, Square, Loader2, Languages, Volume2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { authUtils } from '@/utils/auth';
 import { useTranslation } from 'react-i18next';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Card } from '@/components/ui/card';
 
 interface VoiceRecorderProps {
   onTranscript: (text: string) => void;
@@ -14,10 +22,27 @@ interface VoiceRecorderProps {
 export function VoiceRecorder({ onTranscript, disabled }: VoiceRecorderProps) {
   const [isRecording, setIsRecording] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [selectedLanguage, setSelectedLanguage] = useState('');
+  const [showLanguageHint, setShowLanguageHint] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const { toast } = useToast();
-  const { i18n } = useTranslation();
+  const { i18n, t } = useTranslation();
+
+  // Language options with hints
+  const languageOptions = [
+    { code: 'uk', name: 'Українська', hint: 'Говоріть українською мовою', flag: '🇺🇦' },
+    { code: 'ru', name: 'Русский', hint: 'Говорите на русском языке', flag: '🇷🇺' },
+    { code: 'en', name: 'English', hint: 'Speak in English', flag: '🇺🇸' },
+  ];
+
+  const getCurrentLanguage = () => {
+    return selectedLanguage || i18n.language.slice(0, 2);
+  };
+
+  const getCurrentLanguageOption = () => {
+    return languageOptions.find(lang => lang.code === getCurrentLanguage()) || languageOptions[0];
+  };
 
   const startRecording = async () => {
     if (disabled || isRecording || isProcessing) return;
@@ -104,7 +129,7 @@ export function VoiceRecorder({ onTranscript, disabled }: VoiceRecorderProps) {
       const file = new File(audioChunksRef.current, 'voice.webm', { type: 'audio/webm' });
       const fd = new FormData();
       fd.append('audio', file);
-      fd.append('language', i18n.language.slice(0, 2));
+      fd.append('language', getCurrentLanguage());
 
       const token = authUtils.getToken();
       const res = await fetch('/api/audio/transcribe', {
@@ -143,54 +168,95 @@ export function VoiceRecorder({ onTranscript, disabled }: VoiceRecorderProps) {
   };
 
   return (
-    <div className="flex items-center gap-2">
-      {!isRecording && !isProcessing ? (
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={startRecording}
-          disabled={disabled}
-          className="flex items-center gap-2"
-        >
-          <Mic className="h-4 w-4" />
-          Голосовий запис
-        </Button>
-      ) : isRecording ? (
-        <Button
-          type="button"
-          variant="destructive"
-          size="sm"
-          onClick={stopRecording}
-          className="flex items-center gap-2 animate-pulse"
-        >
-          <Square className="h-4 w-4" />
-          Зупинити запис
-        </Button>
-      ) : (
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          disabled
-          className="flex items-center gap-2"
-        >
-          <Loader2 className="h-4 w-4 animate-spin" />
-          Обробка...
-        </Button>
+    <div className="space-y-3">
+      {/* Language Selector */}
+      <div className="flex items-center gap-2">
+        <Languages className="h-4 w-4 text-muted-foreground" />
+        <Select value={getCurrentLanguage()} onValueChange={setSelectedLanguage}>
+          <SelectTrigger className="w-40 h-8">
+            <SelectValue>
+              <div className="flex items-center gap-2">
+                <span>{getCurrentLanguageOption().flag}</span>
+                <span className="text-sm">{getCurrentLanguageOption().name}</span>
+              </div>
+            </SelectValue>
+          </SelectTrigger>
+          <SelectContent>
+            {languageOptions.map((lang) => (
+              <SelectItem key={lang.code} value={lang.code}>
+                <div className="flex items-center gap-2">
+                  <span>{lang.flag}</span>
+                  <span>{lang.name}</span>
+                </div>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Voice Recording UI */}
+      <div className="flex items-center gap-2">
+        {!isRecording && !isProcessing ? (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={startRecording}
+            disabled={disabled}
+            className="flex items-center gap-2"
+          >
+            <Mic className="h-4 w-4" />
+            Голосовий запис
+          </Button>
+        ) : isRecording ? (
+          <Button
+            type="button"
+            variant="destructive"
+            size="sm"
+            onClick={stopRecording}
+            className="flex items-center gap-2 animate-pulse"
+          >
+            <Square className="h-4 w-4" />
+            Зупинити запис
+          </Button>
+        ) : (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled
+            className="flex items-center gap-2"
+          >
+            <Loader2 className="h-4 w-4 animate-spin" />
+            Обробка...
+          </Button>
+        )}
+      </div>
+
+      {/* Language Hint */}
+      {(isRecording || showLanguageHint) && (
+        <Card className="p-3 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 border-blue-200 dark:border-blue-800">
+          <div className="flex items-center gap-2">
+            <Volume2 className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+            <span className="text-sm font-medium text-blue-700 dark:text-blue-300">
+              {getCurrentLanguageOption().hint}
+            </span>
+          </div>
+        </Card>
       )}
-      
+
+      {/* Recording Status */}
       {isRecording && (
-        <div className="flex items-center gap-1 text-sm text-red-500">
+        <div className="flex items-center gap-2 text-sm text-red-600 dark:text-red-400">
           <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-          Записую...
+          Записую... Говоріть чітко
         </div>
       )}
       
       {isProcessing && (
-        <div className="flex items-center gap-1 text-sm text-blue-500">
-          <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-          Розпізнаю...
+        <div className="flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400">
+          <Loader2 className="w-3 h-3 animate-spin" />
+          Розпізнаю мову...
         </div>
       )}
     </div>

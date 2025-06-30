@@ -346,10 +346,7 @@ export default function DashboardPage() {
 
               {/* Right Column - Sidebar */}
               <div className="space-y-6">
-                {/* AI Budget Status */}
-                <Card className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-white/20 dark:border-slate-700/50 overflow-hidden shadow-lg">
-                  <AIBudgetStatus />
-                </Card>
+                
 
                 {/* Quick Actions */}
                 <Card className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-white/20 dark:border-slate-700/50 shadow-lg">
