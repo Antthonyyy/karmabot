@@ -7,6 +7,7 @@ import ProgressChart from '@/components/ProgressChart';
 import TodaysPlan from "@/components/TodaysPlan";
 import LatestEntries from "@/components/LatestEntries";
 import OnboardingModal from "@/components/OnboardingModal";
+import WelcomeHero from "@/components/WelcomeHero";
 import { useOnboarding } from "@/hooks/useOnboarding";
 import { authUtils } from '@/utils/auth';
 
@@ -48,7 +49,10 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="space-y-6 pt-16 md:pt-20 pb-24 px-4 max-w-5xl mx-auto">
+    <div className="space-y-6 pt-4 md:pt-20 pb-24 px-4 max-w-5xl mx-auto">
+      {/* Hero блок приветствия */}
+      <WelcomeHero user={user} streak={user?.stats?.streakDays ?? 0} />
+
       {/* 1-я строка */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         <StreakCard />

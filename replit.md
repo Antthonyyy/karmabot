@@ -128,6 +128,11 @@ FRONTEND_URL=https://your-domain.com
 
 ```
 Changelog:
+- June 30, 2025. Successfully implemented clean dashboard layout according to user specifications with simple card-based design
+- June 30, 2025. Removed complex sidebar navigation and tabs for minimalist approach
+- June 30, 2025. Created responsive grid layout with StreakCard and NextPrincipleCard in top row
+- June 30, 2025. Fixed component prop dependencies and import issues for better modularity
+- June 30, 2025. Integrated TodaysPlan and LatestEntries components for clean information hierarchy
 - June 30, 2025. Enhanced voice recording with multi-language support for Ukrainian, Russian, and English through OpenAI Whisper API
 - June 30, 2025. Updated audio transcription endpoint to detect user language preferences from profile and i18next settings
 - June 30, 2025. Improved VoiceRecorder component with better browser compatibility detection and error handling
