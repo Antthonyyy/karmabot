@@ -3,7 +3,7 @@ import { AnimatePresence } from "framer-motion";
 import { Toaster } from "@/components/ui/toaster";
 import { PageTransition } from "@/components/PageTransition";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
-import { MainNav } from "@/components/MainNav";
+import MainNav from "@/components/MainNav";
 import HomePage from "@/pages/HomePage";
 import DashboardPage from "@/pages/DashboardPage";
 import AnalyticsPage from "@/pages/AnalyticsPage";
@@ -48,7 +48,7 @@ function Router() {
 
 function App() {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen pt-14 pb-14 md:pb-0 bg-background">
       <MainNav />
       <Router />
       <Toaster />

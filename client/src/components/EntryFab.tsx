@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
-import { ModalEntryForm } from './ModalEntryForm';
+import ModalEntryForm from './ModalEntryForm';
 
-export function EntryFab() {
+export default function EntryFab() {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
@@ -11,7 +11,7 @@ export function EntryFab() {
       <Button
         onClick={() => setIsOpen(true)}
         size="lg"
-        className="fixed bottom-20 right-6 md:right-10 z-50 h-14 w-14 rounded-full shadow-lg bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 border-0"
+        className="fixed bottom-20 right-5 md:right-8 z-50 h-14 w-14 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 text-white text-3xl flex items-center justify-center shadow-xl hover:scale-105 transition"
       >
         <Plus className="h-6 w-6" />
       </Button>

@@ -9,7 +9,7 @@ import { Brain, TrendingUp, Trophy, Sparkles, ChevronRight, LogOut, Menu, X, Set
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useLocation } from "wouter";
 import { AIChat } from '@/components/AIChat';
-import { EntryFab } from '@/components/EntryFab';
+import EntryFab from '@/components/EntryFab';
 import { KarmaStats } from '@/components/KarmaStats';
 import { Achievements } from '@/components/Achievements';
 import { Logo } from '@/components/Logo';

@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TrendingUp, Activity } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 
-export function ProgressChart() {
+export default function ProgressChart() {
   const { data: user } = useQuery({ queryKey: ['/api/user/me'] });
   const stats = user?.stats;
 

@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Flame, Calendar } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 
-export function StreakCard() {
+export default function StreakCard() {
   const { data: user } = useQuery({ queryKey: ['/api/user/me'] });
   const stats = user?.stats;
 

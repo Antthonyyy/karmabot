@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CheckCircle, Clock, Target } from 'lucide-react';
 
-export function TodaysPlan() {
+export default function TodaysPlan() {
   const today = new Date().toLocaleDateString('uk-UA', { 
     weekday: 'long', 
     day: 'numeric', 

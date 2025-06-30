@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BookOpen, ArrowRight } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 
-export function NextPrincipleCard() {
+export default function NextPrincipleCard() {
   const { data: user } = useQuery({ queryKey: ['/api/user/me'] });
   const { data: principle } = useQuery({ 
     queryKey: ['/api/principles', user?.currentPrinciple],

@@ -41,7 +41,7 @@ interface ModalEntryFormProps {
   onClose: () => void;
 }
 
-export function ModalEntryForm({ isOpen, onClose }: ModalEntryFormProps) {
+export default function ModalEntryForm({ isOpen, onClose }: ModalEntryFormProps) {
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const { toast } = useToast();
   const queryClient = useQueryClient();
