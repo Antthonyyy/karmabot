@@ -49,9 +49,9 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="space-y-6 pt-4 md:pt-20 pb-24 px-4 max-w-5xl mx-auto">
+    <div className="space-y-6 pt-4 md:pt-16 pb-24 px-4 max-w-5xl mx-auto">
       {/* Hero блок приветствия */}
-      <WelcomeHero user={user} streak={user?.stats?.streakDays ?? 0} />
+      <WelcomeHero user={user} streak={user?.stats?.streakDays ?? 0} openModal={() => {}} />
 
       {/* 1-я строка */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">

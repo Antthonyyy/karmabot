@@ -1,36 +1,31 @@
-import { cn } from '@/lib/utils';
-import AvatarUpload from './AvatarUpload';
 
-export default function WelcomeHero({ user, streak = 0 }) {
+import AvatarUpload from '@/components/AvatarUpload'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+
+export default function WelcomeHero({ user, streak = 0, openModal }) {
+  const first = user?.firstName ?? 'Друже'
   return (
     <section
-      className="
-        w-full rounded-3xl overflow-hidden
-        bg-gradient-to-r from-purple-500/90 to-blue-500/90
-        text-white shadow-lg
-        p-8 md:p-12
-        flex flex-col md:flex-row items-center
-        gap-6"
-    >
-      {/* левый блок — приветствие */}
-      <div className="flex-1 text-center md:text-left">
-        <h1 className="text-2xl md:text-3xl font-semibold mb-2">
-          Вітаю, {user?.firstName || 'Друже'}! 👋
-        </h1>
-        <p className="text-sm md:text-base opacity-90">
-          Сьогодні твій&nbsp;
-          <span className="font-medium">{streak}</span>&nbsp;
-          день без пропусків&nbsp;&mdash; продовжуй у тому ж дусі!
-        </p>
-      </div>
+      className="h-32 md:h-40 rounded-3xl
+                 bg-gradient-to-r from-purple-500 to-blue-500 text-white
+                 px-6 md:px-10 grid grid-cols-[auto_1fr] gap-6 items-center shadow-lg">
+      <AvatarUpload size="lg" />
 
-      {/* правый — иконка/аватар */}
-      <div className="
-          h-20 w-20 md:h-24 md:w-24
-          rounded-full bg-white/20
-          flex items-center justify-center text-4xl md:text-5xl overflow-hidden">
-        <AvatarUpload user={user} />
+      <div>
+        <h1 className="text-xl md:text-2xl font-semibold">
+          Вітаю, {first}! 👋
+        </h1>
+        <p className="text-sm opacity-90 mt-1">
+          {streak
+            ? <>Сьогодні твій <b>{streak}</b> день без пропусків — продовжуй!</>
+            : 'Почни серію сьогодні 🚀'}
+        </p>
+        <div className="mt-2 flex items-center gap-3">
+          <Badge variant="success">🔥 {streak} днів</Badge>
+          <Button size="sm" onClick={openModal}>+ Запис</Button>
+        </div>
       </div>
     </section>
-  );
+  )
 }
