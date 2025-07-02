@@ -53,17 +53,14 @@ export default function DashboardPage() {
       {/* Hero блок приветствия */}
       <WelcomeHero user={user} streak={user?.stats?.streakDays ?? 0} openModal={() => {}} />
 
-      {/* 1-я строка */}
+      {/* Reorganized layout for mobile-first */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-        <StreakCard />
-        <NextPrincipleCard />
+        <StreakCard className="row-span-2" />
+        <TodaysPlan />
       </div>
 
       {/* мини-график настроения */}
       <ProgressChart />
-
-      {/* Today's reminders */}
-      <TodaysPlan />
 
       {/* последние 3 записи */}
       <LatestEntries />
