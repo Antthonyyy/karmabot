@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 
 export default function StreakCard() {
   const { data: user } = useQuery({ queryKey: ['/api/user/me'] });
-  const stats = user?.stats;
+  const { data: stats } = useQuery({ queryKey: ['/api/user/stats'] });
 
   return (
     <Card className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-white/20 dark:border-slate-700/50 shadow-xl">
@@ -19,7 +19,7 @@ export default function StreakCard() {
           </CardTitle>
           <div className="text-right">
             <div className="text-2xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
-              {stats?.streakDays || 0}
+              {stats?.currentStreak || 0}
             </div>
             <div className="text-xs text-muted-foreground">днів</div>
           </div>
@@ -29,7 +29,7 @@ export default function StreakCard() {
         <div className="space-y-3">
           <div className="flex items-center justify-between text-sm">
             <span className="text-muted-foreground">Найдовша серія</span>
-            <span className="font-medium">{stats?.longestStreak || 0} днів</span>
+            <span className="font-medium">{stats?.bestStreak || 0} днів</span>
           </div>
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Calendar className="w-4 h-4" />

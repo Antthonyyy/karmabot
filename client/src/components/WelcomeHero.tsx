@@ -3,7 +3,13 @@ import { Logo } from '@/components/Logo'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 
-export default function WelcomeHero({ user, streak = 0, openModal }) {
+interface WelcomeHeroProps {
+  user: any;
+  streak?: number;
+  openModal: () => void;
+}
+
+export default function WelcomeHero({ user, streak = 0, openModal }: WelcomeHeroProps) {
   const first = user?.firstName ?? 'Друже'
   return (
     <section
@@ -25,7 +31,7 @@ export default function WelcomeHero({ user, streak = 0, openModal }) {
             : 'Почни серію сьогодні 🚀'}
         </p>
         <div className="mt-2 flex items-center gap-3">
-          <Badge variant="success">🔥 {streak} днів</Badge>
+          <Badge variant="secondary">🔥 {streak} днів</Badge>
           <Button size="sm" onClick={openModal}>+ Запис</Button>
         </div>
       </div>

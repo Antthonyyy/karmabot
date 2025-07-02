@@ -73,7 +73,7 @@ export default function DashboardPage() {
 
       {/* Onboarding Modal */}
       {showOnboarding && (
-        <OnboardingModal onComplete={completeOnboarding} />
+        <OnboardingModal isOpen={showOnboarding} onComplete={completeOnboarding} />
       )}
     </div>
   );
