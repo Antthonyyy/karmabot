@@ -49,7 +49,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="space-y-6 pt-4 md:pt-16 pb-24 px-4 max-w-5xl mx-auto">
+    <div className="space-y-6 md:mt-14 pt-4 md:pt-16 pb-24 px-4 max-w-5xl mx-auto">
       {/* Hero блок приветствия */}
       <WelcomeHero user={user} streak={user?.stats?.streakDays ?? 0} openModal={() => {}} />
 

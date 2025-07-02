@@ -48,7 +48,7 @@ function Router() {
 
 function App() {
   return (
-    <div className="min-h-screen pt-14 pb-14 md:pb-0 bg-background">
+    <div className="min-h-screen pb-14 md:pb-0 bg-background">
       <MainNav />
       <Router />
       <Toaster />

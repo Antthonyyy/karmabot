@@ -120,7 +120,7 @@ export default function ProfilePage() {
   if (!user) return null;
 
   return (
-    <div className="container mx-auto p-4 max-w-4xl space-y-6">
+    <div className="container md:mt-14 mx-auto p-4 max-w-4xl space-y-6">
       {/* Page Header */}
       <div className="flex items-center justify-between">
         <div>

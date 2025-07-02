@@ -3,7 +3,7 @@ import { BackButton } from "@/components/BackButton";
 
 export default function AnalyticsPage() {
   return (
-    <div>
+    <div className="md:mt-14">
       <BackButton />
       <AnalyticsPanel />
     </div>
