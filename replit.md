@@ -128,6 +128,11 @@ FRONTEND_URL=https://your-domain.com
 
 ```
 Changelog:
+- July 2, 2025. Successfully converted Telegram bot from polling to webhook mode to eliminate 409 conflicts
+- July 2, 2025. Added environment variables for webhook configuration: BOT_MODE, TELEGRAM_WEBHOOK_URL, WEBHOOK_SECRET
+- July 2, 2025. Created webhook endpoint at /api/telegram/webhook with proper authentication
+- July 2, 2025. Fixed TypeScript errors in WelcomeHero, StreakCard, and OnboardingModal components
+- July 2, 2025. Implemented bot mode switching for development (off) and production (webhook) environments
 - June 30, 2025. Successfully implemented clean dashboard layout according to user specifications with simple card-based design
 - June 30, 2025. Removed complex sidebar navigation and tabs for minimalist approach
 - June 30, 2025. Created responsive grid layout with StreakCard and NextPrincipleCard in top row
