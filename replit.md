@@ -128,6 +128,10 @@ FRONTEND_URL=https://your-domain.com
 
 ```
 Changelog:
+- July 2, 2025. Completed real Web Push notification system with VAPID-based push service integrated into reminderService
+- July 2, 2025. Removed all test functionality from push notification system for production readiness
+- July 2, 2025. Push notifications now work parallel to Telegram notifications with title "Час для рефлексії 🪷" and principle text
+- July 2, 2025. Integrated push notifications into all scheduled reminders: morning, afternoon, and evening
 - July 2, 2025. Successfully converted Telegram bot from polling to webhook mode to eliminate 409 conflicts
 - July 2, 2025. Added environment variables for webhook configuration: BOT_MODE, TELEGRAM_WEBHOOK_URL, WEBHOOK_SECRET
 - July 2, 2025. Created webhook endpoint at /api/telegram/webhook with proper authentication
