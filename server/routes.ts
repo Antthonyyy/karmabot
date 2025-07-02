@@ -1,5 +1,6 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import express from "express";
 import multer from "multer";
 import { storage } from "./storage.js";
 import {
@@ -15,11 +16,22 @@ import { insertJournalEntrySchema } from "@shared/schema.js";
 import { createSession, checkSession, deleteSession } from "./auth-sessions.js";
 import aiRoutes from "./routes/ai.js";
 import audioRoutes from "./routes/audio.js";
-import "./telegram-bot.js"; // Import to start the bot
+import bot from "./telegram-bot.js"; // Import bot instance
 import webhookRoutes from "./routes/webhooks.js";
 import { supabase } from "./supabase.js";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Add Telegram webhook handler BEFORE other routes
+  app.post('/api/telegram/webhook', express.json(), (req, res) => {
+    if (req.query.secret !== process.env.WEBHOOK_SECRET) {
+      return res.status(401).send('Unauthorized');
+    }
+    if (bot) {
+      bot.processUpdate(req.body);
+    }
+    res.sendStatus(200);
+  });
+
   // Initialize principles data
   await initializePrinciples();
 

@@ -3,57 +3,69 @@ import { authorizeSession } from "./auth-sessions.js";
 
 const token = process.env.TELEGRAM_BOT_TOKEN;
 
-if (token) {
-  const bot = new TelegramBot(token, { polling: true });
+// Time-based personalized greetings
+function getGreeting(name: string): string {
+  const now = new Date();
+  const hour = now.getHours();
 
-  // Time-based personalized greetings
-  function getGreeting(name: string): string {
-    const now = new Date();
-    const hour = now.getHours();
+  const morningGreetings = [
+    `Доброе утро, ${name}! ☀️ Готовы начать день с благодарности?`,
+    `Привет, ${name}! 🌅 Новый день — новые возможности для роста!`,
+    `Утро, ${name}! ✨ Давайте наполним этот день осознанностью`,
+    `Доброе утро, ${name}! 🌻 Время для утренних размышлений`,
+  ];
 
-    const morningGreetings = [
-      `Доброе утро, ${name}! ☀️ Готовы начать день с благодарности?`,
-      `Привет, ${name}! 🌅 Новый день — новые возможности для роста!`,
-      `Утро, ${name}! ✨ Давайте наполним этот день осознанностью`,
-      `Доброе утро, ${name}! 🌻 Время для утренних размышлений`,
-    ];
+  const dayGreetings = [
+    `Добрый день, ${name}! 🌞 Как проходит ваша практика?`,
+    `Привет, ${name}! ⭐ Время для дневной рефлексии`,
+    `День добрый, ${name}! 🌈 Продолжаем работу над собой`,
+    `Здравствуйте, ${name}! 💫 Момент для осознанности`,
+  ];
 
-    const dayGreetings = [
-      `Добрый день, ${name}! 🌞 Как проходит ваша практика?`,
-      `Привет, ${name}! ⭐ Время для дневной рефлексии`,
-      `День добрый, ${name}! 🌈 Продолжаем работу над собой`,
-      `Здравствуйте, ${name}! 💫 Момент для осознанности`,
-    ];
+  const eveningGreetings = [
+    `Добрый вечер, ${name}! 🌙 Время подвести итоги дня`,
+    `Вечер, ${name}! 🌟 Как прошел ваш день с принципами?`,
+    `Привет, ${name}! 🌆 Время для вечерних размышлений`,
+    `Добрый вечер, ${name}! ✨ Завершаем день с благодарностью`,
+  ];
 
-    const eveningGreetings = [
-      `Добрый вечер, ${name}! 🌙 Время подвести итоги дня`,
-      `Вечер, ${name}! 🌟 Как прошел ваш день с принципами?`,
-      `Привет, ${name}! 🌆 Время для вечерних размышлений`,
-      `Добрый вечер, ${name}! ✨ Завершаем день с благодарностью`,
-    ];
+  let greetings: string[];
 
-    let greetings: string[];
-
-    if (hour >= 5 && hour < 12) {
-      greetings = morningGreetings;
-    } else if (hour >= 12 && hour < 18) {
-      greetings = dayGreetings;
-    } else if (hour >= 18 && hour < 23) {
-      greetings = eveningGreetings;
-    } else {
-      greetings = [`Привет, ${name}! 🌙 Поздний час для размышлений`];
-    }
-
-    return greetings[Math.floor(Math.random() * greetings.length)];
+  if (hour >= 5 && hour < 12) {
+    greetings = morningGreetings;
+  } else if (hour >= 12 && hour < 18) {
+    greetings = dayGreetings;
+  } else if (hour >= 18 && hour < 23) {
+    greetings = eveningGreetings;
+  } else {
+    greetings = [`Привет, ${name}! 🌙 Поздний час для размышлений`];
   }
 
+  return greetings[Math.floor(Math.random() * greetings.length)];
+}
+
+let bot: TelegramBot | null = null;
+
+async function initializeBot() {
+  if (!token) {
+    console.log("TELEGRAM_BOT_TOKEN not provided, bot disabled");
+    return null;
+  }
+
+  if (process.env.BOT_MODE === 'off') {
+    console.log("Bot disabled in development (BOT_MODE=off)");
+    return null;
+  }
+
+  bot = new TelegramBot(token, { polling: false });
+
   // Log errors
-  bot.on("polling_error", (error) => {
+  bot.on("polling_error", (error: any) => {
     console.error("Telegram bot polling error:", error);
   });
 
   // Handle /start command with auth_SESSION_ID parameter
-  bot.onText(/\/start auth_(.+)/, async (msg, match) => {
+  bot.onText(/\/start auth_(.+)/, async (msg: any, match: any) => {
     const chatId = msg.chat.id;
     const sessionId = match[1];
     const user = msg.from;
@@ -66,7 +78,7 @@ if (token) {
     });
 
     if (success) {
-      await bot.sendMessage(
+      await bot!.sendMessage(
         chatId,
         "✅ Авторизація успішна!\n\n" +
           "Поверніться на сайт Кармічний щоденник.\n" +
@@ -74,7 +86,7 @@ if (token) {
         { parse_mode: "HTML" },
       );
     } else {
-      await bot.sendMessage(
+      await bot!.sendMessage(
         chatId,
         "❌ Помилка авторизації\n\n" +
           "Сесія не знайдена або застаріла.\n" +
@@ -85,9 +97,9 @@ if (token) {
   });
 
   // Handle regular /start command (without parameters)
-  bot.onText(/^\/start$/, async (msg) => {
+  bot.onText(/^\/start$/, async (msg: any) => {
     const chatId = msg.chat.id;
-    await bot.sendMessage(
+    await bot!.sendMessage(
       chatId,
       "👋 Вітаю в Кармічному щоденнику!\n\n" +
         "Цей бот допоможе вам:\n" +
@@ -98,9 +110,23 @@ if (token) {
     );
   });
 
+  // Setup webhook if in production mode
+  if (process.env.BOT_MODE === 'webhook' && process.env.TELEGRAM_WEBHOOK_URL && process.env.WEBHOOK_SECRET) {
+    const webhookUrl = `${process.env.TELEGRAM_WEBHOOK_URL}?secret=${process.env.WEBHOOK_SECRET}`;
+    try {
+      await bot.setWebHook(webhookUrl);
+      console.log('Webhook set:', webhookUrl);
+    } catch (error) {
+      console.error('Failed to set webhook:', error);
+    }
+  }
+
   console.log("Telegram bot started successfully");
-} else {
-  console.log("⚠️ TELEGRAM_BOT_TOKEN not found - bot disabled");
+  return bot;
 }
 
+// Initialize bot
+initializeBot();
+
+export default bot;
 export { getGreeting };
