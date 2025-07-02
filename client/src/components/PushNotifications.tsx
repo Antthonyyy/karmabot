@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
+import { Bell, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { Bell, BellOff, CheckCircle, XCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 interface PushNotificationsProps {
@@ -19,82 +19,57 @@ export function PushNotifications({ onPermissionChange, onSubscriptionChange }: 
   const [isLoading, setIsLoading] = useState(false);
   const [registration, setRegistration] = useState<ServiceWorkerRegistration | null>(null);
 
+  // Check push support
+  const isPushSupported = 'serviceWorker' in navigator && 'PushManager' in window;
+
   useEffect(() => {
-    checkNotificationSupport();
-    getServiceWorkerRegistration();
+    if (isPushSupported) {
+      checkPushStatus();
+    }
   }, []);
 
-  const checkNotificationSupport = () => {
-    if ('Notification' in window) {
+  const checkPushStatus = async () => {
+    try {
       setPermission(Notification.permission);
       onPermissionChange?.(Notification.permission);
-    }
-  };
 
-  const getServiceWorkerRegistration = async () => {
-    if ('serviceWorker' in navigator) {
-      try {
-        const reg = await navigator.serviceWorker.ready;
-        setRegistration(reg);
-        checkExistingSubscription(reg);
-      } catch (error) {
-        console.error('Service Worker not available:', error);
-      }
-    }
-  };
+      const reg = await navigator.serviceWorker.ready;
+      setRegistration(reg);
 
-  const checkExistingSubscription = async (reg: ServiceWorkerRegistration) => {
-    try {
       const subscription = await reg.pushManager.getSubscription();
-      const subscribed = subscription !== null;
-      setIsSubscribed(subscribed);
-      onSubscriptionChange?.(subscribed);
+      const isCurrentlySubscribed = !!subscription;
+      setIsSubscribed(isCurrentlySubscribed);
+      onSubscriptionChange?.(isCurrentlySubscribed);
     } catch (error) {
-      console.error('Error checking subscription:', error);
+      console.error('Error checking push status:', error);
     }
   };
 
-  const requestNotificationPermission = async () => {
-    if (!('Notification' in window)) {
-      toast({
-        variant: "destructive",
-        title: t('notSupported', 'Не підтримується'),
-        description: t('pushNotSupportedDesc', 'Ваш браузер не підтримує push уведомлення')
-      });
-      return false;
-    }
-
-    setIsLoading(true);
+  const requestNotificationPermission = async (): Promise<boolean> => {
     try {
       const permission = await Notification.requestPermission();
       setPermission(permission);
       onPermissionChange?.(permission);
-
-      if (permission === 'granted') {
-        toast({
-          title: t('permissionGranted', 'Дозвіл надано'),
-          description: t('pushPermissionGrantedDesc', 'Тепер ви будете отримувати push уведомлення')
-        });
-        return true;
-      } else {
-        toast({
-          variant: "destructive",
-          title: t('permissionDenied', 'Дозвіл відхилено'),
-          description: t('pushPermissionDeniedDesc', 'Увімкніть уведомлення в налаштуваннях браузера')
-        });
-        return false;
-      }
+      return permission === 'granted';
     } catch (error) {
-      console.error('Error requesting permission:', error);
-      toast({
-        variant: "destructive",
-        title: t('error', 'Помилка'),
-        description: t('permissionError', 'Помилка при запиті дозволу на уведомлення')
-      });
+      console.error('Error requesting notification permission:', error);
       return false;
-    } finally {
-      setIsLoading(false);
     }
+  };
+
+  const urlBase64ToUint8Array = (base64String: string) => {
+    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding)
+      .replace(/-/g, '+')
+      .replace(/_/g, '/');
+
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+
+    for (let i = 0; i < rawData.length; ++i) {
+      outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
   };
 
   const subscribeToPush = async () => {
@@ -195,45 +170,6 @@ export function PushNotifications({ onPermissionChange, onSubscriptionChange }: 
     }
   };
 
-  const sendTestNotification = async () => {
-    if (!isSubscribed) {
-      toast({
-        variant: "destructive",
-        title: t('notSubscribed', 'Не підписано'),
-        description: t('subscribeFirstDesc', 'Спочатку підпишіться на уведомлення')
-      });
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      const response = await fetch('/api/push/test', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
-
-      if (response.ok) {
-        toast({
-          title: t('testSent', 'Тест надіслано'),
-          description: t('testNotificationDesc', 'Тестове уведомлення надіслано')
-        });
-      } else {
-        throw new Error('Failed to send test notification');
-      }
-    } catch (error) {
-      console.error('Error sending test notification:', error);
-      toast({
-        variant: "destructive",
-        title: t('error', 'Помилка'),
-        description: t('testError', 'Помилка при надсиланні тестового уведомлення')
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const getPermissionStatus = () => {
     switch (permission) {
       case 'granted':
@@ -250,31 +186,33 @@ export function PushNotifications({ onPermissionChange, onSubscriptionChange }: 
         };
       default:
         return {
-          icon: <Bell className="h-4 w-4 text-gray-500" />,
+          icon: <AlertCircle className="h-4 w-4 text-orange-500" />,
           text: t('notRequested', 'Не запитано'),
           variant: 'secondary' as const
         };
     }
   };
 
-  const permissionStatus = getPermissionStatus();
-
-  if (!('Notification' in window)) {
+  if (!isPushSupported) {
     return (
-      <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
-        <div className="flex items-center gap-2">
-          <BellOff className="h-5 w-5 text-yellow-600" />
-          <span className="text-sm text-yellow-800 dark:text-yellow-200">
-            {t('pushNotSupported', 'Push уведомлення не підтримуються цим браузером')}
-          </span>
+      <div className="p-4 border rounded-lg bg-gray-50 dark:bg-gray-800">
+        <div className="flex items-center gap-3 text-gray-600 dark:text-gray-400">
+          <XCircle className="h-5 w-5" />
+          <div>
+            <p className="font-medium">{t('pushNotSupported', 'Push уведомлення не підтримуються')}</p>
+            <p className="text-sm">{t('pushNotSupportedDesc', 'Ваш браузер не підтримує push уведомлення')}</p>
+          </div>
         </div>
       </div>
     );
   }
 
+  const permissionStatus = getPermissionStatus();
+
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      {/* Status Header */}
+      <div className="flex items-center justify-between p-4 border rounded-lg">
         <div className="flex items-center gap-3">
           <Bell className="h-5 w-5 text-purple-600" />
           <div>
@@ -310,48 +248,35 @@ export function PushNotifications({ onPermissionChange, onSubscriptionChange }: 
               unsubscribeFromPush();
             }
           }}
-          disabled={isLoading}
+          disabled={isLoading || permission === 'denied'}
         />
       </div>
 
-      {permission !== 'granted' && !isSubscribed && (
-        <Button
-          onClick={requestNotificationPermission}
-          disabled={isLoading}
-          className="w-full"
-          variant="outline"
-        >
-          <Bell className="h-4 w-4 mr-2" />
-          {t('requestPermission', 'Запитати дозвіл')}
-        </Button>
+      {permission === 'denied' && (
+        <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+          <div className="flex items-center gap-2 text-red-700 dark:text-red-300">
+            <XCircle className="h-4 w-4" />
+            <p className="text-sm font-medium">
+              {t('permissionDenied', 'Дозвіл заборонено')}
+            </p>
+          </div>
+          <p className="text-sm text-red-600 dark:text-red-400 mt-1">
+            {t('permissionDeniedDesc', 'Щоб увімкнути уведомлення, дозвольте їх у налаштуваннях браузера')}
+          </p>
+        </div>
       )}
 
-      {isSubscribed && (
-        <Button
-          onClick={sendTestNotification}
-          disabled={isLoading}
-          variant="outline"
-          className="w-full"
-        >
-          {t('sendTest', 'Надіслати тест')}
-        </Button>
+      {permission === 'default' && (
+        <div className="flex justify-center">
+          <Button 
+            onClick={requestNotificationPermission}
+            disabled={isLoading}
+            className="w-full"
+          >
+            {t('requestPermission', 'Дозволити уведомлення')}
+          </Button>
+        </div>
       )}
     </div>
   );
-}
-
-// Конвертація VAPID ключа
-function urlBase64ToUint8Array(base64String: string) {
-  const padding = '='.repeat((4 - base64String.length % 4) % 4);
-  const base64 = (base64String + padding)
-    .replace(/-/g, '+')
-    .replace(/_/g, '/');
-
-  const rawData = window.atob(base64);
-  const outputArray = new Uint8Array(rawData.length);
-
-  for (let i = 0; i < rawData.length; ++i) {
-    outputArray[i] = rawData.charCodeAt(i);
-  }
-  return outputArray;
 }
