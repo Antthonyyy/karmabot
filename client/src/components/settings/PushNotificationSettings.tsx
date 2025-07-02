@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Bell, Smartphone, Clock, TestTube2, Check, X, Loader2 } from 'lucide-react';
+import { Bell, Smartphone, Clock, Check, X } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
@@ -45,34 +45,7 @@ export function PushNotificationSettings() {
     }
   };
 
-  const handleTestNotification = async () => {
-    setIsLoading(true);
-    try {
-      const response = await apiRequest('/api/push/test', 'POST');
-      
-      if (response.ok) {
-        toast({
-          title: 'Тестове повідомлення',
-          description: 'Тестове push уведомлення надіслано успішно',
-        });
-      } else {
-        const data = await response.json();
-        toast({
-          title: 'Помилка',
-          description: data.message || 'Не вдалося надіслати тестове повідомлення',
-          variant: 'destructive'
-        });
-      }
-    } catch (error) {
-      toast({
-        title: 'Помилка',
-        description: 'Не вдалося надіслати тестове повідомлення',
-        variant: 'destructive'
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
+
 
   const getPermissionBadge = () => {
     switch (permission) {
@@ -166,33 +139,7 @@ export function PushNotificationSettings() {
             }}
           />
 
-          {/* Test Notification */}
-          {pushEnabled && permission === 'granted' && (
-            <div className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-              <div>
-                <p className="font-medium text-blue-900 dark:text-blue-100">
-                  Тестове повідомлення
-                </p>
-                <p className="text-sm text-blue-700 dark:text-blue-300">
-                  Перевірте, чи працюють push уведомлення
-                </p>
-              </div>
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={handleTestNotification}
-                disabled={isLoading}
-                className="border-blue-300 text-blue-700 hover:bg-blue-100 dark:border-blue-600 dark:text-blue-300 dark:hover:bg-blue-900/30"
-              >
-                {isLoading ? (
-                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                ) : (
-                  <TestTube2 className="h-4 w-4 mr-2" />
-                )}
-                Тест
-              </Button>
-            </div>
-          )}
+
         </CardContent>
       </Card>
 

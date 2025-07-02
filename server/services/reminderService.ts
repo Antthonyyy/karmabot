@@ -1,6 +1,7 @@
 import cron from 'node-cron';
 import { storage } from '../storage.js';
 import { bot } from '../bot/index.js';
+import { pushService } from './pushService.js';
 
 export class ReminderService {
   constructor() {
@@ -85,11 +86,16 @@ export class ReminderService {
     for (const user of activeUsers) {
       if (user.notificationType === 'daily' || user.notificationType === 'intensive') {
         try {
+          // Get current principle name
+          const currentPrinciple = await storage.getPrincipleByNumber(user.currentPrinciple || 1);
+          const principleTitle = currentPrinciple?.title || 'Принцип дня';
+
+          // Send Telegram notification
           await bot.sendMessage(
             parseInt(user.telegramId!),
             `🌅 Доброго ранку, ${user.firstName}!\n\n` +
             `Новий день - нова можливість творити добро.\n` +
-            `Сьогоднішній принцип: ${user.currentPrinciple}/10\n\n` +
+            `Сьогоднішній принцип: ${principleTitle}\n\n` +
             `Спробуй сьогодні зробити щонайменше одну добру справу! 💝`,
             {
               reply_markup: {
@@ -100,6 +106,10 @@ export class ReminderService {
               }
             }
           );
+
+          // Send Push notification
+          await pushService.sendReminderNotification(user.id, principleTitle);
+
         } catch (error) {
           console.error(`Failed to send morning reminder to user ${user.id}:`, error);
         }
@@ -113,6 +123,11 @@ export class ReminderService {
     for (const user of activeUsers) {
       if (user.notificationType === 'intensive') {
         try {
+          // Get current principle name
+          const currentPrinciple = await storage.getPrincipleByNumber(user.currentPrinciple || 1);
+          const principleTitle = currentPrinciple?.title || 'Принцип дня';
+
+          // Send Telegram notification
           await bot.sendMessage(
             parseInt(user.telegramId!),
             `☀️ ${user.firstName}, як проходить день?\n\n` +
@@ -129,6 +144,10 @@ export class ReminderService {
               }
             }
           );
+
+          // Send Push notification
+          await pushService.sendReminderNotification(user.id, principleTitle);
+
         } catch (error) {
           console.error(`Failed to send afternoon reminder to user ${user.id}:`, error);
         }
@@ -145,6 +164,10 @@ export class ReminderService {
           const userStats = await storage.getUserStats(user.id);
           const todayEntries = userStats?.totalEntries || 0;
           
+          // Get current principle name for push notification
+          const currentPrinciple = await storage.getPrincipleByNumber(user.currentPrinciple || 1);
+          const principleTitle = currentPrinciple?.title || 'Принцип дня';
+          
           let message = `🌙 Добрий вечір, ${user.firstName}!\n\n`;
           
           if (todayEntries === 0) {
@@ -157,6 +180,7 @@ export class ReminderService {
               `Побажай собі добраніч і готуйся до нового дня! 🌟`;
           }
 
+          // Send Telegram notification
           await bot.sendMessage(
             parseInt(user.telegramId!),
             message,
@@ -169,6 +193,10 @@ export class ReminderService {
               }
             }
           );
+
+          // Send Push notification
+          await pushService.sendReminderNotification(user.id, principleTitle);
+
         } catch (error) {
           console.error(`Failed to send evening reminder to user ${user.id}:`, error);
         }

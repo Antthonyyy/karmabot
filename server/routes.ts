@@ -1012,27 +1012,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/push/test", authenticateToken, async (req: AuthRequest, res) => {
-    try {
-      const user = req.user;
-      const subscriptions = await storage.getUserPushSubscriptions(user.id);
-      
-      if (subscriptions.length === 0) {
-        return res.status(400).json({ 
-          message: "No push subscriptions found" 
-        });
-      }
 
-      res.json({ 
-        message: "Test notification would be sent",
-        subscriptions: subscriptions.length,
-        note: "Web push requires VAPID keys configuration"
-      });
-    } catch (error) {
-      console.error("Error sending test notification:", error);
-      res.status(500).json({ message: "Internal server error" });
-    }
-  });
 
   // Get user's push subscriptions
   app.get("/api/push/subscriptions", authenticateToken, async (req: AuthRequest, res) => {
