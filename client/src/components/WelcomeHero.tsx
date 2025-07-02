@@ -7,7 +7,7 @@ export default function WelcomeHero({ user, streak = 0, openModal }) {
   const first = user?.firstName ?? 'Друже'
   return (
     <section
-      className="h-24 md:h-40 rounded-3xl
+      className="h-32 md:h-40 rounded-3xl
                  bg-gradient-to-r from-purple-500 to-blue-500 text-white
                  px-6 md:px-10 grid grid-cols-[auto_1fr] gap-6 items-center shadow-lg">
       {/* Логотип-лотос */}

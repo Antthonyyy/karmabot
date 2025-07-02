@@ -2,16 +2,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Flame, Calendar } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 
-interface StreakCardProps {
-  className?: string;
-}
-
-export default function StreakCard({ className = "" }: StreakCardProps) {
+export default function StreakCard() {
   const { data: user } = useQuery({ queryKey: ['/api/user/me'] });
   const stats = user?.stats;
 
   return (
-    <Card className={`bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-white/20 dark:border-slate-700/50 shadow-xl ${className}`}>
+    <Card className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-white/20 dark:border-slate-700/50 shadow-xl">
       <div className="h-1 bg-gradient-to-r from-orange-500 via-red-500 to-pink-500"></div>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
