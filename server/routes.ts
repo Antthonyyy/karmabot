@@ -12,8 +12,10 @@ import {
 } from "./auth.js";
 import { telegramService } from "./services/telegramService.js";
 import { reminderService } from "./services/reminderService.js";
-import { insertJournalEntrySchema } from "@shared/schema.js";
+import { insertJournalEntrySchema, principles } from "@shared/schema.js";
 import { createSession, checkSession, deleteSession } from "./auth-sessions.js";
+import { db } from "./db.js";
+import { sql } from "drizzle-orm";
 import aiRoutes from "./routes/ai.js";
 import audioRoutes from "./routes/audio.js";
 import bot from "./telegram-bot.js"; // Import bot instance
@@ -1098,6 +1100,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 // Initialize principles data
 async function initializePrinciples() {
+  // Check if principles already exist
+  const existingCount = await db.select({ count: sql<number>`count(*)` }).from(principles);
+  
+  if (existingCount[0].count > 0) {
+    console.log("🟢 Principles already seeded – skipping initialization");
+    return;
+  }
+
   const principlesData = [
     {
       number: 1,
