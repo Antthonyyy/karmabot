@@ -66,31 +66,42 @@ async function initializeBot() {
 
   // Handle /start command with auth_SESSION_ID parameter
   bot.onText(/\/start auth_(.+)/, async (msg: any, match: any) => {
+    console.log('🤖 BOT RECEIVED AUTH MESSAGE:', msg.text, 'FROM:', msg.from);
     const chatId = msg.chat.id;
     const sessionId = match[1];
     const user = msg.from;
 
-    const success = authorizeSession(sessionId, {
-      telegramId: user.id.toString(),
-      firstName: user.first_name,
-      lastName: user.last_name || null,
-      username: user.username || null,
-    });
+    try {
+      const success = authorizeSession(sessionId, {
+        telegramId: user.id.toString(),
+        firstName: user.first_name,
+        lastName: user.last_name || null,
+        username: user.username || null,
+      });
 
-    if (success) {
+      if (success) {
+        await bot!.sendMessage(
+          chatId,
+          "✅ Авторизація успішна!\n\n" +
+            "Поверніться на сайт Кармічний щоденник.\n" +
+            "Вікно авторизації оновиться автоматично.",
+          { parse_mode: "HTML" },
+        );
+      } else {
+        await bot!.sendMessage(
+          chatId,
+          "❌ Помилка авторизації\n\n" +
+            "Сесія не знайдена або застаріла.\n" +
+            "Спробуйте ще раз на сайті.",
+          { parse_mode: "HTML" },
+        );
+      }
+    } catch (error) {
+      console.error('❌ Start command error:', error);
       await bot!.sendMessage(
         chatId,
-        "✅ Авторизація успішна!\n\n" +
-          "Поверніться на сайт Кармічний щоденник.\n" +
-          "Вікно авторизації оновиться автоматично.",
-        { parse_mode: "HTML" },
-      );
-    } else {
-      await bot!.sendMessage(
-        chatId,
-        "❌ Помилка авторизації\n\n" +
-          "Сесія не знайдена або застаріла.\n" +
-          "Спробуйте ще раз на сайті.",
+        "❌ Сталася помилка під час авторизації.\n\n" +
+          "Спробуйте ще раз або зверніться до підтримки.",
         { parse_mode: "HTML" },
       );
     }
@@ -98,6 +109,7 @@ async function initializeBot() {
 
   // Handle regular /start command (without parameters)
   bot.onText(/^\/start$/, async (msg: any) => {
+    console.log('🤖 BOT RECEIVED REGULAR START:', msg.text, 'FROM:', msg.from);
     const chatId = msg.chat.id;
     await bot!.sendMessage(
       chatId,

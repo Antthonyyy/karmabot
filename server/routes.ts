@@ -26,11 +26,16 @@ import { requireSubscription } from "./middleware/subscription.js";
 export async function registerRoutes(app: Express): Promise<Server> {
   // Add Telegram webhook handler BEFORE other routes
   app.post('/api/telegram/webhook', express.json(), (req, res) => {
+    console.log('🔗 Webhook received:', req.body);
     if (req.query.secret !== process.env.WEBHOOK_SECRET) {
+      console.log('❌ Unauthorized webhook access, wrong secret');
       return res.status(401).send('Unauthorized');
     }
     if (bot) {
+      console.log('✅ Processing Telegram update via webhook');
       bot.processUpdate(req.body);
+    } else {
+      console.log('❌ Bot not available');
     }
     res.sendStatus(200);
   });
@@ -586,16 +591,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Telegram webhook
-  app.post("/api/telegram/webhook", async (req, res) => {
-    try {
-      await telegramService.processBotUpdate(req.body);
-      res.status(200).json({ ok: true });
-    } catch (error) {
-      console.error("Error processing Telegram webhook:", error);
-      res.status(500).json({ message: "Internal server error" });
-    }
-  });
+
 
   // Get bot info
   app.get("/api/bot/info", async (req, res) => {
