@@ -854,7 +854,21 @@ export class DatabaseStorage implements IStorage {
   // Subscription methods
   async getUserSubscriptions(userId: number): Promise<Subscription[]> {
     return await db
-      .select()
+      .select({
+        id: subscriptions.id,
+        userId: subscriptions.userId,
+        plan: subscriptions.plan,
+        billingPeriod: subscriptions.billingPeriod,
+        startDate: subscriptions.startDate,
+        endDate: subscriptions.endDate,
+        status: subscriptions.status,
+        paymentOrderId: subscriptions.paymentOrderId,
+        amount: subscriptions.amount,
+        currency: subscriptions.currency,
+        createdAt: subscriptions.createdAt,
+        startedAt: subscriptions.startedAt,
+        expiresAt: subscriptions.expiresAt,
+      })
       .from(subscriptions)
       .where(eq(subscriptions.userId, userId))
       .orderBy(desc(subscriptions.createdAt));
