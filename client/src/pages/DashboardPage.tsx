@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { useLocation } from "wouter";
+import { useEffect } from 'react';
 import EntryFab from '@/components/EntryFab';
 import StreakCard from '@/components/StreakCard';
 import NextPrincipleCard from "@/components/NextPrincipleCard";
@@ -10,10 +11,12 @@ import OnboardingModal from "@/components/OnboardingModal";
 import WelcomeHero from "@/components/WelcomeHero";
 import { useOnboarding } from "@/hooks/useOnboarding";
 import { authUtils } from '@/utils/auth';
+import { useToast } from '@/hooks/use-toast';
 
 export default function DashboardPage() {
   const [, setLocation] = useLocation();
   const { showOnboarding, completeOnboarding } = useOnboarding();
+  const { toast } = useToast();
 
   // Check authentication once
   const token = authUtils.getToken();
@@ -33,6 +36,36 @@ export default function DashboardPage() {
       return res.json();
     },
   });
+
+  // Fetch subscription data
+  const { data: subscription } = useQuery({
+    queryKey: ['current-subscription'],
+    queryFn: async () => {
+      const response = await fetch('/api/subscriptions/current', {
+        headers: authUtils.getAuthHeaders()
+      });
+      if (!response.ok) throw new Error('Failed to fetch subscription');
+      return response.json();
+    }
+  });
+
+  // Show trial countdown toast
+  useEffect(() => {
+    if (subscription?.plan === 'trial' && subscription?.expiresAt) {
+      const now = new Date();
+      const expires = new Date(subscription.expiresAt);
+      const diffTime = expires.getTime() - now.getTime();
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      
+      if (diffDays > 0 && diffDays <= 3) {
+        const dayText = diffDays === 1 ? 'день' : diffDays < 5 ? 'дні' : 'днів';
+        toast({
+          title: "Пробний період",
+          description: `До кінця пробного періоду ${diffDays} ${dayText}`,
+        });
+      }
+    }
+  }, [subscription, toast]);
 
   // Loading state
   if (userLoading) {

@@ -19,6 +19,7 @@ import audioRoutes from "./routes/audio.js";
 import bot from "./telegram-bot.js"; // Import bot instance
 import webhookRoutes from "./routes/webhooks.js";
 import { supabase } from "./supabase.js";
+import { requirePlan } from "./middleware/subscription.js";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Add Telegram webhook handler BEFORE other routes
@@ -894,14 +895,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
           plan: activeSubscription.plan,
           startDate: activeSubscription.startDate,
           endDate: activeSubscription.endDate,
-          features: activeSubscription.features || {}
+          expiresAt: activeSubscription.expiresAt,
+          status: activeSubscription.status
         });
       } else {
         res.json({
           plan: 'none',
           startDate: null,
           endDate: null,
-          features: {}
+          expiresAt: null,
+          status: null
         });
       }
     } catch (error) {
@@ -915,6 +918,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { planId, billingPeriod } = req.body;
       const user = req.user;
       
+      // Calculate expiration date for paid subscription
+      const expiresAt = billingPeriod === 'yearly' 
+        ? new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)
+        : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+
       // Create subscription record
       const subscription = await storage.createSubscription({
         userId: user.id,
@@ -925,7 +933,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         endDate: billingPeriod === 'yearly' 
           ? new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)
           : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-        features: {}
+        expiresAt,
+        amount: billingPeriod === 'yearly' 
+          ? (planId === 'light' ? '50.00' : planId === 'plus' ? '100.00' : '200.00')
+          : (planId === 'light' ? '5.00' : planId === 'plus' ? '10.00' : '20.00')
       });
 
       // Create WayForPay payment URL (mock for now)
