@@ -130,11 +130,7 @@ export interface IStorage {
 export class DatabaseStorage implements IStorage {
   async getUser(userId: number) {
     const [user] = await db
-      .select({
-        id: users.id,
-        firstName: users.firstName,
-        lastName: users.lastName
-      })
+      .select()
       .from(users)
       .where(eq(users.id, userId))
       .limit(1);
@@ -853,24 +849,11 @@ export class DatabaseStorage implements IStorage {
 
   // Subscription methods
   async getUserSubscriptions(userId: number): Promise<Subscription[]> {
-    const [sub] = await db.select({
-      id: subscriptions.id,
-      userId: subscriptions.userId,
-      plan: subscriptions.plan,
-      status: subscriptions.status,
-      expiresAt: subscriptions.expiresAt,
-      startedAt: subscriptions.startedAt,
-      billingPeriod: subscriptions.billingPeriod,
-      startDate: subscriptions.startDate,
-      endDate: subscriptions.endDate,
-      paymentOrderId: subscriptions.paymentOrderId,
-      amount: subscriptions.amount,
-      currency: subscriptions.currency,
-      createdAt: subscriptions.createdAt
-    }).from(subscriptions)
+    const result = await db.select()
+      .from(subscriptions)
       .where(and(eq(subscriptions.userId, userId), eq(subscriptions.status, 'active')));
     
-    return sub ? [sub] : [];
+    return result;
   }
 
   async createSubscription(subscription: InsertSubscription): Promise<Subscription> {
