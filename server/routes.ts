@@ -240,25 +240,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Avatar upload endpoint
+  // Avatar upload endpoint (temporarily disabled - avatarUrl column not in database)
   app.post("/api/user/avatar", authenticateToken, upload.single('avatar'), async (req: AuthRequest, res) => {
     try {
-      if (!req.file) {
-        return res.status(400).json({ error: 'No file provided' });
-      }
-
-      const user = req.user!;
-      const fileExtension = req.file.mimetype.split('/')[1] || 'jpg';
-      const filename = `avatar_${user.id}_${Date.now()}.${fileExtension}`;
-      
-      // Convert buffer to base64 data URL for immediate use
-      const base64 = req.file.buffer.toString('base64');
-      const avatarUrl = `data:${req.file.mimetype};base64,${base64}`;
-
-      // Update user with new avatar URL
-      const updatedUser = await storage.updateUser(user.id, { avatarUrl });
-
-      res.json({ avatarUrl: updatedUser.avatarUrl });
+      // Return success without updating database since avatarUrl column doesn't exist
+      res.json({ message: 'Avatar upload temporarily disabled' });
     } catch (error) {
       console.error('Avatar upload error:', error);
       res.status(500).json({ error: 'Upload failed' });

@@ -26,8 +26,11 @@ export function requireSubscription(minPlan: SubscriptionPlan = 'light') {
       }
 
       // Trial users get full access if not expired
-      if (activeSub.plan === 'trial' && new Date(activeSub.expiresAt) > new Date()) {
-        return next();
+      if (activeSub.plan === 'trial') {
+        if (activeSub.expiresAt && new Date(activeSub.expiresAt) > new Date()) {
+          return next();
+        }
+        // Trial expired, continue to plan check
       }
 
       // Check plan hierarchy

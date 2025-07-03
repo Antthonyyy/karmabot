@@ -130,7 +130,32 @@ export interface IStorage {
 export class DatabaseStorage implements IStorage {
   async getUser(userId: number) {
     const [user] = await db
-      .select()
+      .select({
+        id: users.id,
+        telegramId: users.telegramId,
+        telegramChatId: users.telegramChatId,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        username: users.username,
+        currentPrinciple: users.currentPrinciple,
+        timezoneOffset: users.timezoneOffset,
+        notificationType: users.notificationType,
+        customTimes: users.customTimes,
+        language: users.language,
+        isActive: users.isActive,
+        reminderMode: users.reminderMode,
+        dailyPrinciplesCount: users.dailyPrinciplesCount,
+        timezone: users.timezone,
+        remindersEnabled: users.remindersEnabled,
+        lastReminderSent: users.lastReminderSent,
+        hasCompletedOnboarding: users.hasCompletedOnboarding,
+        subscription: users.subscription,
+        subscriptionStartDate: users.subscriptionStartDate,
+        subscriptionEndDate: users.subscriptionEndDate,
+        preferredLanguage: users.preferredLanguage,
+        createdAt: users.createdAt,
+        updatedAt: users.updatedAt
+      })
       .from(users)
       .where(eq(users.id, userId))
       .limit(1);
@@ -161,7 +186,6 @@ export class DatabaseStorage implements IStorage {
       subscriptionStartDate: users.subscriptionStartDate,
       subscriptionEndDate: users.subscriptionEndDate,
       preferredLanguage: users.preferredLanguage,
-      avatarUrl: users.avatarUrl,
       createdAt: users.createdAt,
       updatedAt: users.updatedAt
     }).from(users).where(eq(users.username, username));
@@ -192,7 +216,6 @@ export class DatabaseStorage implements IStorage {
       subscriptionStartDate: users.subscriptionStartDate,
       subscriptionEndDate: users.subscriptionEndDate,
       preferredLanguage: users.preferredLanguage,
-      avatarUrl: users.avatarUrl,
       createdAt: users.createdAt,
       updatedAt: users.updatedAt
     }).from(users).where(eq(users.telegramId, telegramId));
@@ -241,7 +264,7 @@ export class DatabaseStorage implements IStorage {
         subscriptionStartDate: users.subscriptionStartDate,
         subscriptionEndDate: users.subscriptionEndDate,
         preferredLanguage: users.preferredLanguage,
-        avatarUrl: users.avatarUrl,
+
         createdAt: users.createdAt,
         updatedAt: users.updatedAt
       })
@@ -849,7 +872,21 @@ export class DatabaseStorage implements IStorage {
 
   // Subscription methods
   async getUserSubscriptions(userId: number): Promise<Subscription[]> {
-    const result = await db.select()
+    const result = await db.select({
+      id: subscriptions.id,
+      userId: subscriptions.userId,
+      plan: subscriptions.plan,
+      billingPeriod: subscriptions.billingPeriod,
+      startDate: subscriptions.startDate,
+      endDate: subscriptions.endDate,
+      status: subscriptions.status,
+      paymentOrderId: subscriptions.paymentOrderId,
+      amount: subscriptions.amount,
+      currency: subscriptions.currency,
+      createdAt: subscriptions.createdAt,
+      startedAt: subscriptions.startedAt,
+      expiresAt: subscriptions.expiresAt
+    })
       .from(subscriptions)
       .where(and(eq(subscriptions.userId, userId), eq(subscriptions.status, 'active')));
     
