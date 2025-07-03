@@ -133,7 +133,7 @@ Changelog:
 - July 3, 2025. Updated subscription schema with startedAt, expiresAt fields and trial plan support
 - July 3, 2025. Enhanced SubscriptionRequired component to show trial countdown and upgrade prompts
 - July 3, 2025. Added trial countdown toast notifications to dashboard for users with <3 days remaining
-- July 3, 2025. Database migration completed: billing_period, amount, start_date, end_date made nullable for trials
+- July 3, 2025. Database migration completed: added started_at, expires_at columns with proper indexes for trial subscriptions
 - July 2, 2025. Completed real Web Push notification system with VAPID-based push service integrated into reminderService
 - July 2, 2025. Removed all test functionality from push notification system for production readiness
 - July 2, 2025. Push notifications now work parallel to Telegram notifications with title "Час для рефлексії 🪷" and principle text

@@ -1,5 +1,5 @@
-import { pgTable, text, serial, integer, boolean, timestamp, varchar, jsonb, real, date, decimal } from "drizzle-orm/pg-core";
-import { relations } from "drizzle-orm";
+import { pgTable, text, serial, integer, boolean, timestamp, varchar, jsonb, real, date, decimal, index, uniqueIndex } from "drizzle-orm/pg-core";
+import { relations, eq } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -150,13 +150,13 @@ export const aiInsights = pgTable("ai_insights", {
 export const subscriptions = pgTable("subscriptions", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull().references(() => users.id),
-  plan: text("plan").$type<'trial' | 'light' | 'plus' | 'pro'>().notNull(),
+  plan: text("plan").$type<'trial' | 'light' | 'plus' | 'pro'>().notNull().default('trial'),
   billingPeriod: text("billing_period").$type<'monthly' | 'yearly'>(),
   startDate: timestamp("start_date"),
   endDate: timestamp("end_date"),
-  startedAt: timestamp("started_at").defaultNow(),
+  startedAt: timestamp("started_at").defaultNow().notNull(),
   expiresAt: timestamp("expires_at").notNull(),
-  status: text("status").$type<'active' | 'cancelled' | 'expired' | 'pending'>().default('active'),
+  status: text("status").$type<'active' | 'cancelled' | 'expired' | 'pending'>().default('active').notNull(),
   paymentOrderId: text("payment_order_id"),
   amount: decimal("amount", { precision: 10, scale: 2 }),
   currency: text("currency").default('EUR'),
