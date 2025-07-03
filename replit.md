@@ -128,6 +128,9 @@ FRONTEND_URL=https://your-domain.com
 
 ```
 Changelog:
+- July 3, 2025. ✅ CLEANED UP: Removed raw SQL workarounds and restored proper Drizzle select queries with explicit column mapping
+- July 3, 2025. ✅ MIGRATION ORGANIZED: Moved migration file to migrations/ directory and verified schema synchronization
+- July 3, 2025. ✅ TESTS ADDED: Created Jest test suite for subscription middleware plan hierarchy validation (all tests passing)
 - July 3, 2025. Implemented complete 3-day free trial system with automatic trial creation for new users
 - July 3, 2025. Added subscription middleware with plan hierarchy (trial has access to all features)
 - July 3, 2025. Updated subscription schema with startedAt, expiresAt fields and trial plan support
