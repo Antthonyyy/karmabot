@@ -2,10 +2,12 @@ console.log("🔧 Loading webhooks module...");
 // server/routes/webhooks.ts
 import { Router } from "express";
 import { createHash } from "crypto";
-import { subscriptionService } from "../services/subscriptionService.js";
 import { storage } from "../storage.js";
 import { bot } from "../bot/index.js";
 import { getGreeting } from "../telegram-bot.js";
+import { db } from "../db.js";
+import { subscriptions } from "../../shared/schema.js";
+import { eq, and } from "drizzle-orm";
 
 const router = Router();
 
@@ -50,10 +52,33 @@ router.post("/wayforpay", async (req, res) => {
     // Handle successful payment
     if (transactionStatus === "Approved") {
       try {
-        // Activate subscription
-        const subscription =
-          await subscriptionService.activateSubscription(orderReference);
-        console.log("✅ Subscription activated:", subscription);
+        // Parse order reference to extract user ID and plan
+        const [userId, plan] = orderReference.split('-');
+        
+        // Mark existing subscriptions as replaced
+        await db.update(subscriptions)
+          .set({ status: 'replaced' })
+          .where(and(
+            eq(subscriptions.userId, parseInt(userId)),
+            eq(subscriptions.status, 'active')
+          ));
+        
+        // Create new paid subscription
+        const expiresAt = new Date();
+        expiresAt.setMonth(expiresAt.getMonth() + 1); // 30 days from now
+        
+        const subscription = await storage.createSubscription({
+          userId: parseInt(userId),
+          plan: plan as 'light' | 'plus' | 'pro',
+          status: 'active',
+          startedAt: new Date(),
+          expiresAt: expiresAt,
+          paymentOrderId: orderReference,
+          amount: amount,
+          currency: currency
+        });
+        
+        console.log("✅ Paid subscription activated:", subscription);
 
         // Get user for Telegram notification
         const user = await storage.getUser(subscription.userId);

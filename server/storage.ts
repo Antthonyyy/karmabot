@@ -853,25 +853,19 @@ export class DatabaseStorage implements IStorage {
 
   // Subscription methods
   async getUserSubscriptions(userId: number): Promise<Subscription[]> {
-    return await db
-      .select({
-        id: subscriptions.id,
-        userId: subscriptions.userId,
-        plan: subscriptions.plan,
-        billingPeriod: subscriptions.billingPeriod,
-        startDate: subscriptions.startDate,
-        endDate: subscriptions.endDate,
-        status: subscriptions.status,
-        paymentOrderId: subscriptions.paymentOrderId,
-        amount: subscriptions.amount,
-        currency: subscriptions.currency,
-        createdAt: subscriptions.createdAt,
-        startedAt: subscriptions.startedAt,
-        expiresAt: subscriptions.expiresAt,
-      })
-      .from(subscriptions)
-      .where(eq(subscriptions.userId, userId))
-      .orderBy(desc(subscriptions.createdAt));
+    // Use raw SQL temporarily until Drizzle schema sync is fixed
+    const result = await db.execute(sql`
+      SELECT id, user_id as "userId", plan, billing_period as "billingPeriod", 
+             start_date as "startDate", end_date as "endDate", status, 
+             payment_order_id as "paymentOrderId", amount, currency, 
+             created_at as "createdAt", started_at as "startedAt", 
+             expires_at as "expiresAt"
+      FROM subscriptions 
+      WHERE user_id = ${userId} 
+      ORDER BY created_at DESC
+    `);
+    
+    return result.rows as Subscription[];
   }
 
   async createSubscription(subscription: InsertSubscription): Promise<Subscription> {

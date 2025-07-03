@@ -4,6 +4,7 @@ import { setupVite, serveStatic, log } from "./vite";
 import { checkEnvVariables, logEnvStatus } from "./utils/env-check";
 // Import Telegram bot - only the original auth bot for now
 import "./telegram-bot.js";
+import { initTrialExpirationCron } from "./cron/trialExpire.js";
 
 // Проверяем переменные окружения при запуске
 if (!checkEnvVariables()) {
@@ -49,6 +50,9 @@ app.use((req, res, next) => {
 
 (async () => {
   const server = await registerRoutes(app);
+  
+  // Initialize trial expiration cron job
+  initTrialExpirationCron();
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;

@@ -19,7 +19,7 @@ import audioRoutes from "./routes/audio.js";
 import bot from "./telegram-bot.js"; // Import bot instance
 import webhookRoutes from "./routes/webhooks.js";
 import { supabase } from "./supabase.js";
-import { requirePlan } from "./middleware/subscription.js";
+import { requireSubscription } from "./middleware/subscription.js";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Add Telegram webhook handler BEFORE other routes
@@ -970,6 +970,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error cancelling subscription:", error);
       res.status(500).json({ message: "Internal server error" });
     }
+  });
+
+  // Test subscription middleware routes
+  app.get("/api/test/trial", authenticateToken, requireSubscription('trial'), async (req: AuthRequest, res) => {
+    res.json({ message: "Trial access granted!", user: req.user.firstName });
+  });
+
+  app.get("/api/test/light", authenticateToken, requireSubscription('light'), async (req: AuthRequest, res) => {
+    res.json({ message: "Light plan access granted!", user: req.user.firstName });
+  });
+
+  app.get("/api/test/pro", authenticateToken, requireSubscription('pro'), async (req: AuthRequest, res) => {
+    res.json({ message: "Pro plan access granted!", user: req.user.firstName });
   });
 
   // Push notification routes
