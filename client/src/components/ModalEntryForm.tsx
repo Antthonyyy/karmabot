@@ -75,8 +75,16 @@ export default function ModalEntryForm({ isOpen, onClose }: ModalEntryFormProps)
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to create entry');
+        let errorMessage = 'Failed to create entry';
+        try {
+          const error = await response.json();
+          errorMessage = error.message || error.error || errorMessage;
+        } catch (e) {
+          // If JSON parsing fails, use the text response
+          const text = await response.text();
+          errorMessage = text || `Server error (${response.status})`;
+        }
+        throw new Error(errorMessage);
       }
 
       return response.json();

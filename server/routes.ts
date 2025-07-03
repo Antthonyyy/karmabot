@@ -562,6 +562,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     },
   );
 
+  // Quick entry endpoint (used by ModalEntryForm)
+  app.post("/api/entries", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const user = req.user!;
+
+      // Use the principleId from request body if provided, otherwise use current principle
+      const principleId = req.body.principleId || user.currentPrinciple;
+
+      const validatedData = insertJournalEntrySchema.parse({
+        ...req.body,
+        userId: user.id,
+        principleId: principleId,
+      });
+
+      const entry = await storage.createJournalEntry(validatedData);
+
+      // Try to update user stats, but don't fail the request if it errors
+      try {
+        await storage.updateUserStats(user.id);
+      } catch (statsError) {
+        console.error("Error updating user stats (non-critical):", statsError);
+      }
+
+      res.status(201).json(entry);
+    } catch (error) {
+      console.error("Error creating entry:", error);
+      console.error("Request body:", req.body);
+      res.status(400).json({ 
+        message: "Failed to create entry", 
+        error: error.message || "Invalid data provided"
+      });
+    }
+  });
+
   // Telegram webhook
   app.post("/api/telegram/webhook", async (req, res) => {
     try {
