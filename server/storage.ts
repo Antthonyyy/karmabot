@@ -226,7 +226,32 @@ export class DatabaseStorage implements IStorage {
     const [user] = await db
       .insert(users)
       .values(insertUser)
-      .returning();
+      .returning({
+        id: users.id,
+        telegramId: users.telegramId,
+        telegramChatId: users.telegramChatId,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        username: users.username,
+        currentPrinciple: users.currentPrinciple,
+        timezoneOffset: users.timezoneOffset,
+        notificationType: users.notificationType,
+        customTimes: users.customTimes,
+        language: users.language,
+        isActive: users.isActive,
+        reminderMode: users.reminderMode,
+        dailyPrinciplesCount: users.dailyPrinciplesCount,
+        timezone: users.timezone,
+        remindersEnabled: users.remindersEnabled,
+        lastReminderSent: users.lastReminderSent,
+        hasCompletedOnboarding: users.hasCompletedOnboarding,
+        subscription: users.subscription,
+        subscriptionStartDate: users.subscriptionStartDate,
+        subscriptionEndDate: users.subscriptionEndDate,
+        preferredLanguage: users.preferredLanguage,
+        createdAt: users.createdAt,
+        updatedAt: users.updatedAt
+      });
     return user;
   }
 
@@ -235,7 +260,32 @@ export class DatabaseStorage implements IStorage {
       .update(users)
       .set({ ...updates, updatedAt: new Date() })
       .where(eq(users.id, id))
-      .returning();
+      .returning({
+        id: users.id,
+        telegramId: users.telegramId,
+        telegramChatId: users.telegramChatId,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        username: users.username,
+        currentPrinciple: users.currentPrinciple,
+        timezoneOffset: users.timezoneOffset,
+        notificationType: users.notificationType,
+        customTimes: users.customTimes,
+        language: users.language,
+        isActive: users.isActive,
+        reminderMode: users.reminderMode,
+        dailyPrinciplesCount: users.dailyPrinciplesCount,
+        timezone: users.timezone,
+        remindersEnabled: users.remindersEnabled,
+        lastReminderSent: users.lastReminderSent,
+        hasCompletedOnboarding: users.hasCompletedOnboarding,
+        subscription: users.subscription,
+        subscriptionStartDate: users.subscriptionStartDate,
+        subscriptionEndDate: users.subscriptionEndDate,
+        preferredLanguage: users.preferredLanguage,
+        createdAt: users.createdAt,
+        updatedAt: users.updatedAt
+      });
     return user;
   }
 

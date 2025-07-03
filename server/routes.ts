@@ -241,6 +241,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Avatar upload endpoint (temporarily disabled - avatarUrl column not in database)
+  /*
   app.post("/api/user/avatar", authenticateToken, upload.single('avatar'), async (req: AuthRequest, res) => {
     try {
       // Return success without updating database since avatarUrl column doesn't exist
@@ -250,6 +251,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ error: 'Upload failed' });
     }
   });
+  */
 
   // User stats endpoint
   app.get("/api/user/stats", authenticateToken, async (req: AuthRequest, res) => {
