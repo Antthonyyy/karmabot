@@ -1064,13 +1064,10 @@ export class DatabaseStorage implements IStorage {
     return await db
       .select({
         id: pushSubscriptions.id,
-        userId: pushSubscriptions.userId,
         endpoint: pushSubscriptions.endpoint,
         p256dh: pushSubscriptions.p256dh,
         auth: pushSubscriptions.auth,
-        userAgent: pushSubscriptions.userAgent,
-        createdAt: pushSubscriptions.createdAt,
-        updatedAt: pushSubscriptions.updatedAt
+        createdAt: pushSubscriptions.createdAt
       })
       .from(pushSubscriptions)
       .where(eq(pushSubscriptions.userId, userId));
