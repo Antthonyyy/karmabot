@@ -152,13 +152,13 @@ export async function handleTelegramAuth(telegramData: any): Promise<{ user: any
     await storage.initializeUserStats(user.id);
     
     // Create trial subscription (3 days free)
-    const trialExpiresAt = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000); // 3 days from now
-    await storage.createSubscription({
-      userId: user.id,
-      plan: 'trial',
-      expiresAt: trialExpiresAt,
-      status: 'active'
-    });
+    // const trialExpiresAt = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000); // 3 days from now
+    // await storage.createSubscription({
+    //   userId: user.id,
+    //   plan: 'trial',
+    //   expiresAt: trialExpiresAt,
+    //   status: 'active'
+    // });
     
     isNewUser = true;
   } else {

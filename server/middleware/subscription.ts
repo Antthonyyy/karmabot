@@ -2,10 +2,9 @@ import { Request, Response, NextFunction } from 'express';
 import { storage } from '../storage';
 import { AuthRequest } from '../auth';
 
-type SubscriptionPlan = 'trial' | 'light' | 'plus' | 'pro';
+type SubscriptionPlan = 'light' | 'plus' | 'pro';
 
 const planHierarchy: Record<SubscriptionPlan, number> = {
-  trial: 3,
   pro: 2,
   plus: 1,
   light: 0
@@ -23,14 +22,6 @@ export function requireSubscription(minPlan: SubscriptionPlan = 'light') {
       
       if (!activeSub) {
         return res.status(402).json({ error: 'No active subscription' });
-      }
-
-      // Trial users get full access if not expired
-      if (activeSub.plan === 'trial') {
-        if (activeSub.expiresAt && new Date(activeSub.expiresAt) > new Date()) {
-          return next();
-        }
-        // Trial expired, continue to plan check
       }
 
       // Check plan hierarchy
