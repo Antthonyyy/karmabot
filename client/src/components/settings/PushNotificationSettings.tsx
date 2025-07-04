@@ -38,10 +38,13 @@ export function PushNotificationSettings() {
     try {
       const response = await apiRequest('/api/push/subscriptions', 'GET');
       const data = await response.json();
-      setSubscriptions(data.subscriptions || []);
-      setPushEnabled(data.subscriptions?.length > 0);
+      const subscriptionsList = data.subscriptions || [];
+      setSubscriptions(subscriptionsList);
+      setPushEnabled(subscriptionsList.length > 0);
     } catch (error) {
       console.error('Error fetching push subscriptions:', error);
+      setSubscriptions([]);
+      setPushEnabled(false);
     }
   };
 
@@ -144,18 +147,18 @@ export function PushNotificationSettings() {
       </Card>
 
       {/* Active Subscriptions */}
-      {subscriptions.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Smartphone className="h-5 w-5" />
-              Активні підписки ({subscriptions.length})
-            </CardTitle>
-            <CardDescription>
-              Пристрої, які отримують ваші push уведомлення
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Smartphone className="h-5 w-5" />
+            Активні підписки ({subscriptions.length})
+          </CardTitle>
+          <CardDescription>
+            Пристрої, які отримують ваші push уведомлення
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {subscriptions.length > 0 ? (
             <div className="space-y-3">
               {subscriptions.map((subscription) => (
                 <div 
@@ -183,9 +186,17 @@ export function PushNotificationSettings() {
                 </div>
               ))}
             </div>
-          </CardContent>
-        </Card>
-      )}
+          ) : (
+            <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+              <Smartphone className="h-12 w-12 mx-auto mb-3 opacity-50" />
+              <p className="text-lg font-medium mb-2">Поки що підписок немає</p>
+              <p className="text-sm">
+                Увімкніть push уведомлення вище, щоб почати отримувати сповіщення на цьому пристрої
+              </p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Information Card */}
       <Card>
