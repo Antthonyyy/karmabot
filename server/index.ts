@@ -72,14 +72,7 @@ app.use((req, res, next) => {
     serveStatic(app);
   }
 
-  // Serve static files in production
-  if (app.get("env") !== "development") {
-    const distPath = path.join(process.cwd(), "dist/public");
-    app.use(express.static(distPath));
-    app.get("*", (_, res) => {
-      res.sendFile(path.join(distPath, "index.html"));
-    });
-  }
+  
 
   // ALWAYS serve the app on port 5000
   // this serves both the API and the client.
