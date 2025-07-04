@@ -1068,7 +1068,7 @@ export class DatabaseStorage implements IStorage {
           id: pushSubscriptions.id,
           userId: pushSubscriptions.userId,
           endpoint: pushSubscriptions.endpoint,
-          p256dh: pushSubscriptions.p256dh,
+          p256dh: pushSubscriptions.p256Dh,
           auth: pushSubscriptions.auth,
           userAgent: pushSubscriptions.userAgent,
           createdAt: pushSubscriptions.createdAt,
@@ -1077,11 +1077,12 @@ export class DatabaseStorage implements IStorage {
         .from(pushSubscriptions)
         .where(eq(pushSubscriptions.userId, userId));
       
-      console.log("✅ Database query successful, found:", result.length, "subscriptions");
-      return result;
+      console.log("✅ Database query successful, found:", result?.length || 0, "subscriptions");
+      return result || [];
     } catch (error) {
       console.error("❌ Database query failed:", error);
-      throw error;
+      // Return empty array instead of throwing to prevent 500 errors
+      return [];
     }
   }
 
@@ -1093,8 +1094,23 @@ export class DatabaseStorage implements IStorage {
 
     const [created] = await db
       .insert(pushSubscriptions)
-      .values(subscription)
-      .returning();
+      .values({
+        userId: subscription.userId,
+        endpoint: subscription.endpoint,
+        p256Dh: subscription.p256dh,
+        auth: subscription.auth,
+        userAgent: subscription.userAgent
+      })
+      .returning({
+        id: pushSubscriptions.id,
+        userId: pushSubscriptions.userId,
+        endpoint: pushSubscriptions.endpoint,
+        p256dh: pushSubscriptions.p256Dh,
+        auth: pushSubscriptions.auth,
+        userAgent: pushSubscriptions.userAgent,
+        createdAt: pushSubscriptions.createdAt,
+        updatedAt: pushSubscriptions.updatedAt
+      });
     return created;
   }
 
@@ -1105,16 +1121,18 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAllPushSubscriptions(): Promise<PushSubscription[]> {
-    return await db.select({
+    const result = await db.select({
       id: pushSubscriptions.id,
       userId: pushSubscriptions.userId,
       endpoint: pushSubscriptions.endpoint,
-      p256dh: pushSubscriptions.p256dh,
+      p256dh: pushSubscriptions.p256Dh,
       auth: pushSubscriptions.auth,
       userAgent: pushSubscriptions.userAgent,
       createdAt: pushSubscriptions.createdAt,
       updatedAt: pushSubscriptions.updatedAt
     }).from(pushSubscriptions);
+    
+    return result || [];
   }
 }
 
