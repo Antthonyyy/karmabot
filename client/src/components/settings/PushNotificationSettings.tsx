@@ -36,11 +36,9 @@ export function PushNotificationSettings() {
 
   const fetchSubscriptions = async () => {
     try {
-      const response = await apiRequest('/api/push/subscriptions', 'GET');
-      const data = await response.json();
-      const subscriptionsList = data.subscriptions || [];
-      setSubscriptions(subscriptionsList);
-      setPushEnabled(subscriptionsList.length > 0);
+      const { subscriptions = [] } = await apiRequest('/api/push/subscriptions');
+      setSubscriptions(subscriptions);
+      setPushEnabled(subscriptions.length > 0);
     } catch (error) {
       console.error('Error fetching push subscriptions:', error);
       setSubscriptions([]);
@@ -187,13 +185,7 @@ export function PushNotificationSettings() {
               ))}
             </div>
           ) : (
-            <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-              <Smartphone className="h-12 w-12 mx-auto mb-3 opacity-50" />
-              <p className="text-lg font-medium mb-2">Поки що підписок немає</p>
-              <p className="text-sm">
-                Увімкніть push уведомлення вище, щоб почати отримувати сповіщення на цьому пристрої
-              </p>
-            </div>
+            <p className="text-sm text-muted-foreground">Поки що підписок немає</p>
           )}
         </CardContent>
       </Card>
