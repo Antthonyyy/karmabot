@@ -162,9 +162,7 @@ bot.onText(/\/start/, async (msg) => {
               {
                 text: "🚀 Почати реєстрацію",
                 web_app: {
-                  url:
-                    process.env.FRONTEND_URL ||
-                    "https://karma-diary.replit.app",
+                  url: getCleanFrontendUrl(),
                 },
               },
             ],
@@ -300,7 +298,7 @@ bot.on("callback_query", async (callbackQuery) => {
               [
                 {
                   text: "📈 Детальна статистика",
-                  web_app: { url: `${process.env.FRONTEND_URL}/analytics` },
+                  web_app: { url: `${getCleanFrontendUrl()}/analytics` },
                 },
               ],
               [{ text: "🔙 Назад", callback_data: "main_menu" }],
@@ -345,7 +343,7 @@ bot.on("callback_query", async (callbackQuery) => {
               [
                 {
                   text: "🏆 Всі досягнення",
-                  web_app: { url: `${process.env.FRONTEND_URL}/dashboard` },
+                  web_app: { url: `${getCleanFrontendUrl()}/dashboard` },
                 },
               ],
               [{ text: "🔙 Назад", callback_data: "main_menu" }],
@@ -376,7 +374,7 @@ bot.on("callback_query", async (callbackQuery) => {
                     {
                       text: "💎 Оформити підписку",
                       web_app: {
-                        url: `${process.env.FRONTEND_URL}/subscriptions`,
+                        url: `${getCleanFrontendUrl()}/subscriptions`,
                       },
                     },
                   ],
@@ -468,7 +466,7 @@ bot.on("callback_query", async (callbackQuery) => {
               [
                 {
                   text: "💎 Керувати підпискою",
-                  web_app: { url: `${process.env.FRONTEND_URL}/subscriptions` },
+                  web_app: { url: `${getCleanFrontendUrl()}/subscriptions` },
                 },
               ],
               [{ text: "🔙 Назад", callback_data: "main_menu" }],
