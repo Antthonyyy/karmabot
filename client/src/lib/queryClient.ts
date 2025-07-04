@@ -25,23 +25,26 @@ function getAuthHeaders(additionalHeaders?: HeadersInit): HeadersInit {
 }
 
 export async function apiRequest(
-  method: string,
   url: string,
-  data?: unknown | undefined,
-): Promise<Response> {
-  const headers = getAuthHeaders(
-    data ? { "Content-Type": "application/json" } : undefined,
-  );
-
-  const res = await fetch(url, {
+  method: RequestInit['method'] = 'GET',
+  body?: unknown,
+) {
+  const options: RequestInit = { 
     method,
-    headers,
-    body: data ? JSON.stringify(data) : undefined,
-    credentials: "include",
-  });
+    headers: getAuthHeaders(body ? { 'Content-Type': 'application/json' } : undefined),
+    credentials: 'include'
+  };
+  
+  if (body) {
+    options.body = JSON.stringify(body);
+  }
 
-  await throwIfResNotOk(res);
-  return res;
+  const res = await fetch(url, options);
+  if (!res.ok) throw new Error(await res.text());
+
+  return res.headers.get('content-type')?.includes('json')
+    ? res.json()
+    : {};
 }
 
 type UnauthorizedBehavior = "returnNull" | "throw";

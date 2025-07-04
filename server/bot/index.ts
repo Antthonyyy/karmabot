@@ -5,6 +5,7 @@ import { AIAssistant } from "../services/ai-assistant.js";
 import { db } from "../db.js";
 import { journalEntries, achievements } from "@shared/schema.js";
 import { eq, gte, and } from "drizzle-orm";
+import { getCleanFrontendUrl } from "../utils/env.js";
 
 const token = process.env.TELEGRAM_BOT_TOKEN;
 
@@ -113,7 +114,7 @@ async function showMainMenu(chatId: number, user: any, messageId?: number) {
           {
             text: "📱 Відкрити додаток",
             web_app: {
-              url: process.env.FRONTEND_URL || "https://karma-diary.replit.app",
+              url: getCleanFrontendUrl(),
             },
           },
         ],

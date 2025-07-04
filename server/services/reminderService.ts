@@ -2,6 +2,7 @@ import cron from 'node-cron';
 import { storage } from '../storage.js';
 import { bot } from '../bot/index.js';
 import { pushService } from './pushService.js';
+import { getCleanFrontendUrl } from '../utils/env.js';
 
 export class ReminderService {
   constructor() {
@@ -68,7 +69,7 @@ export class ReminderService {
               reply_markup: {
                 inline_keyboard: [
                   [{ text: "🛡️ Додати антидот", callback_data: "add_antidote" }],
-                  [{ text: "📱 Відкрити додаток", web_app: { url: process.env.FRONTEND_URL } }]
+                  [{ text: "📱 Відкрити додаток", web_app: { url: getCleanFrontendUrl() } }]
                 ]
               }
             }
@@ -101,7 +102,7 @@ export class ReminderService {
               reply_markup: {
                 inline_keyboard: [
                   [{ text: "📝 Додати запис", callback_data: "add_entry" }],
-                  [{ text: "📱 Відкрити додаток", web_app: { url: process.env.FRONTEND_URL } }]
+                  [{ text: "📱 Відкрити додаток", web_app: { url: getCleanFrontendUrl() } }]
                 ]
               }
             }
@@ -214,7 +215,7 @@ export class ReminderService {
           {
             reply_markup: {
               inline_keyboard: [
-                [{ text: "📱 Відкрити додаток", web_app: { url: process.env.FRONTEND_URL } }]
+                [{ text: "📱 Відкрити додаток", web_app: { url: getCleanFrontendUrl() } }]
               ]
             }
           }
