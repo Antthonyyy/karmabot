@@ -57,12 +57,22 @@ async function initializeBot() {
     return null;
   }
 
-  bot = new TelegramBot(token, { polling: false });
+  // Use webhook in production if TELEGRAM_WEBHOOK_URL is set, otherwise use polling
+  if (process.env.TELEGRAM_WEBHOOK_URL) {
+    bot = new TelegramBot(token, { webHook: true });
+    await bot.setWebHook(`${process.env.TELEGRAM_WEBHOOK_URL}/api/telegram/webhook`);
+    console.log("Telegram bot started in webhook mode");
+  } else {
+    bot = new TelegramBot(token, { polling: true });
+    console.log("Telegram bot started in polling mode");
+  }
 
-  // Log errors
-  bot.on("polling_error", (error: any) => {
-    console.error("Telegram bot polling error:", error);
-  });
+  // Log errors only for polling mode
+  if (!process.env.TELEGRAM_WEBHOOK_URL) {
+    bot.on("polling_error", (error: any) => {
+      console.error("Telegram bot polling error:", error);
+    });
+  }
 
   // Handle /start command with auth_SESSION_ID parameter
   bot.onText(/\/start auth_(.+)/, async (msg: any, match: any) => {
@@ -122,18 +132,6 @@ async function initializeBot() {
     );
   });
 
-  // Setup webhook if in production mode
-  if (process.env.BOT_MODE === 'webhook' && process.env.TELEGRAM_WEBHOOK_URL && process.env.WEBHOOK_SECRET) {
-    const webhookUrl = `${process.env.TELEGRAM_WEBHOOK_URL}?secret=${process.env.WEBHOOK_SECRET}`;
-    try {
-      await bot.setWebHook(webhookUrl);
-      console.log('Webhook set:', webhookUrl);
-    } catch (error) {
-      console.error('Failed to set webhook:', error);
-    }
-  }
-
-  console.log("Telegram bot started successfully");
   return bot;
 }
 
