@@ -1,4 +1,5 @@
 import express, { type Request, Response, NextFunction } from "express";
+import path from "path";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { checkEnvVariables, logEnvStatus } from "./utils/env-check";
@@ -69,6 +70,15 @@ app.use((req, res, next) => {
     await setupVite(app, server);
   } else {
     serveStatic(app);
+  }
+
+  // Serve static files in production
+  if (app.get("env") !== "development") {
+    const distPath = path.join(process.cwd(), "dist/public");
+    app.use(express.static(distPath));
+    app.get("*", (_, res) => {
+      res.sendFile(path.join(distPath, "index.html"));
+    });
   }
 
   // ALWAYS serve the app on port 5000
