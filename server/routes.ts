@@ -1061,19 +1061,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get user's push subscriptions
   app.get("/api/push/subscriptions", authenticateToken, async (req: AuthRequest, res) => {
     try {
+      console.log("📱 Starting push subscriptions request");
       const user = req.user;
-      const subscriptions = await storage.getUserPushSubscriptions(user.id);
+      console.log("👤 User ID:", user?.id);
       
-      res.json({ 
+      if (!user) {
+        console.log("❌ No user found in request");
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
+      console.log("🔍 Fetching push subscriptions for user:", user.id);
+      const subscriptions = await storage.getUserPushSubscriptions(user.id);
+      console.log("✅ Push subscriptions fetched:", subscriptions.length);
+      
+      const response = { 
         subscriptions: subscriptions.map(sub => ({
           id: sub.id,
           endpoint: sub.endpoint,
           userAgent: sub.userAgent,
           createdAt: sub.createdAt
         }))
-      });
+      };
+      
+      console.log("📤 Sending response:", response);
+      res.json(response);
     } catch (error) {
-      console.error("Error fetching push subscriptions:", error);
+      console.error("❌ Error fetching push subscriptions:", error);
+      console.error("❌ Error stack:", error.stack);
       res.status(500).json({ message: "Internal server error" });
     }
   });

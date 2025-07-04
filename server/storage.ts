@@ -1061,16 +1061,28 @@ export class DatabaseStorage implements IStorage {
 
   // Push Subscription methods
   async getUserPushSubscriptions(userId: number): Promise<PushSubscription[]> {
-    return await db
-      .select({
-        id: pushSubscriptions.id,
-        endpoint: pushSubscriptions.endpoint,
-        p256dh: pushSubscriptions.p256dh,
-        auth: pushSubscriptions.auth,
-        createdAt: pushSubscriptions.createdAt
-      })
-      .from(pushSubscriptions)
-      .where(eq(pushSubscriptions.userId, userId));
+    console.log("🔍 Database query: getUserPushSubscriptions for userId:", userId);
+    try {
+      const result = await db
+        .select({
+          id: pushSubscriptions.id,
+          userId: pushSubscriptions.userId,
+          endpoint: pushSubscriptions.endpoint,
+          p256dh: pushSubscriptions.p256dh,
+          auth: pushSubscriptions.auth,
+          userAgent: pushSubscriptions.userAgent,
+          createdAt: pushSubscriptions.createdAt,
+          updatedAt: pushSubscriptions.updatedAt
+        })
+        .from(pushSubscriptions)
+        .where(eq(pushSubscriptions.userId, userId));
+      
+      console.log("✅ Database query successful, found:", result.length, "subscriptions");
+      return result;
+    } catch (error) {
+      console.error("❌ Database query failed:", error);
+      throw error;
+    }
   }
 
   async createPushSubscription(subscription: InsertPushSubscription): Promise<PushSubscription> {
