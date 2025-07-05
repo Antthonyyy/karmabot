@@ -59,7 +59,7 @@ async function initializeBot() {
 
   // Use webhook in production if TELEGRAM_WEBHOOK_URL is set, otherwise use polling
   if (process.env.TELEGRAM_WEBHOOK_URL) {
-    bot = new TelegramBot(token, { webHook: true });
+    bot = new TelegramBot(token, { polling: false });
     await bot.setWebHook(`${process.env.TELEGRAM_WEBHOOK_URL}/api/telegram/webhook`);
     console.log("Telegram bot started in webhook mode");
   } else {
