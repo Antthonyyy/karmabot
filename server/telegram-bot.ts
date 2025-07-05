@@ -68,10 +68,8 @@ async function initializeBot() {
   } else {
     bot = new TelegramBot(token, { polling: true });
     console.log("Telegram bot started in polling mode");
-  }
-
-  // Log errors only for polling mode
-  if (!process.env.TELEGRAM_WEBHOOK_URL) {
+    
+    // Log errors only for polling mode
     bot.on("polling_error", (error: any) => {
       console.error("Telegram bot polling error:", error);
     });
