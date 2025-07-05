@@ -1,5 +1,18 @@
+
 import TelegramBot from "node-telegram-bot-api";
 import { authorizeSession } from "./auth-sessions.js";
+
+// Prevent multiple bot instances
+declare global {
+  var telegramBotInstance: TelegramBot | undefined;
+}
+
+if (global.telegramBotInstance) {
+  console.log('⚠️ Telegram bot already initialized, skipping...');
+  const bot = global.telegramBotInstance;
+  export default bot;
+  export { getGreeting };
+} else {
 
 const token = process.env.TELEGRAM_BOT_TOKEN;
 
@@ -57,16 +70,34 @@ async function initializeBot() {
     return null;
   }
 
-  // Use webhook in production if TELEGRAM_WEBHOOK_URL is set, otherwise use polling
-  if (process.env.TELEGRAM_WEBHOOK_URL) {
-    bot = new TelegramBot(token, { polling: false });
+  const BOT_MODE = process.env.BOT_MODE || (process.env.TELEGRAM_WEBHOOK_URL ? 'webhook' : 'polling');
+
+  // Create bot instance with polling: false initially to avoid conflicts
+  bot = new TelegramBot(token, { polling: false });
+
+  if (BOT_MODE === 'webhook') {
+    // Ensure polling is stopped before setting webhook
+    try {
+      await bot.stopPolling();
+    } catch (error) {
+      // Ignore errors if polling wasn't started
+    }
+    
     const webhookUrl = process.env.WEBHOOK_SECRET 
       ? `${process.env.TELEGRAM_WEBHOOK_URL}/api/telegram/webhook?secret=${process.env.WEBHOOK_SECRET}`
       : `${process.env.TELEGRAM_WEBHOOK_URL}/api/telegram/webhook`;
     await bot.setWebHook(webhookUrl);
     console.log("Telegram bot started in webhook mode");
   } else {
-    bot = new TelegramBot(token, { polling: true });
+    // Clear any existing webhook before starting polling
+    try {
+      await bot.deleteWebHook();
+    } catch (error) {
+      // Ignore errors if no webhook was set
+    }
+    
+    // Start polling
+    await bot.startPolling();
     console.log("Telegram bot started in polling mode");
     
     // Log errors only for polling mode
@@ -137,7 +168,12 @@ async function initializeBot() {
 }
 
 // Initialize bot
-initializeBot();
+await initializeBot();
+
+// Store in global to prevent multiple instances
+global.telegramBotInstance = bot;
 
 export default bot;
 export { getGreeting };
+
+}
