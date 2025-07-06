@@ -70,12 +70,24 @@ async function initializeBot() {
     return null;
   }
 
-  const BOT_MODE = process.env.BOT_MODE || (process.env.TELEGRAM_WEBHOOK_URL ? 'webhook' : 'polling');
+  // Force polling mode in development to avoid webhook conflicts
+  const BOT_MODE = process.env.NODE_ENV === 'development' ? 'polling' : 
+                   (process.env.BOT_MODE || (process.env.TELEGRAM_WEBHOOK_URL ? 'webhook' : 'polling'));
 
   // Create bot instance with polling: false initially to avoid conflicts
   bot = new TelegramBot(token, { polling: false });
 
   if (BOT_MODE === 'webhook') {
+    // First, clear any existing webhook to avoid conflicts
+    try {
+      await bot.deleteWebHook();
+      console.log("Cleared existing webhook");
+      // Wait a moment for Telegram to process the webhook deletion
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    } catch (error) {
+      console.log("No existing webhook to clear");
+    }
+    
     // Ensure polling is stopped before setting webhook
     try {
       await bot.stopPolling();
@@ -86,6 +98,7 @@ async function initializeBot() {
     const webhookUrl = process.env.WEBHOOK_SECRET 
       ? `${process.env.TELEGRAM_WEBHOOK_URL}/api/telegram/webhook?secret=${process.env.WEBHOOK_SECRET}`
       : `${process.env.TELEGRAM_WEBHOOK_URL}/api/telegram/webhook`;
+    
     await bot.setWebHook(webhookUrl);
     console.log("Telegram bot started in webhook mode");
   } else {
