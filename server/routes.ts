@@ -258,6 +258,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   */
 
+  // Get current user endpoint
+  app.get("/api/user/me", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const user = req.user!;
+      res.json(user);
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      res.status(500).json({ message: "Failed to fetch user" });
+    }
+  });
+
   // User stats endpoint
   app.get("/api/user/stats", authenticateToken, async (req: AuthRequest, res) => {
     try {

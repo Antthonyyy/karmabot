@@ -1,32 +1,34 @@
-const TOKEN_KEY = 'karma_token';
-const USER_KEY = 'karma_user';
-
 export const authUtils = {
-  // Токен
-  getToken: () => localStorage.getItem(TOKEN_KEY),
-  setToken: (token: string) => localStorage.setItem(TOKEN_KEY, token),
-  removeToken: () => localStorage.removeItem(TOKEN_KEY),
-  
-  // Пользователь
+  getToken: () => localStorage.getItem('token'),
+  setToken: (token: string) => localStorage.setItem('token', token),
   getUser: () => {
-    const userStr = localStorage.getItem(USER_KEY);
-    return userStr ? JSON.parse(userStr) : null;
+    const user = localStorage.getItem('user');
+    return user ? JSON.parse(user) : null;
   },
-  setUser: (user: any) => localStorage.setItem(USER_KEY, JSON.stringify(user)),
-  removeUser: () => localStorage.removeItem(USER_KEY),
-  
-  // Очистка всех данных
+  setUser: (user: any) => localStorage.setItem('user', JSON.stringify(user)),
   clearAuth: () => {
-    authUtils.removeToken();
-    authUtils.removeUser();
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
   },
-  
-  // Проверка авторизации
-  isAuthenticated: () => !!authUtils.getToken(),
-  
-  // Заголовки для запросов
-  getAuthHeaders: () => ({
-    'Authorization': `Bearer ${authUtils.getToken()}`,
-    'Content-Type': 'application/json'
-  })
+  isAuthenticated: () => {
+    const token = localStorage.getItem('token');
+    if (!token) return false;
+
+    try {
+      // Check if token is expired (basic check)
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const currentTime = Date.now() / 1000;
+
+      if (payload.exp && payload.exp < currentTime) {
+        // Token expired, clear auth
+        authUtils.clearAuth();
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Error checking token:', error);
+      return false;
+    }
+  },
 };
