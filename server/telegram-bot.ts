@@ -1,20 +1,11 @@
 
 import TelegramBot from "node-telegram-bot-api";
-import { authorizeSession } from "./auth-sessions.js";
+import { authorizeSession } from "./auth-sessions";
 
 // Prevent multiple bot instances
 declare global {
   var telegramBotInstance: TelegramBot | undefined;
 }
-
-if (global.telegramBotInstance) {
-  console.log('⚠️ Telegram bot already initialized, skipping...');
-  const bot = global.telegramBotInstance;
-  export default bot;
-  export { getGreeting };
-} else {
-
-const token = process.env.TELEGRAM_BOT_TOKEN;
 
 // Time-based personalized greetings
 function getGreeting(name: string): string {
@@ -57,9 +48,18 @@ function getGreeting(name: string): string {
   return greetings[Math.floor(Math.random() * greetings.length)];
 }
 
+// Initialize bot instance or get existing one
 let bot: TelegramBot | null = null;
 
 async function initializeBot() {
+  // Check if bot is already initialized globally
+  if (global.telegramBotInstance) {
+    console.log('⚠️ Telegram bot already initialized, using existing instance...');
+    return global.telegramBotInstance;
+  }
+
+  const token = process.env.TELEGRAM_BOT_TOKEN;
+  
   if (!token) {
     console.log("TELEGRAM_BOT_TOKEN not provided, bot disabled");
     return null;
@@ -164,16 +164,15 @@ async function initializeBot() {
     );
   });
 
+  // Store in global to prevent multiple instances
+  global.telegramBotInstance = bot;
+  
   return bot;
 }
 
 // Initialize bot
-await initializeBot();
+bot = await initializeBot();
 
-// Store in global to prevent multiple instances
-global.telegramBotInstance = bot;
-
+// Exports at the end of the file
 export default bot;
 export { getGreeting };
-
-}

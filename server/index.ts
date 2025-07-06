@@ -4,7 +4,7 @@ import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { checkEnvVariables, logEnvStatus } from "./utils/env-check";
 // Import Telegram bot - only the original auth bot for now
-import "./telegram-bot.js";
+import "./telegram-bot.ts";
 import { initTrialExpirationCron } from "./cron/trialExpire.js";
 
 // Проверяем переменные окружения при запуске
