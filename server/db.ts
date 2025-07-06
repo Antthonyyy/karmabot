@@ -1,9 +1,7 @@
-import { Pool, neonConfig } from '@neondatabase/serverless';
-import { drizzle } from 'drizzle-orm/neon-serverless';
-import ws from "ws";
-import * as schema from "@shared/schema";
 
-neonConfig.webSocketConstructor = ws;
+import { Pool } from 'pg';
+import { drizzle } from 'drizzle-orm/node-postgres';
+import * as schema from "@shared/schema";
 
 if (!process.env.DATABASE_URL) {
   throw new Error(
@@ -11,14 +9,25 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
-// Use Supabase URL if provided, otherwise use environment variable
-const supabaseUrl = 'postgresql://postgres.babyubgvqronpuezmmrb:Uybkjcbhfynjy1997@aws-0-eu-north-1.pooler.supabase.com:6543/postgres';
+// Use Supabase URL with port 5432 for direct connection
+const supabaseUrl = 'postgresql://postgres.babyubgvqronpuezmmrb:Uybkjcbhfynjy1997@aws-0-eu-north-1.pooler.supabase.com:5432/postgres';
 const databaseUrl = supabaseUrl;
 
-console.log('📝 Using Supabase database:', databaseUrl.substring(0, 50) + '...');
+console.log('📝 Using Supabase database with pg:', databaseUrl.substring(0, 50) + '...');
 
-export const pool = new Pool({ connectionString: databaseUrl });
-export const db = drizzle({ client: pool, schema });
+// Create connection pool with proper configuration for Supabase
+export const pool = new Pool({
+  connectionString: databaseUrl,
+  max: 10,
+  min: 2,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 5000,
+  ssl: {
+    rejectUnauthorized: false
+  }
+});
+
+export const db = drizzle(pool, { schema });
 
 // Test database connection
 export async function testConnection() {
@@ -33,6 +42,19 @@ export async function testConnection() {
     return false;
   }
 }
+
+// Graceful shutdown
+process.on('SIGINT', async () => {
+  console.log('🔌 Closing database connections...');
+  await pool.end();
+  process.exit(0);
+});
+
+process.on('SIGTERM', async () => {
+  console.log('🔌 Closing database connections...');
+  await pool.end();
+  process.exit(0);
+});
 
 // Call on startup
 testConnection();
