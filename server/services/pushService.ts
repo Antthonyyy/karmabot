@@ -12,15 +12,21 @@ let vapidConfigured = false;
 
 if (vapidKeys.publicKey && vapidKeys.privateKey) {
   try {
+    // Log key lengths for debugging
+    console.log(`VAPID public key length: ${vapidKeys.publicKey.length}`);
+    console.log(`VAPID private key length: ${vapidKeys.privateKey.length}`);
+    
     webpush.setVapidDetails(
       vapidKeys.subject,
       vapidKeys.publicKey,
       vapidKeys.privateKey
     );
     vapidConfigured = true;
-    console.log('✅ Web Push VAPID keys configured');
+    console.log('✅ Web Push VAPID keys configured successfully');
   } catch (error) {
     console.error('❌ VAPID key configuration error:', error.message);
+    console.log('VAPID public key:', vapidKeys.publicKey);
+    console.log('VAPID private key:', vapidKeys.privateKey);
     console.log('⚠️ Web Push notifications disabled due to invalid VAPID keys');
   }
 } else {

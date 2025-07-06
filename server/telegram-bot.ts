@@ -65,14 +65,12 @@ async function initializeBot() {
     return null;
   }
 
-  if (process.env.BOT_MODE === 'off') {
-    console.log("Bot disabled in development (BOT_MODE=off)");
+  if (process.env.BOT_MODE === 'off' || process.env.NODE_ENV === 'development') {
+    console.log("Bot disabled in development to avoid conflicts");
     return null;
   }
 
-  // Force polling mode in development to avoid webhook conflicts
-  const BOT_MODE = process.env.NODE_ENV === 'development' ? 'polling' : 
-                   (process.env.BOT_MODE || (process.env.TELEGRAM_WEBHOOK_URL ? 'webhook' : 'polling'));
+  const BOT_MODE = process.env.BOT_MODE || (process.env.TELEGRAM_WEBHOOK_URL ? 'webhook' : 'polling');
 
   // Create bot instance with polling: false initially to avoid conflicts
   bot = new TelegramBot(token, { polling: false });
