@@ -95,3 +95,5 @@ export function ScaleTransition({ children, className = '', delay = 0 }: { child
     </motion.div>
   );
 }
+
+export default PageTransition;
