@@ -56,7 +56,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { idToken } = req.body;
       
       if (!idToken) {
-        return res.status(400).json({ message: "Google ID token is required" });
+        return res.status(400).json({ error: "Google ID token is required" });
       }
 
       const authResult = await handleGoogleAuth(idToken);
@@ -68,8 +68,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       console.error("Google auth error:", error);
-      res.status(401).json({ 
-        message: "Google authentication failed", 
+      return res.status(500).json({ 
+        error: "OAuth failed", 
         details: error instanceof Error ? error.message : "Unknown error"
       });
     }
@@ -84,37 +84,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 
 
-  // Auth routes - Google OAuth
-  app.post("/api/auth/google", async (req, res) => {
-    try {
-      const { idToken } = req.body;
-      
-      if (!idToken) {
-        return res.status(400).json({ error: "Google ID token is required" });
-      }
-
-      const { user, token, isNewUser } = await handleGoogleAuth(idToken);
-
-      res.json({
-        user: {
-          id: user.id,
-          email: user.email,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          username: user.username,
-          profilePicture: user.profilePicture,
-          currentPrinciple: user.currentPrinciple,
-        },
-        token,
-        isNewUser,
-      });
-    } catch (error) {
-      console.error("Google auth error:", error);
-      res.status(400).json({
-        message: error instanceof Error ? error.message : "Authentication failed",
-      });
-    }
-  });
+  
 
   // Auth routes - Session-based Telegram authentication
   app.post("/api/auth/telegram/start-session", (req, res) => {
