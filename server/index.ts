@@ -1,5 +1,6 @@
 import express, { type Request, Response, NextFunction } from "express";
 import path from "path";
+import fs from "fs";
 import { registerRoutes } from "./routes";
 // import { setupVite, serveStatic, log } from "./vite"; // Vite import disabled temporarily
 function log(message: string, source = "express") {
@@ -74,11 +75,26 @@ app.use((req, res, next) => {
 
   // Define custom routes BEFORE static middleware
   app.get('/', (req, res) => {
-    res.sendFile(path.join(process.cwd(), 'client', 'public', 'simple-login.html'));
+    // Read the HTML file and inject the real GOOGLE_CLIENT_ID
+    const htmlPath = path.join(process.cwd(), 'client', 'public', 'simple-login.html');
+    let html = fs.readFileSync(htmlPath, 'utf8');
+    
+    // Replace placeholder with real GOOGLE_CLIENT_ID
+    const googleClientId = process.env.GOOGLE_CLIENT_ID || '';
+    html = html.replace('YOUR_GOOGLE_CLIENT_ID', googleClientId);
+    
+    res.send(html);
   });
 
   app.get('/login', (req, res) => {
-    res.sendFile(path.join(process.cwd(), 'client', 'public', 'simple-login.html'));
+    // Same logic for /login route
+    const htmlPath = path.join(process.cwd(), 'client', 'public', 'simple-login.html');
+    let html = fs.readFileSync(htmlPath, 'utf8');
+    
+    const googleClientId = process.env.GOOGLE_CLIENT_ID || '';
+    html = html.replace('YOUR_GOOGLE_CLIENT_ID', googleClientId);
+    
+    res.send(html);
   });
 
   app.get('/dashboard', (req, res) => {
