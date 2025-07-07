@@ -52,6 +52,7 @@ export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   getUserByTelegramId(telegramId: string): Promise<User | undefined>;
+  getUserByEmail(email: string): Promise<User | undefined>;
   createUser(insertUser: InsertUser): Promise<User>;
   updateUser(id: number, updates: Partial<User>): Promise<User>;
   getActiveUsers(): Promise<User[]>;
@@ -219,6 +220,38 @@ export class DatabaseStorage implements IStorage {
       createdAt: users.createdAt,
       updatedAt: users.updatedAt
     }).from(users).where(eq(users.telegramId, telegramId));
+    return user || undefined;
+  }
+
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const [user] = await db.select({
+      id: users.id,
+      email: users.email,
+      telegramId: users.telegramId,
+      telegramChatId: users.telegramChatId,
+      firstName: users.firstName,
+      lastName: users.lastName,
+      username: users.username,
+      profilePicture: users.profilePicture,
+      currentPrinciple: users.currentPrinciple,
+      timezoneOffset: users.timezoneOffset,
+      notificationType: users.notificationType,
+      customTimes: users.customTimes,
+      language: users.language,
+      isActive: users.isActive,
+      reminderMode: users.reminderMode,
+      dailyPrinciplesCount: users.dailyPrinciplesCount,
+      timezone: users.timezone,
+      remindersEnabled: users.remindersEnabled,
+      lastReminderSent: users.lastReminderSent,
+      hasCompletedOnboarding: users.hasCompletedOnboarding,
+      subscription: users.subscription,
+      subscriptionStartDate: users.subscriptionStartDate,
+      subscriptionEndDate: users.subscriptionEndDate,
+      preferredLanguage: users.preferredLanguage,
+      createdAt: users.createdAt,
+      updatedAt: users.updatedAt
+    }).from(users).where(eq(users.email, email));
     return user || undefined;
   }
 

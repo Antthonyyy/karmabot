@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
-import TelegramLoginButton from "@/components/TelegramLoginButton";
+import GoogleLoginButton from "@/components/GoogleLoginButton";
 import { Card, CardContent } from "@/components/ui/card";
 import { CheckCircle } from "lucide-react";
 import { authUtils } from '@/utils/auth';
@@ -56,11 +56,11 @@ export default function HomePage() {
               <CardContent className="p-8">
                 <div className="text-center mb-6">
                   <h2 className="text-2xl font-semibold text-gray-900 mb-2">Ласкаво просимо</h2>
-                  <p className="text-gray-600">Увійдіть через Telegram, щоб розпочати свою духовну подорож</p>
+                  <p className="text-gray-600">Увійдіть через Google, щоб розпочати свою духовну подорож</p>
                 </div>
                 
                 <div className="flex justify-center mb-6">
-                  <TelegramLoginButton onAuthSuccess={handleAuthSuccess} />
+                  <GoogleLoginButton onAuthSuccess={handleAuthSuccess} />
                 </div>
 
                 <div className="text-center text-sm text-gray-500">

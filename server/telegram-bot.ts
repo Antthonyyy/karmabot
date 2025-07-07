@@ -48,14 +48,8 @@ function getGreeting(name: string): string {
   return greetings[Math.floor(Math.random() * greetings.length)];
 }
 
-// Check if bot is already initialized globally
-if (global.telegramBotInstance) {
-  console.log('⚠️ Telegram bot already initialized, using existing instance...');
-  export default global.telegramBotInstance;
-  export { getGreeting };
-} else {
-  // Initialize new bot instance
-  let bot: TelegramBot | null = null;
+// Initialize bot instance or get existing one
+let bot: TelegramBot | null = null;
 
   async function initializeBot() {
     const token = process.env.TELEGRAM_BOT_TOKEN;
@@ -181,10 +175,9 @@ if (global.telegramBotInstance) {
     return bot;
   }
 
-  // Initialize bot
-  bot = await initializeBot();
+// Initialize bot
+bot = await initializeBot();
 
-  // Exports
-  export default bot;
-  export { getGreeting };
-}
+// Exports at the end of the file
+export default bot;
+export { getGreeting };

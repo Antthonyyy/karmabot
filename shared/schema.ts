@@ -4,11 +4,13 @@ import { createInsertSchema } from "drizzle-zod";
 // Users table - matching actual database structure
 export const users = pgTable("users", {
   id: serial().primaryKey(),
+  email: text().unique(),
   telegramId: varchar("telegram_id"),
   telegramChatId: varchar("telegram_chat_id"),
   firstName: text("first_name").notNull(),
   lastName: text("last_name"),
   username: text(),
+  profilePicture: text("profile_picture"),
   currentPrinciple: integer("current_principle"),
   timezoneOffset: integer("timezone_offset"),
   notificationType: varchar("notification_type"),
