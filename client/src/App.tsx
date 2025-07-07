@@ -4,9 +4,10 @@ import { Toaster } from "@/components/ui/toaster";
 import GoogleOAuthProvider from "@/components/GoogleOAuthProvider";
 import PWAInstallPrompt from "@/components/PWAInstallPrompt";
 import PageTransition from "@/components/PageTransition";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 // Pages
-import HomePage from "@/pages/HomePage";
+import LoginPage from "@/pages/LoginPage";
 import DashboardPage from "@/pages/DashboardPage";
 import AnalyticsPage from "@/pages/AnalyticsPage";
 import ProfilePage from "@/pages/ProfilePage";
@@ -33,15 +34,32 @@ export default function App() {
         <Router>
           <div className="min-h-screen bg-background">
             <PageTransition>
-              <Route path="/" component={HomePage} />
-              <Route path="/onboarding" component={OnboardingPage} />
-              <Route path="/dashboard" component={DashboardPage} />
-              <Route path="/analytics" component={AnalyticsPage} />
-              <Route path="/profile" component={ProfilePage} />
-              <Route path="/settings" component={SettingsPage} />
-              <Route path="/subscriptions" component={SubscriptionsPage} />
-              <Route path="/achievements" component={AchievementsPage} />
-              <Route path="/chat" component={ChatPage} />
+              <Route path="/" component={LoginPage} />
+              <Route path="/login" component={LoginPage} />
+              <Route path="/onboarding">
+                <ProtectedRoute><OnboardingPage /></ProtectedRoute>
+              </Route>
+              <Route path="/dashboard">
+                <ProtectedRoute><DashboardPage /></ProtectedRoute>
+              </Route>
+              <Route path="/analytics">
+                <ProtectedRoute><AnalyticsPage /></ProtectedRoute>
+              </Route>
+              <Route path="/profile">
+                <ProtectedRoute><ProfilePage /></ProtectedRoute>
+              </Route>
+              <Route path="/settings">
+                <ProtectedRoute><SettingsPage /></ProtectedRoute>
+              </Route>
+              <Route path="/subscriptions">
+                <ProtectedRoute><SubscriptionsPage /></ProtectedRoute>
+              </Route>
+              <Route path="/achievements">
+                <ProtectedRoute><AchievementsPage /></ProtectedRoute>
+              </Route>
+              <Route path="/chat">
+                <ProtectedRoute><ChatPage /></ProtectedRoute>
+              </Route>
               <Route>
                 <NotFoundPage />
               </Route>

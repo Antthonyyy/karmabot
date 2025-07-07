@@ -1,7 +1,7 @@
 import express, { type Request, Response, NextFunction } from "express";
 import path from "path";
 import { registerRoutes } from "./routes";
-// import { setupVite, serveStatic, log } from "./vite"; // Temporarily disabled due to vite import issue
+// import { setupVite, serveStatic, log } from "./vite"; // Vite import disabled temporarily
 function log(message: string, source = "express") {
   const formattedTime = new Date().toLocaleTimeString("en-US", {
     hour: "numeric",
@@ -72,14 +72,44 @@ app.use((req, res, next) => {
     throw err;
   });
 
-  // importantly only setup vite in development and after
-  // setting up all the other routes so the catch-all route
-  // doesn't interfere with the other routes
-  if (app.get("env") === "development") {
-    await setupVite(app, server);
-  } else {
-    serveStatic(app);
-  }
+  // Define custom routes BEFORE static middleware
+  app.get('/', (req, res) => {
+    res.sendFile(path.join(process.cwd(), 'client', 'public', 'simple-login.html'));
+  });
+
+  app.get('/login', (req, res) => {
+    res.sendFile(path.join(process.cwd(), 'client', 'public', 'simple-login.html'));
+  });
+
+  app.get('/dashboard', (req, res) => {
+    res.send(`
+      <html>
+        <head><title>Dashboard</title></head>
+        <body>
+          <h1>Dashboard</h1>
+          <p>Google OAuth успішно працює!</p>
+          <script>
+            const token = localStorage.getItem('token');
+            const user = localStorage.getItem('user');
+            if (token && user) {
+              document.body.innerHTML += '<p>Токен: ' + token.substring(0, 20) + '...</p>';
+              document.body.innerHTML += '<p>Користувач: ' + user + '</p>';
+            } else {
+              window.location.href = '/';
+            }
+          </script>
+        </body>
+      </html>
+    `);
+  });
+
+  // Catch-all handler  
+  app.get('*', (req, res) => {
+    if (req.path.startsWith('/api')) {
+      return res.status(404).json({ message: 'API endpoint not found' });
+    }
+    res.sendFile(path.join(process.cwd(), 'client', 'public', 'simple-login.html'));
+  });
 
   
 

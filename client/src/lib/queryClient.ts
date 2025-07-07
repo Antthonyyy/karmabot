@@ -9,7 +9,7 @@ async function throwIfResNotOk(res: Response) {
 
 // Функция для получения заголовков с токеном
 function getAuthHeaders(additionalHeaders?: HeadersInit): HeadersInit {
-  const token = localStorage.getItem("karma_token");
+  const token = localStorage.getItem("token"); // Updated to match auth.ts
   const headers: Record<string, string> = {};
 
   if (token) {
@@ -26,20 +26,16 @@ function getAuthHeaders(additionalHeaders?: HeadersInit): HeadersInit {
 
 export async function apiRequest(
   url: string,
-  method: RequestInit['method'] = 'GET',
-  body?: unknown,
+  options: RequestInit = {},
 ) {
-  const options: RequestInit = { 
-    method,
-    headers: getAuthHeaders(body ? { 'Content-Type': 'application/json' } : undefined),
-    credentials: 'include'
+  const requestOptions: RequestInit = { 
+    method: options.method || 'GET',
+    headers: getAuthHeaders(options.headers),
+    credentials: 'include',
+    ...options
   };
-  
-  if (body) {
-    options.body = JSON.stringify(body);
-  }
 
-  const res = await fetch(url, options);
+  const res = await fetch(url, requestOptions);
   if (!res.ok) throw new Error(await res.text());
 
   return res.headers.get('content-type')?.includes('json')
@@ -69,7 +65,7 @@ export const getQueryFn: <T>(options: {
     return await res.json();
   };
 
-export const queryClient = new QueryClient({
+const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       queryFn: getQueryFn({ on401: "throw" }),
@@ -83,3 +79,5 @@ export const queryClient = new QueryClient({
     },
   },
 });
+
+export { queryClient };

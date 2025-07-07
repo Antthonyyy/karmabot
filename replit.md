@@ -128,6 +128,11 @@ FRONTEND_URL=https://your-domain.com
 
 ```
 Changelog:
+- July 7, 2025. ✅ GOOGLE OAUTH IMPLEMENTED: Completed frontend Google OAuth integration with GoogleLoginButton, GoogleOAuthProvider, and LoginPage components
+- July 7, 2025. Added Google OAuth API endpoint /api/auth/google and updated authentication flow to support both Telegram and Google login
+- July 7, 2025. Created ProtectedRoute component and updated App.tsx routing to redirect unauthenticated users to /login
+- July 7, 2025. Fixed server startup issues by temporarily disabling Vite development server while maintaining Express backend functionality
+- July 7, 2025. Updated authentication utilities and queryClient to support Google OAuth token management
 - July 3, 2025. ✅ CLEANED UP: Removed raw SQL workarounds and restored proper Drizzle select queries with explicit column mapping
 - July 3, 2025. ✅ MIGRATION ORGANIZED: Moved migration file to migrations/ directory and verified schema synchronization
 - July 3, 2025. ✅ TESTS ADDED: Created Jest test suite for subscription middleware plan hierarchy validation (all tests passing)

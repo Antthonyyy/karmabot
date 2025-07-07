@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Кармічний Щоденник - Увійти</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <style>
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+        }
+        .logo {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 1rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 2rem;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+        p {
+            color: #666;
+            margin-bottom: 2rem;
+        }
+        .google-btn {
+            background: #4285f4;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            margin: 1rem 0;
+        }
+        .google-btn:hover {
+            background: #3367d6;
+        }
+        .features {
+            margin-top: 2rem;
+            text-align: left;
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 8px;
+        }
+        .feature {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: #555;
+        }
+        .check {
+            color: #28a745;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">🪷</div>
+        <h1>Ласкаво просимо</h1>
+        <p>Увійдіть через Google, щоб розпочати свою духовну подорож</p>
+        
+        <div id="google-signin"></div>
+        
+        <div class="features">
+            <h3>Що вас чекає:</h3>
+            <div class="feature">
+                <span class="check">✓</span>
+                <span>10 кармічних принципів для щоденної практики</span>
+            </div>
+            <div class="feature">
+                <span class="check">✓</span>
+                <span>Персоналізовані нагадування</span>
+            </div>
+            <div class="feature">
+                <span class="check">✓</span>
+                <span>Відстеження прогресу та статистика</span>
+            </div>
+            <div class="feature">
+                <span class="check">✓</span>
+                <span>Щоденник для рефлексії та зростання</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Google Sign-In
+        function initializeGoogleSignIn() {
+            google.accounts.id.initialize({
+                client_id: 'YOUR_GOOGLE_CLIENT_ID', // User will add this in secrets
+                callback: handleGoogleSignIn
+            });
+            
+            google.accounts.id.renderButton(
+                document.getElementById('google-signin'),
+                { 
+                    theme: 'outline', 
+                    size: 'large',
+                    width: '100%',
+                    text: 'signin_with'
+                }
+            );
+        }
+
+        function handleGoogleSignIn(response) {
+            console.log('Google Sign-In successful:', response);
+            
+            // Send to backend
+            fetch('/api/auth/google', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    idToken: response.credential
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.token) {
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                    window.location.href = '/dashboard';
+                } else {
+                    alert('Authentication failed');
+                }
+            })
+            .catch(error => {
+                console.error('Auth error:', error);
+                alert('Authentication failed: ' + error.message);
+            });
+        }
+
+        // Initialize when Google library loads
+        window.onload = function() {
+            if (typeof google !== 'undefined') {
+                initializeGoogleSignIn();
+            } else {
+                setTimeout(() => {
+                    if (typeof google !== 'undefined') {
+                        initializeGoogleSignIn();
+                    }
+                }, 1000);
+            }
+        };
+    </script>
+</body>
+</html>

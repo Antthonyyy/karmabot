@@ -50,6 +50,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     next();
   });
 
+  // Google OAuth authentication endpoint
+  app.post("/api/auth/google", async (req, res) => {
+    try {
+      const { idToken } = req.body;
+      
+      if (!idToken) {
+        return res.status(400).json({ message: "Google ID token is required" });
+      }
+
+      const authResult = await handleGoogleAuth(idToken);
+      
+      res.json({
+        token: authResult.token,
+        user: authResult.user,
+        isNewUser: authResult.isNewUser
+      });
+    } catch (error) {
+      console.error("Google auth error:", error);
+      res.status(401).json({ 
+        message: "Google authentication failed", 
+        details: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
   // Register AI routes with proper prefix
   app.use("/api/ai", aiRoutes);
   // Register audio routes

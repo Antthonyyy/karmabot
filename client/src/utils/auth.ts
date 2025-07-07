@@ -1,11 +1,17 @@
+// Export individual functions for use in components
+export const setToken = (token: string) => localStorage.setItem('token', token);
+export const setUser = (user: any) => localStorage.setItem('user', JSON.stringify(user));
+export const getToken = () => localStorage.getItem('token');
+export const getUser = () => {
+  const user = localStorage.getItem('user');
+  return user ? JSON.parse(user) : null;
+};
+
 export const authUtils = {
-  getToken: () => localStorage.getItem('token'),
-  setToken: (token: string) => localStorage.setItem('token', token),
-  getUser: () => {
-    const user = localStorage.getItem('user');
-    return user ? JSON.parse(user) : null;
-  },
-  setUser: (user: any) => localStorage.setItem('user', JSON.stringify(user)),
+  getToken,
+  setToken,
+  getUser,
+  setUser,
   clearAuth: () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
