@@ -69,8 +69,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Google auth error:", error);
       return res.status(500).json({ 
-        error: "OAuth failed", 
-        details: error instanceof Error ? error.message : "Unknown error"
+        message: "Authentication failed", 
+        error: error instanceof Error ? error.message : "Unknown error"
       });
     }
   });
