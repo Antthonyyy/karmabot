@@ -124,3 +124,5 @@ export function PWAInstallPrompt() {
     </div>
   );
 }
+
+export default PWAInstallPrompt;
