@@ -15,6 +15,7 @@ function log(message: string, source = "express") {
 import { checkEnvVariables, logEnvStatus } from "./utils/env-check";
 
 // Telegram bot singleton initialization
+import { initBot } from "./bot/index";
 import TelegramBot from "node-telegram-bot-api";
 
 declare global {
@@ -24,8 +25,7 @@ declare global {
 if (global.telegramBotInstance) {
   console.log("⚠️  Bot already running – skip init");
 } else {
-  const { initBot } = await import("./bot/index");
-  initBot();
+  global.telegramBotInstance = initBot();
 }
 
 import { initTrialExpirationCron } from "./cron/trialExpire.js";

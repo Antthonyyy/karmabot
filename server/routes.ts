@@ -52,6 +52,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Google OAuth authentication endpoint
   app.post("/api/auth/google", async (req, res) => {
+    console.log("[GOOGLE AUTH] body:", req.body);
     console.log('🔑 Google OAuth endpoint hit:', {
       method: req.method,
       url: req.url,
@@ -75,9 +76,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         isNewUser: authResult.isNewUser
       });
     } catch (error) {
+      console.error("[GOOGLE AUTH ERROR]", error);
       console.error("Google auth error:", error);
       return res.status(500).json({ 
-        message: "Authentication failed", 
+        message: "auth failed", 
         error: error instanceof Error ? error.message : "Unknown error"
       });
     }
