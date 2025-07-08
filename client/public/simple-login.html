@@ -137,8 +137,8 @@
             );
         }
 
-        function handleGoogleSignIn(response) {
-            console.log('Google Sign-In successful:', response);
+        function handleGoogleSignIn(credentialResponse) {
+            console.log('Google response received:', credentialResponse);
             
             // Send to backend
             fetch('/api/auth/google', {
@@ -147,22 +147,31 @@
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    idToken: response.credential
+                    idToken: credentialResponse.credential
                 })
             })
-            .then(res => res.json())
+            .then(res => {
+                console.log('Server response status:', res.status);
+                if (!res.ok) {
+                    throw new Error(`HTTP error! status: ${res.status}`);
+                }
+                return res.json();
+            })
             .then(data => {
+                console.log('Server response data:', data);
                 if (data.token) {
                     localStorage.setItem('token', data.token);
                     localStorage.setItem('user', JSON.stringify(data.user));
+                    console.log('Redirecting to dashboard...');
                     window.location.href = '/dashboard';
                 } else {
-                    alert('Authentication failed');
+                    console.error('No token in response:', data);
+                    alert('Authentication failed: No token received');
                 }
             })
             .catch(error => {
                 console.error('Auth error:', error);
-                alert('Authentication failed: ' + error.message);
+                alert('Ошибка авторизации: ' + error.message);
             });
         }
 
