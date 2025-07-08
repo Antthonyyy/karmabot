@@ -120,7 +120,7 @@
         // Initialize Google Sign-In
         function initializeGoogleSignIn() {
             const clientId = 'YOUR_GOOGLE_CLIENT_ID';
-            console.log('🔑 Frontend GOOGLE_CLIENT_ID:', clientId === 'YOUR_GOOGLE_CLIENT_ID' ? '❌ NOT SUBSTITUTED' : clientId.substring(0, 20) + '...');
+            console.log('🔑 Frontend GOOGLE_CLIENT_ID:', clientId.substring(0, 20) + '...');
 
             google.accounts.id.initialize({
                 client_id: clientId,
@@ -151,23 +151,25 @@
                     idToken: credentialResponse.credential
                 })
             })
-            .then(res => {
+            .then(async res => {
                 console.log('Server response status:', res.status);
+                const data = await res.json();
+                console.log('Server response data:', data);
+                
                 if (!res.ok) {
-                    throw new Error(`HTTP error! status: ${res.status}`);
+                    throw new Error(`HTTP error! status: ${res.status}, message: ${data.error || data.message}`);
                 }
-                return res.json();
+                return data;
             })
             .then(data => {
-                console.log('Server response data:', data);
                 if (data.token) {
                     localStorage.setItem('token', data.token);
                     localStorage.setItem('user', JSON.stringify(data.user));
-                    console.log('Redirecting to dashboard...');
+                    console.log('Authentication successful, redirecting to dashboard');
                     window.location.href = '/dashboard';
                 } else {
                     console.error('No token in response:', data);
-                    alert('Authentication failed: No token received');
+                    throw new Error('No token received from server');
                 }
             })
             .catch(error => {
