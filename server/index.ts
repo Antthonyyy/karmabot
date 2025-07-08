@@ -139,5 +139,6 @@ app.use((req, res, next) => {
     reusePort: true,
   }, () => {
     log(`serving on port ${port}`);
+    console.log('========== SERVER RESTARTED AT', new Date().toISOString(), '==========');
   });
 })();
