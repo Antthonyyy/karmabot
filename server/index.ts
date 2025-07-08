@@ -14,11 +14,18 @@ function log(message: string, source = "express") {
 }
 import { checkEnvVariables, logEnvStatus } from "./utils/env-check";
 
-// Telegram bot singleton check
-let telegramBotInitialized = false;
-if (!telegramBotInitialized) {
-  import "./telegram-bot.ts";
-  telegramBotInitialized = true;
+// Telegram bot singleton initialization
+import TelegramBot from "node-telegram-bot-api";
+
+declare global {
+  var telegramBotInstance: TelegramBot | undefined;
+}
+
+if (global.telegramBotInstance) {
+  console.log("⚠️  Bot already running – skip init");
+} else {
+  const { initBot } = await import("./bot/index");
+  initBot();
 }
 
 import { initTrialExpirationCron } from "./cron/trialExpire.js";

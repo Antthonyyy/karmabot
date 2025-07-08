@@ -576,4 +576,9 @@ bot.on("error", (error) => {
 
 console.log("🤖 Telegram bot started successfully");
 
+export function initBot() {
+  // Bot initialization is already done above
+  global.telegramBotInstance = bot;
+}
+
 export { bot };
