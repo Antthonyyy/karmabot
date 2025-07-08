@@ -13,26 +13,38 @@ export interface GoogleUser {
 
 export class GoogleService {
   private client: OAuth2Client;
+  private clientId: string;
+  private clientSecret: string;
+  private redirectUri: string;
 
   constructor() {
-    const clientId = process.env.GOOGLE_CLIENT_ID;
+    this.clientId = process.env.GOOGLE_CLIENT_ID || '';
+    this.clientSecret = process.env.GOOGLE_CLIENT_SECRET || '';
+    this.redirectUri = 'https://karma-tracker.replit.app/auth/callback';
+    
     console.log('🔑 GoogleService initialization:', {
-      hasClientId: !!clientId,
-      clientIdLength: clientId ? clientId.length : 0,
-      clientIdPreview: clientId ? clientId.substring(0, 20) + '...' : 'NOT_FOUND'
+      hasClientId: !!this.clientId,
+      hasClientSecret: !!this.clientSecret,
+      clientIdLength: this.clientId ? this.clientId.length : 0,
+      clientIdPreview: this.clientId ? this.clientId.substring(0, 20) + '...' : 'NOT_FOUND',
+      redirectUri: this.redirectUri
     });
     
-    if (!clientId) {
+    if (!this.clientId) {
       console.warn("GOOGLE_CLIENT_ID not provided, Google authentication will be disabled");
     }
-    this.client = new OAuth2Client(clientId);
+    if (!this.clientSecret) {
+      console.warn("GOOGLE_CLIENT_SECRET not provided, some Google features may be limited");
+    }
+    
+    this.client = new OAuth2Client(this.clientId, this.clientSecret, this.redirectUri);
   }
 
   async verifyIdToken(idToken: string): Promise<GoogleUser | null> {
     try {
       const ticket = await this.client.verifyIdToken({
         idToken,
-        audience: process.env.GOOGLE_CLIENT_ID,
+        audience: this.clientId,
       });
       
       const payload = ticket.getPayload();
@@ -57,7 +69,15 @@ export class GoogleService {
   }
 
   isConfigured(): boolean {
-    return !!process.env.GOOGLE_CLIENT_ID;
+    return !!this.clientId;
+  }
+
+  getClientId(): string {
+    return this.clientId;
+  }
+
+  getRedirectUri(): string {
+    return this.redirectUri;
   }
 }
 

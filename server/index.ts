@@ -13,8 +13,14 @@ function log(message: string, source = "express") {
   console.log(`${formattedTime} [${source}] ${message}`);
 }
 import { checkEnvVariables, logEnvStatus } from "./utils/env-check";
-// Import Telegram bot - only the original auth bot for now
-import "./telegram-bot.ts";
+
+// Telegram bot singleton check
+let telegramBotInitialized = false;
+if (!telegramBotInitialized) {
+  import "./telegram-bot.ts";
+  telegramBotInitialized = true;
+}
+
 import { initTrialExpirationCron } from "./cron/trialExpire.js";
 
 // Проверяем переменные окружения при запуске
@@ -81,7 +87,7 @@ app.use((req, res, next) => {
     
     // Replace placeholder with real GOOGLE_CLIENT_ID
     const googleClientId = process.env.GOOGLE_CLIENT_ID || '';
-    html = html.replace('YOUR_GOOGLE_CLIENT_ID', googleClientId);
+    html = html.replace(/YOUR_GOOGLE_CLIENT_ID/g, googleClientId);
     
     res.send(html);
   });
@@ -92,7 +98,7 @@ app.use((req, res, next) => {
     let html = fs.readFileSync(htmlPath, 'utf8');
     
     const googleClientId = process.env.GOOGLE_CLIENT_ID || '';
-    html = html.replace('YOUR_GOOGLE_CLIENT_ID', googleClientId);
+    html = html.replace(/YOUR_GOOGLE_CLIENT_ID/g, googleClientId);
     
     res.send(html);
   });
@@ -141,5 +147,11 @@ app.use((req, res, next) => {
     log(`serving on port ${port}`);
     console.log('========== SERVER RESTARTED AT', new Date().toISOString(), '==========');
     console.log('✅ GOOGLE_CLIENT_ID:', process.env.GOOGLE_CLIENT_ID ? process.env.GOOGLE_CLIENT_ID.substring(0, 20) + '...' : '❌ NOT FOUND');
+    console.log('🔑 Google OAuth Config:', {
+      hasClientId: !!process.env.GOOGLE_CLIENT_ID,
+      hasClientSecret: !!process.env.GOOGLE_CLIENT_SECRET,
+      clientIdLength: process.env.GOOGLE_CLIENT_ID ? process.env.GOOGLE_CLIENT_ID.length : 0,
+      redirectUri: 'https://karma-tracker.replit.app/auth/callback'
+    });
   });
 })();

@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="google-client-id" content="YOUR_GOOGLE_CLIENT_ID">
     <title>Кармічний Щоденник - Увійти</title>
     <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
@@ -91,9 +92,9 @@
         <div class="logo">🪷</div>
         <h1>Ласкаво просимо</h1>
         <p>Увійдіть через Google, щоб розпочати свою духовну подорож</p>
-        
+
         <div id="google-signin"></div>
-        
+
         <div class="features">
             <h3>Що вас чекає:</h3>
             <div class="feature">
@@ -120,12 +121,12 @@
         function initializeGoogleSignIn() {
             const clientId = 'YOUR_GOOGLE_CLIENT_ID';
             console.log('🔑 Frontend GOOGLE_CLIENT_ID:', clientId === 'YOUR_GOOGLE_CLIENT_ID' ? '❌ NOT SUBSTITUTED' : clientId.substring(0, 20) + '...');
-            
+
             google.accounts.id.initialize({
                 client_id: clientId,
                 callback: handleGoogleSignIn
             });
-            
+
             google.accounts.id.renderButton(
                 document.getElementById('google-signin'),
                 { 
@@ -139,7 +140,7 @@
 
         function handleGoogleSignIn(credentialResponse) {
             console.log('Google response received:', credentialResponse);
-            
+
             // Send to backend
             fetch('/api/auth/google', {
                 method: 'POST',
