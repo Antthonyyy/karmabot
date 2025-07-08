@@ -118,6 +118,11 @@ export function optionalAuth(req: AuthRequest, res: Response, next: NextFunction
 
 // Telegram authentication handler
 export async function handleGoogleAuth(googleIdToken: string): Promise<{ user: any; token: string; isNewUser: boolean }> {
+  console.log('=== GOOGLE AUTH REQUEST ===', { 
+    idToken: googleIdToken ? googleIdToken.substring(0, 50) + '...' : 'null',
+    timestamp: new Date().toISOString()
+  });
+  
   const googleUser = await googleService.verifyIdToken(googleIdToken);
   
   if (!googleUser) {

@@ -46,12 +46,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Add request logging for debugging
   app.use((req, res, next) => {
-    console.log(`${req.method} ${req.path}`);
+    console.log(`${req.method} ${req.url}`);
     next();
   });
 
   // Google OAuth authentication endpoint
   app.post("/api/auth/google", async (req, res) => {
+    console.log('🔑 Google OAuth endpoint hit:', {
+      method: req.method,
+      url: req.url,
+      headers: req.headers,
+      body: req.body,
+      timestamp: new Date().toISOString()
+    });
+    
     try {
       const { idToken } = req.body;
       
