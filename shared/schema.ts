@@ -1,4 +1,14 @@
-import { pgTable, text, integer, timestamp, boolean, numeric, serial, jsonb, varchar } from "drizzle-orm/pg-core";
+import {
+  pgTable,
+  text,
+  integer,
+  timestamp,
+  boolean,
+  numeric,
+  serial,
+  jsonb,
+  varchar,
+} from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 
 // Users table - matching actual database structure
@@ -25,7 +35,9 @@ export const users = pgTable("users", {
   lastReminderSent: timestamp("last_reminder_sent", { mode: "string" }),
   hasCompletedOnboarding: boolean("has_completed_onboarding"),
   subscription: text(),
-  subscriptionStartDate: timestamp("subscription_start_date", { mode: "string" }),
+  subscriptionStartDate: timestamp("subscription_start_date", {
+    mode: "string",
+  }),
   subscriptionEndDate: timestamp("subscription_end_date", { mode: "string" }),
   preferredLanguage: text("preferred_language"),
   createdAt: timestamp("created_at", { mode: "string" }),
@@ -91,7 +103,7 @@ export const userStats = pgTable("user_stats", {
   averageMood: numeric("average_mood"),
   averageEnergy: numeric("average_energy"),
   totalReflectionTime: integer("total_reflection_time"),
-  principleCompletions: integer("principle_completions"),
+  principleCompletions: text("principle_completions"),
   createdAt: timestamp("created_at", { mode: "string" }),
   updatedAt: timestamp("updated_at", { mode: "string" }),
 });
@@ -242,8 +254,10 @@ export type PushSubscription = typeof pushSubscriptions.$inferSelect;
 export type InsertPushSubscription = typeof pushSubscriptions.$inferInsert;
 
 // Zod schemas for validation
-export const insertJournalEntrySchema = createInsertSchema(journalEntries).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
+export const insertJournalEntrySchema = createInsertSchema(journalEntries).omit(
+  {
+    id: true,
+    createdAt: true,
+    updatedAt: true,
+  },
+);
