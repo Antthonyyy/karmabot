@@ -1,4 +1,5 @@
 import express, { type Request, Response, NextFunction } from "express";
+import cookieParser from "cookie-parser";
 import path from "path";
 import fs from "fs";
 import { registerRoutes } from "./routes";
@@ -39,6 +40,7 @@ if (!checkEnvVariables()) {
 logEnvStatus();
 
 const app = express();
+app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 

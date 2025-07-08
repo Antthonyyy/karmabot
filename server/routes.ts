@@ -50,6 +50,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     next();
   });
 
+  // Google OAuth callback route
+  app.get("/auth/google/callback", async (req, res) => {
+    console.log("[GOOGLE CALLBACK] query:", req.query);
+    
+    try {
+      const { code } = req.query;
+      
+      if (!code) {
+        return res.status(400).json({ error: "Authorization code is required" });
+      }
+
+      // Exchange code for tokens (you'll need to implement this)
+      // const tokens = await googleService.exchangeCodeForTokens(code);
+      // const authResult = await handleGoogleAuth(tokens.id_token);
+      
+      // For now, redirect to login page if no implementation
+      return res.redirect("/login?error=callback_not_implemented");
+      
+    } catch (error) {
+      console.error("[GOOGLE CALLBACK ERROR]", error);
+      return res.redirect("/login?error=auth_failed");
+    }
+  });
+
   // Google OAuth authentication endpoint
   app.post("/api/auth/google", async (req, res) => {
     console.log("[GOOGLE AUTH] body:", req.body);
