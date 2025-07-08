@@ -140,5 +140,6 @@ app.use((req, res, next) => {
   }, () => {
     log(`serving on port ${port}`);
     console.log('========== SERVER RESTARTED AT', new Date().toISOString(), '==========');
+    console.log('✅ GOOGLE_CLIENT_ID:', process.env.GOOGLE_CLIENT_ID ? process.env.GOOGLE_CLIENT_ID.substring(0, 20) + '...' : '❌ NOT FOUND');
   });
 })();

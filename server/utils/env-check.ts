@@ -6,7 +6,8 @@ export function checkEnvVariables() {
     'FRONTEND_URL',
     'JWT_SECRET',
     'DATABASE_URL',
-    'TELEGRAM_BOT_TOKEN'
+    'TELEGRAM_BOT_TOKEN',
+    'GOOGLE_CLIENT_ID'
   ];
   
   const missing = required.filter(key => !process.env[key]);
@@ -32,7 +33,8 @@ export function logEnvStatus() {
     'FRONTEND_URL',
     'JWT_SECRET',
     'DATABASE_URL',
-    'TELEGRAM_BOT_TOKEN'
+    'TELEGRAM_BOT_TOKEN',
+    'GOOGLE_CLIENT_ID'
   ];
   
   console.log('\n🔍 Статус переменных окружения:');

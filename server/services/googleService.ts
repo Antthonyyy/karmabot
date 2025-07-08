@@ -16,6 +16,12 @@ export class GoogleService {
 
   constructor() {
     const clientId = process.env.GOOGLE_CLIENT_ID;
+    console.log('🔑 GoogleService initialization:', {
+      hasClientId: !!clientId,
+      clientIdLength: clientId ? clientId.length : 0,
+      clientIdPreview: clientId ? clientId.substring(0, 20) + '...' : 'NOT_FOUND'
+    });
+    
     if (!clientId) {
       console.warn("GOOGLE_CLIENT_ID not provided, Google authentication will be disabled");
     }

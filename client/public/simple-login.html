@@ -118,8 +118,11 @@
     <script>
         // Initialize Google Sign-In
         function initializeGoogleSignIn() {
+            const clientId = 'YOUR_GOOGLE_CLIENT_ID';
+            console.log('🔑 Frontend GOOGLE_CLIENT_ID:', clientId === 'YOUR_GOOGLE_CLIENT_ID' ? '❌ NOT SUBSTITUTED' : clientId.substring(0, 20) + '...');
+            
             google.accounts.id.initialize({
-                client_id: 'YOUR_GOOGLE_CLIENT_ID', // User will add this in secrets
+                client_id: clientId,
                 callback: handleGoogleSignIn
             });
             
