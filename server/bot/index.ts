@@ -13,7 +13,11 @@ if (!token) {
   console.log("⚠️ TELEGRAM_BOT_TOKEN not found - enhanced bot disabled");
 }
 
-const bot = new TelegramBot(token, { polling: true });
+const isWebhookMode = process.env.BOT_MODE === "webhook";
+const bot = new TelegramBot(token, {
+  polling: !isWebhookMode, // ⬅️ polling включается ТОЛЬКО если НЕ webhook
+});
+
 const aiAssistant = new AIAssistant();
 
 // User sessions for multi-step interactions

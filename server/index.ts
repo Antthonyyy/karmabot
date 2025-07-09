@@ -160,7 +160,7 @@ app.use((req, res, next) => {
       hasClientId: !!process.env.GOOGLE_CLIENT_ID,
       hasClientSecret: !!process.env.GOOGLE_CLIENT_SECRET,
       clientIdLength: process.env.GOOGLE_CLIENT_ID ? process.env.GOOGLE_CLIENT_ID.length : 0,
-      redirectUri: 'https://karma-tracker.replit.app/auth/callback'
+      redirectUri: 'https://karma-traker.onrender.com/auth/callback'
     });
   });
 })();
