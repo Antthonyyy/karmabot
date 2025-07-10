@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Оберіть підписку</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #f2f0ff, #e0d6ff);
+      color: #333;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+      color: #2d2d2d;
+    }
+
+    .subtitle {
+      color: #666;
+      margin-bottom: 2rem;
+    }
+
+    .toggle {
+      display: flex;
+      justify-content: center;
+      border-radius: 999px;
+      background: #fff;
+      border: 1px solid #ccc;
+      overflow: hidden;
+      margin-bottom: 3rem;
+      max-width: 300px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .toggle button {
+      flex: 1;
+      padding: 0.6rem 1.5rem;
+      border: none;
+      background: none;
+      cursor: pointer;
+      font-weight: 500;
+      transition: 0.3s;
+    }
+
+    .toggle button.active {
+      background: #5e2ca5;
+      color: white;
+    }
+
+    .plans {
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .plan {
+      background: white;
+      border-radius: 1rem;
+      padding: 2rem;
+      box-shadow: 0 15px 30px rgba(0, 0, 0, 0.05);
+      flex: 1 1 300px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: transform 0.3s ease;
+      max-width: 350px;
+    }
+
+    .plan:hover {
+      transform: translateY(-5px);
+    }
+
+    .plan.recommended {
+      border: 2px solid #5e2ca5;
+      transform: translateY(-10px) scale(1.05);
+      position: relative;
+      z-index: 2;
+    }
+
+    .plan.recommended::before {
+      content: "Популярний";
+      position: absolute;
+      top: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #5e2ca5;
+      color: white;
+      padding: 4px 16px;
+      border-radius: 20px;
+      font-size: 0.875rem;
+    }
+
+    .plan h2 {
+      font-size: 1.5rem;
+      margin-bottom: 0.5rem;
+      color: #5e2ca5;
+    }
+
+    .price {
+      font-size: 2rem;
+      font-weight: bold;
+      margin: 1rem 0;
+    }
+
+    .description {
+      color: #666;
+      margin-bottom: 1rem;
+      min-height: 48px;
+    }
+
+    ul.features {
+      list-style: none;
+      padding: 0;
+      text-align: left;
+      margin-bottom: 2rem;
+    }
+
+    ul.features li {
+      margin: 0.5rem 0;
+      color: #444;
+    }
+
+    ul.features li::before {
+      content: "\2713 ";
+      color: #28a745;
+      font-weight: bold;
+    }
+
+    .btn {
+      background: #5e2ca5;
+      color: white;
+      padding: 0.75rem;
+      border-radius: 0.5rem;
+      font-size: 1rem;
+      border: none;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    .btn:hover {
+      background: #45268f;
+    }
+
+    .loading {
+      margin-top: 1rem;
+      display: none;
+      font-weight: 500;
+      color: #5e2ca5;
+    }
+
+    @media (max-width: 768px) {
+      .plans {
+        flex-direction: column;
+        align-items: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Оберіть свій план</h1>
+    <p class="subtitle">Розкрийте всі можливості Кармічного Щоденника</p>
+
+    <div class="toggle">
+      <button class="active" onclick="setPeriod('monthly')">Щомісяця</button>
+      <button onclick="setPeriod('yearly')">Щорічно (-10%)</button>
+    </div>
+
+    <div class="plans">
+      <div class="plan">
+        <h2>Light</h2>
+        <div class="price" id="price-light">$4.99/міс</div>
+        <div class="description">Ідеально для початківців</div>
+        <ul class="features">
+          <li>10 кармічних принципів</li>
+          <li>Графіки прогресу та тренди за тиждень</li>
+          <li>Щоденні нагадування</li>
+        </ul>
+        <button class="btn" onclick="selectPlan('light')">Обрати</button>
+      </div>
+
+      <div class="plan recommended">
+        <h2>Plus</h2>
+        <div class="price" id="price-plus">$9.99/міс</div>
+        <div class="description">Для серйозної практики</div>
+        <ul class="features">
+          <li>Всі функції Light</li>
+          <li>AI аналізує ваші записи та дає персональні поради</li>
+          <li>Персоналізовані рекомендації</li>
+          <li>Експорт даних</li>
+        </ul>
+        <button class="btn" onclick="selectPlan('plus')">Обрати</button>
+      </div>
+
+      <div class="plan">
+        <h2>Pro</h2>
+        <div class="price" id="price-pro">$19.99/міс</div>
+        <div class="description">Максимум можливостей</div>
+        <ul class="features">
+          <li>Всі функції Plus</li>
+          <li>Необмежена кількість принципів</li>
+          <li>Пріоритетна підтримка</li>
+          <li>Ранній доступ до нових функцій</li>
+        </ul>
+        <button class="btn" onclick="selectPlan('pro')">Обрати</button>
+      </div>
+    </div>
+
+    <div class="loading" id="loading">Завантаження...</div>
+  </div>
+
+  <script>
+    let period = 'monthly';
+
+    function setPeriod(value) {
+      period = value;
+      document.querySelectorAll('.toggle button').forEach(btn => btn.classList.remove('active'));
+      document.querySelector(`.toggle button[onclick*="${value}"]`).classList.add('active');
+
+      document.getElementById('price-light').textContent = value === 'monthly' ? '$4.99/міс' : '$53.89/рік';
+      document.getElementById('price-plus').textContent = value === 'monthly' ? '$9.99/міс' : '$107.89/рік';
+      document.getElementById('price-pro').textContent = value === 'monthly' ? '$19.99/міс' : '$215.89/рік';
+    }
+
+    async function selectPlan(plan) {
+      const token = localStorage.getItem('karma_token');
+      if (!token) {
+        window.location.href = '/';
+        return;
+      }
+
+      const loadingEl = document.getElementById('loading');
+      loadingEl.style.display = 'block';
+
+      try {
+        const res = await fetch('/api/subscription/select', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ plan })
+        });
+
+        const data = await res.json();
+        if (data.success) {
+          window.location.href = '/dashboard';
+        } else {
+          alert('Помилка при виборі тарифу: ' + (data.error || 'Невідома помилка'));
+        }
+      } catch (err) {
+        alert('Помилка з’єднання з сервером. Спробуйте ще раз.');
+      } finally {
+        loadingEl.style.display = 'none';
+      }
+    }
+  </script>
+</body>
+</html>

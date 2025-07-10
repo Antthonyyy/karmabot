@@ -1170,3 +1170,43 @@ export class DatabaseStorage implements IStorage {
 }
 
 export const storage = new DatabaseStorage();
+import { usage } from "@shared/schema";
+import { and, eq, sql } from "drizzle-orm";
+
+// Текущий месяц в формате YYYY-MM
+function getCurrentPeriod(): string {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+}
+
+// Получить использование фичи
+export async function getMonthlyUsage(userId: number, feature: string): Promise<number> {
+  const period = getCurrentPeriod();
+  const result = await db
+    .select({ count: usage.count })
+    .from(usage)
+    .where(and(eq(usage.userId, userId), eq(usage.feature, feature), eq(usage.period, period)))
+    .limit(1);
+
+  return result[0]?.count ?? 0;
+}
+
+// Инкрементировать использование фичи
+export async function incrementUsage(userId: number, feature: string): Promise<void> {
+  const period = getCurrentPeriod();
+  const current = await getMonthlyUsage(userId, feature);
+
+  if (current === 0) {
+    await db.insert(usage).values({
+      userId,
+      feature,
+      period,
+      count: 1,
+    });
+  } else {
+    await db
+      .update(usage)
+      .set({ count: sql`${usage.count} + 1`, updatedAt: new Date().toISOString() })
+      .where(and(eq(usage.userId, userId), eq(usage.feature, feature), eq(usage.period, period)));
+  }
+}

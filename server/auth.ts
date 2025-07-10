@@ -116,8 +116,8 @@ export function optionalAuth(req: AuthRequest, res: Response, next: NextFunction
   });
 }
 
-// Telegram authentication handler
-export async function handleGoogleAuth(googleIdToken: string): Promise<{ user: any; token: string; isNewUser: boolean }> {
+// Google authentication handler
+export async function handleGoogleAuth(googleIdToken: string): Promise<{ user: any; token: string; isNewUser: boolean; needsSubscription: boolean }> {
   console.log('=== GOOGLE AUTH REQUEST ===', { 
     idToken: googleIdToken ? googleIdToken.substring(0, 50) + '...' : 'null',
     timestamp: new Date().toISOString()
@@ -142,6 +142,7 @@ export async function handleGoogleAuth(googleIdToken: string): Promise<{ user: a
       profilePicture: googleUser.picture,
       language: googleUser.locale.startsWith('uk') ? 'uk' : 'en',
       isActive: true,
+      subscription: 'none', // Добавляем значение по умолчанию
     };
 
     user = await storage.createUser(userData);
@@ -161,10 +162,14 @@ export async function handleGoogleAuth(googleIdToken: string): Promise<{ user: a
 
   // Generate JWT token
   const token = generateToken(user);
+  
+  // Проверяем нужна ли подписка
+  const needsSubscription = !user.subscription || user.subscription === 'none';
 
-  return { user, token, isNewUser };
+  return { user, token, isNewUser, needsSubscription };
 }
 
+// Telegram authentication handler
 export async function handleTelegramAuth(telegramData: any): Promise<{ user: any; token: string; isNewUser: boolean }> {
   // For demo purposes, skip verification if it's a mock hash
   const isMockAuth = telegramData.hash && (telegramData.hash.startsWith('mock_hash_') || telegramData.hash.startsWith('demo_hash_'));

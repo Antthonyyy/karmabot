@@ -8,8 +8,11 @@ import {
   serial,
   jsonb,
   varchar,
+  index,
+  uniqueIndex
 } from "drizzle-orm/pg-core";
-import { createInsertSchema } from "drizzle-zod";
+import { createInsertSchema, createSelectSchema } from "drizzle-zod";
+import { z } from "zod";
 
 // Users table - matching actual database structure
 export const users = pgTable("users", {
@@ -261,3 +264,19 @@ export const insertJournalEntrySchema = createInsertSchema(journalEntries).omit(
     updatedAt: true,
   },
 );
+// Таблица для учета использования функций
+export const usage = pgTable("usage", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  feature: varchar("feature", { length: 50 }).notNull(),
+  count: integer("count").notNull().default(0),
+  period: varchar("period", { length: 7 }).notNull(),
+  createdAt: timestamp("created_at", { mode: "string" }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { mode: "string" }).defaultNow().notNull()
+});
+
+// Типы для таблицы usage
+export const insertUsageSchema = createInsertSchema(usage);
+export const selectUsageSchema = createSelectSchema(usage);
+export type InsertUsage = z.infer<typeof insertUsageSchema>;
+export type SelectUsage = z.infer<typeof selectUsageSchema>;

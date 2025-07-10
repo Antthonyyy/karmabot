@@ -12,20 +12,19 @@ import WelcomeHero from "@/components/WelcomeHero";
 import { useOnboarding } from "@/hooks/useOnboarding";
 import { authUtils } from '@/utils/auth';
 import { useToast } from '@/hooks/use-toast';
+import UsageLimitsDisplay from "@/components/UsageLimitsDisplay";
 
 export default function DashboardPage() {
   const [, setLocation] = useLocation();
   const { showOnboarding, completeOnboarding } = useOnboarding();
   const { toast } = useToast();
 
-  // Check authentication once
   const token = authUtils.getToken();
   if (!token) {
     setLocation("/");
     return null;
   }
 
-  // Fetch user data
   const { data: user, isLoading: userLoading } = useQuery({
     queryKey: ["/api/user/me"],
     queryFn: async () => {
@@ -37,7 +36,6 @@ export default function DashboardPage() {
     },
   });
 
-  // Fetch subscription data
   const { data: subscription } = useQuery({
     queryKey: ['current-subscription'],
     queryFn: async () => {
@@ -49,14 +47,13 @@ export default function DashboardPage() {
     }
   });
 
-  // Show trial countdown toast
   useEffect(() => {
     if (subscription?.plan === 'trial' && subscription?.expiresAt) {
       const now = new Date();
       const expires = new Date(subscription.expiresAt);
       const diffTime = expires.getTime() - now.getTime();
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-      
+
       if (diffDays > 0 && diffDays <= 3) {
         const dayText = diffDays === 1 ? 'день' : diffDays < 5 ? 'дні' : 'днів';
         toast({
@@ -67,7 +64,6 @@ export default function DashboardPage() {
     }
   }, [subscription, toast]);
 
-  // Loading state
   if (userLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -76,35 +72,25 @@ export default function DashboardPage() {
     );
   }
 
-  // Not authenticated state
-  if (!user) {
-    return null;
-  }
+  if (!user) return null;
 
   return (
     <div className="space-y-6 md:mt-14 pt-4 md:pt-16 pb-24 px-4 max-w-5xl mx-auto">
-      {/* Hero блок приветствия */}
       <WelcomeHero user={user} streak={user?.stats?.streakDays ?? 0} openModal={() => {}} />
 
-      {/* 1-я строка */}
+      {/* Показываем лимиты */}
+      <UsageLimitsDisplay feature="ai_requests" />
+
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         <StreakCard />
         <NextPrincipleCard />
       </div>
 
-      {/* мини-график настроения */}
       <ProgressChart />
-
-      {/* Today's reminders */}
       <TodaysPlan />
-
-      {/* последние 3 записи */}
       <LatestEntries />
-
-      {/* Entry FAB */}
       <EntryFab />
 
-      {/* Onboarding Modal */}
       {showOnboarding && (
         <OnboardingModal isOpen={showOnboarding} onComplete={completeOnboarding} />
       )}

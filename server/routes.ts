@@ -1,4 +1,5 @@
-import type { Express } from "express";
+import { checkSubscription, checkFeatureLimit } from "./middleware/checkSubscription";
+import type { Express, Response } from "express";
 import { createServer, type Server } from "http";
 import express from "express";
 import multer from "multer";
@@ -106,6 +107,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
         message: "auth failed", 
         error: error instanceof Error ? error.message : "Unknown error"
       });
+    }
+  });
+
+  // Subscription routes
+  app.post('/api/subscription/select', authenticateToken, async (req: AuthRequest, res: Response) => {
+    try {
+      const { plan } = req.body;
+      const userId = req.user.id;
+      
+      console.log('📋 Subscription selection:', { userId, plan });
+      
+      // Валидация плана
+      if (!['light', 'plus', 'pro'].includes(plan)) {
+        return res.status(400).json({ error: 'Invalid plan selected' });
+      }
+      
+      // Обновляем подписку пользователя
+      const updatedUser = await storage.updateUser(userId, {
+        subscription: plan,
+        subscriptionStartDate: new Date(),
+        subscriptionEndDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // +30 дней
+      });
+      
+      console.log('✅ Subscription updated:', { userId, plan });
+      
+      res.json({ 
+        success: true, 
+        user: updatedUser 
+      });
+    } catch (error) {
+      console.error('❌ Subscription selection error:', error);
+      res.status(500).json({ error: 'Failed to update subscription' });
     }
   });
 
@@ -294,6 +327,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to update profile" });
     }
   });
+  // Get user profile endpoint
+app.get('/api/user/profile', authenticateToken, async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.user.id;
+    const user = await storage.getUser(userId);
+    
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    // Получаем дополнительные данные
+    const stats = await storage.getUserStats(userId);
+    
+    res.json({ 
+      user: {
+        id: user.id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        username: user.username,
+        email: user.email,
+        subscription: user.subscription || 'free',
+        subscriptionStartDate: user.subscriptionStartDate,
+        subscriptionEndDate: user.subscriptionEndDate,
+        currentPrinciple: user.currentPrinciple,
+        notificationType: user.notificationType,
+        language: user.language,
+        telegramConnected: !!user.telegramChatId,
+        hasCompletedOnboarding: user.hasCompletedOnboarding,
+        createdAt: user.createdAt,
+        stats: stats || null
+      }
+    });
+  } catch (error) {
+    console.error('❌ Error fetching user profile:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
 
   // Setup multer for avatar upload
   const upload = multer({
@@ -1164,6 +1234,171 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Internal server error" });
     }
   });
+// ===== PROTECTED SUBSCRIPTION ROUTES =====
+  
+  // AI функции - доступны только для Plus и Pro
+  app.post("/api/ai/ask", 
+    authenticateToken, 
+    checkSubscription("plus"), 
+    checkFeatureLimit("ai_requests"),
+    async (req: AuthRequest, res) => {
+      try {
+        const { question, principleId } = req.body;
+        
+        // Проверяем лимит (если не unlimited)
+        if (req.featureLimit !== -1) {
+          // Здесь проверка текущего использования
+          const currentUsage = await storage.getMonthlyUsage(req.user.id, "ai_requests");
+          
+          if (currentUsage >= req.featureLimit) {
+            return res.status(429).json({
+              error: `Ви досягли місячного ліміту (${req.featureLimit} запитів)`,
+              code: "LIMIT_REACHED",
+              currentUsage,
+              limit: req.featureLimit
+            });
+          }
+          
+          // Увеличиваем счетчик использования
+          await storage.incrementUsage(req.user.id, "ai_requests");
+        }
+        
+        // Логика AI
+        const { generateAIResponse } = await import("./services/aiService");
+        const response = await generateAIResponse(question, principleId);
+        res.json({ response });
+        
+      } catch (error) {
+        console.error("AI error:", error);
+        res.status(500).json({ error: "AI service error" });
+      }
+    }
+  );
+
+  // Экспорт данных - доступен для всех платных планов
+  app.get("/api/export/journal", 
+    authenticateToken, 
+    checkSubscription("light"),
+    async (req: AuthRequest, res) => {
+      try {
+        const format = req.query.format as string || "csv";
+        const entries = await storage.getUserJournalEntries(req.user.id, 1000, 0);
+        
+        if (format === "csv") {
+          const csv = entries.map(e => 
+            `"${e.createdAt.toISOString()}","${e.principle?.title || ''}","${e.content.replace(/"/g, '""')}","${e.mood || ''}","${e.energyLevel || ''}"`
+          ).join('\n');
+          
+          const header = '"Date","Principle","Content","Mood","Energy Level"\n';
+          
+          res.setHeader("Content-Type", "text/csv");
+          res.setHeader("Content-Disposition", 'attachment; filename="karma-journal.csv"');
+          res.send(header + csv);
+        } else {
+          res.json(entries);
+        }
+        
+      } catch (error) {
+        console.error("Export error:", error);
+        res.status(500).json({ error: "Export failed" });
+      }
+    }
+  );
+
+  // Расширенная аналитика - только Pro
+  app.get("/api/analytics/advanced", 
+    authenticateToken, 
+    checkSubscription("pro"),
+    async (req: AuthRequest, res) => {
+      try {
+        const userId = req.user.id;
+        const entries = await storage.getUserJournalEntries(userId, 1000, 0);
+        
+        // Анализ по принципам
+        const principleStats = {};
+        entries.forEach(entry => {
+          const pId = entry.principleId;
+          if (!principleStats[pId]) {
+            principleStats[pId] = { count: 0, moods: [], energyLevels: [] };
+          }
+          principleStats[pId].count++;
+          if (entry.mood) principleStats[pId].moods.push(entry.mood);
+          if (entry.energyLevel) principleStats[pId].energyLevels.push(entry.energyLevel);
+        });
+        
+        // Тренды по времени
+        const monthlyTrends = {};
+        entries.forEach(entry => {
+          const month = entry.createdAt.toISOString().substring(0, 7);
+          monthlyTrends[month] = (monthlyTrends[month] || 0) + 1;
+        });
+        
+        res.json({
+          totalEntries: entries.length,
+          principleStats,
+          monthlyTrends,
+          averageEntriesPerDay: entries.length / 30,
+          mostActivePrinciple: Object.entries(principleStats)
+            .sort((a, b) => b[1].count - a[1].count)[0]
+        });
+      } catch (error) {
+        console.error("Analytics error:", error);
+        res.status(500).json({ error: "Analytics service error" });
+      }
+    }
+  );
+
+  // Персональные рекомендации - Plus и выше
+  app.get("/api/recommendations/personal", 
+    authenticateToken, 
+    checkSubscription("plus"),
+    async (req: AuthRequest, res) => {
+      try {
+        const userId = req.user.id;
+        const stats = await storage.getUserStats(userId);
+        const entries = await storage.getUserJournalEntries(userId, 50, 0);
+        
+        // Простые рекомендации на основе данных
+        const recommendations = [];
+        
+        if (stats.streakDays < 3) {
+          recommendations.push({
+            type: "consistency",
+            message: "Спробуйте вести щоденник кожен день для кращих результатів",
+            priority: "high"
+          });
+        }
+        
+        if (entries.length > 0) {
+          const lastEntry = entries[0];
+          const daysSinceLastEntry = Math.floor(
+            (Date.now() - lastEntry.createdAt.getTime()) / (1000 * 60 * 60 * 24)
+          );
+          
+          if (daysSinceLastEntry > 2) {
+            recommendations.push({
+              type: "reminder",
+              message: `Ви не вели щоденник ${daysSinceLastEntry} днів. Час повернутися до практики!`,
+              priority: "medium"
+            });
+          }
+        }
+        
+        recommendations.push({
+          type: "tip",
+          message: "Додавайте настрій та рівень енергії до записів для кращого самоаналізу",
+          priority: "low"
+        });
+        
+        res.json({ recommendations });
+      } catch (error) {
+        console.error("Recommendations error:", error);
+        res.status(500).json({ error: "Failed to generate recommendations" });
+      }
+    }
+  );
+
+  // ===== END PROTECTED SUBSCRIPTION ROUTES =====
 
   const httpServer = createServer(app);
   return httpServer;
@@ -1443,3 +1678,21 @@ async function initializePrinciples() {
     await storage.createOrUpdatePrinciple(principleData);
   }
 }
+app.get("/api/usage/:feature",
+  authenticateToken,
+  async (req: AuthRequest, res) => {
+    const feature = req.params.feature;
+    const user = req.user;
+
+    const plan = user.subscription || "free";
+    const limits = {
+      ai_requests: { free: 0, light: 5, plus: 20, pro: -1 },
+      export_monthly: { free: 0, light: 3, plus: 10, pro: -1 }
+    };
+
+    const planLimit = limits[feature]?.[plan] ?? 0;
+    const used = await getMonthlyUsage(user.id, feature);
+
+    res.json({ used, limit: planLimit });
+  }
+);
