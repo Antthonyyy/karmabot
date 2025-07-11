@@ -95,11 +95,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const authResult = await handleGoogleAuth(idToken);
       
-      res.json({
-        token: authResult.token,
-        user: authResult.user,
-        isNewUser: authResult.isNewUser
-      });
+      res.redirect(`${process.env.FRONTEND_URL}/subscriptions`);
     } catch (error) {
       console.error("[GOOGLE AUTH ERROR]", error);
       console.error("Google auth error:", error);
@@ -1400,6 +1396,22 @@ app.get('/api/user/profile', authenticateToken, async (req: AuthRequest, res: Re
 
   // ===== END PROTECTED SUBSCRIPTION ROUTES =====
 
+  // Usage tracking endpoint
+  app.get("/api/usage/:feature",
+    authenticateToken,
+    async (req: AuthRequest, res) => {
+      try {
+        const { feature } = req.params;
+        const userId = req.user.id;
+        const usage = await checkFeatureLimit(userId, feature);
+        res.json(usage);
+      } catch (error) {
+        console.error("Error fetching usage:", error);
+        res.status(500).json({ error: "Internal server error" });
+      }
+    }
+  );
+
   const httpServer = createServer(app);
   return httpServer;
 }
@@ -1678,21 +1690,3 @@ async function initializePrinciples() {
     await storage.createOrUpdatePrinciple(principleData);
   }
 }
-app.get("/api/usage/:feature",
-  authenticateToken,
-  async (req: AuthRequest, res) => {
-    const feature = req.params.feature;
-    const user = req.user;
-
-    const plan = user.subscription || "free";
-    const limits = {
-      ai_requests: { free: 0, light: 5, plus: 20, pro: -1 },
-      export_monthly: { free: 0, light: 3, plus: 10, pro: -1 }
-    };
-
-    const planLimit = limits[feature]?.[plan] ?? 0;
-    const used = await getMonthlyUsage(user.id, feature);
-
-    res.json({ used, limit: planLimit });
-  }
-);
