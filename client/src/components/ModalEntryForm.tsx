@@ -25,7 +25,7 @@ import { Slider } from '@/components/ui/slider';
 import { Heart, Zap, HelpCircle, Gift } from 'lucide-react';
 import { VoiceRecorder } from './VoiceRecorder';
 import { useToast } from '@/hooks/use-toast';
-import { authUtils } from '@/utils/auth';
+import { apiRequest } from '@/lib/apiRequest';
 
 const formSchema = z.object({
   content: z.string().min(10, 'Запис повинен містити принаймні 10 символів'),
@@ -65,29 +65,10 @@ export default function ModalEntryForm({ isOpen, onClose }: ModalEntryFormProps)
 
   const createEntryMutation = useMutation({
     mutationFn: async (data: FormData & { category: string }) => {
-      const response = await fetch('/api/entries', {
+      return apiRequest('/api/entries', {
         method: 'POST',
-        headers: {
-          ...authUtils.getAuthHeaders(),
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
+        body: data,
       });
-
-      if (!response.ok) {
-        let errorMessage = 'Failed to create entry';
-        try {
-          const error = await response.json();
-          errorMessage = error.message || error.error || errorMessage;
-        } catch (e) {
-          // If JSON parsing fails, use the text response
-          const text = await response.text();
-          errorMessage = text || `Server error (${response.status})`;
-        }
-        throw new Error(errorMessage);
-      }
-
-      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/entries'] });

@@ -24,21 +24,55 @@ export function JournalQuickAdd({ onSuccess }: JournalQuickAddProps) {
 
   const addEntryMutation = useMutation({
     mutationFn: async (data: { category: string; description: string }) => {
-      const res = await fetch('/api/journal/entries', {
-        method: 'POST',
-        headers: {
-          ...authUtils.getAuthHeaders(),
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-      });
-      
-      if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.error || 'Failed to add entry');
+      try {
+        const res = await fetch('/api/journal/entries', {
+          method: 'POST',
+          headers: {
+            ...authUtils.getAuthHeaders(),
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(data)
+        });
+        
+        // Check if response is JSON
+        const contentType = res.headers.get('content-type');
+        const isJson = contentType && contentType.includes('application/json');
+        
+        if (!res.ok) {
+          let errorMessage = 'Failed to add entry';
+          
+          if (isJson) {
+            try {
+              const error = await res.json();
+              errorMessage = error.error || error.message || errorMessage;
+            } catch (e) {
+              errorMessage = `Server error (${res.status})`;
+            }
+          } else {
+            // Handle non-JSON responses (like HTML error pages)
+            const text = await res.text();
+            if (text.includes('<!DOCTYPE') || text.includes('<html')) {
+              errorMessage = `Server error: Received HTML instead of JSON (${res.status})`;
+            } else {
+              errorMessage = text || `Server error (${res.status})`;
+            }
+          }
+          
+          throw new Error(errorMessage);
+        }
+
+        if (!isJson) {
+          throw new Error('Server returned non-JSON response');
+        }
+        
+        return res.json();
+      } catch (error) {
+        // Handle network errors or other issues
+        if (error instanceof TypeError && error.message.includes('fetch')) {
+          throw new Error('Network error: Unable to connect to server');
+        }
+        throw error;
       }
-      
-      return res.json();
     },
     onSuccess: () => {
       toast({
