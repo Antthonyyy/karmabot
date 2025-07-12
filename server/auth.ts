@@ -62,11 +62,11 @@ export function authenticateToken(req: AuthRequest, res: Response, next: NextFun
 
         req.user = user;
         next();
-      }).catch(error => {
+      }).catch((error: any) => {
         console.error('❌ Error fetching user:', error);
         res.status(500).json({ message: 'Internal server error', details: error?.message });
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("❌ JWT verification error:", error.message);
       
       if (error.name === 'TokenExpiredError') {
@@ -86,7 +86,7 @@ export function authenticateToken(req: AuthRequest, res: Response, next: NextFun
         details: error.message 
       });
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error("❌ Authentication error:", error?.message);
     return res.status(500).json({ message: 'Authentication failed', details: error?.message });
   }
@@ -108,7 +108,7 @@ export function optionalAuth(req: AuthRequest, res: Response, next: NextFunction
         if (user) {
           req.user = user;
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('Error fetching user in optionalAuth:', error);
       }
     }
@@ -187,63 +187,55 @@ export async function handleGoogleAuth(googleIdToken: string): Promise<{ user: a
   return { user, token, isNewUser, needsSubscription };
 }
 
-// Telegram authentication handler
-export async function handleTelegramAuth(telegramData: any): Promise<{ user: any; token: string; isNewUser: boolean }> {
-  // For demo purposes, skip verification if it's a mock hash
-  const isMockAuth = telegramData.hash && (telegramData.hash.startsWith('mock_hash_') || telegramData.hash.startsWith('demo_hash_'));
+// Remove Telegram authentication handler
+// export async function handleTelegramAuth(telegramData: any): Promise<{ user: any; token: string; isNewUser: boolean }> {
+//   // For demo purposes, skip verification if it's a mock hash
+//   const isMockAuth = telegramData.hash && (telegramData.hash.startsWith('mock_hash_') || telegramData.hash.startsWith('demo_hash_'));
   
-  if (!isMockAuth && !telegramService.verifyTelegramAuth(telegramData)) {
-    throw new Error('Invalid Telegram authentication data');
-  }
+//   if (!isMockAuth && !telegramService.verifyTelegramAuth(telegramData)) {
+//     throw new Error('Invalid Telegram authentication data');
+//   }
 
-  const telegramId = telegramData.id.toString();
+//   const telegramId = telegramData.id.toString();
   
-  // Check if user exists
-  let user = await storage.getUserByTelegramId(telegramId);
-  let isNewUser = false;
+//   // Check if user exists
+//   let user = await storage.getUserByTelegramId(telegramId);
+//   let isNewUser = false;
 
-  if (!user) {
-    // Create new user
-    const userData = {
-      telegramId,
-      telegramChatId: telegramId, // Initial chat ID, may be updated later
-      firstName: telegramData.first_name,
-      lastName: telegramData.last_name || null,
-      username: telegramData.username || null,
-      currentPrinciple: 1,
-      timezoneOffset: 0,
-      notificationType: 'daily' as const,
-      customTimes: null,
-      language: 'uk',
-      isActive: true,
-    };
+//   if (!user) {
+//     // Create new user
+//     const userData = {
+//       telegramId,
+//       telegramChatId: telegramId, // Initial chat ID, may be updated later
+//       firstName: telegramData.first_name,
+//       lastName: telegramData.last_name || null,
+//       username: telegramData.username || null,
+//       currentPrinciple: 1,
+//       timezoneOffset: 0,
+//       notificationType: 'daily' as const,
+//       customTimes: null,
+//       language: 'uk',
+//       isActive: true,
+//     };
 
-    user = await storage.createUser(userData);
+//     user = await storage.createUser(userData);
     
-    // Initialize user stats
-    await storage.initializeUserStats(user.id);
+//     // Initialize user stats
+//     await storage.initializeUserStats(user.id);
     
-    // Create trial subscription (3 days free)
-    // const trialExpiresAt = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000); // 3 days from now
-    // await storage.createSubscription({
-    //   userId: user.id,
-    //   plan: 'trial',
-    //   expiresAt: trialExpiresAt,
-    //   status: 'active'
-    // });
-    
-    isNewUser = true;
-  } else {
-    // Update user info from Telegram
-    user = await storage.updateUser(user.id, {
-      firstName: telegramData.first_name,
-      lastName: telegramData.last_name || null,
-      username: telegramData.username || null,
-    });
-  }
+//     // Create trial subscription (3 days free)
+//     // const trialExpiresAt = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000); // 3 days from now
+//     // await storage.createSubscription({
+//     //   userId: user.id,
+//     //   plan: 'trial',
+//     //   expiresAt: trialExpiresAt
+//     // });
 
-  // Generate JWT token
-  const token = generateToken(user);
+//     isNewUser = true;
+//   }
 
-  return { user, token, isNewUser };
-}
+//   // Generate JWT token
+//   const token = generateToken(user);
+
+//   return { user, token, isNewUser };
+// }
