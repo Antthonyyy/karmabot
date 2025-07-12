@@ -6,14 +6,17 @@ import './i18n/config';
 import { I18nextProvider } from 'react-i18next';
 import i18n from './i18n/config';
 import { TooltipProvider } from '@/components/ui/tooltip';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <TooltipProvider>
-      <I18nextProvider i18n={i18n}>
-        <App />
-      </I18nextProvider>
-    </TooltipProvider>
+    <ErrorBoundary>
+      <TooltipProvider>
+        <I18nextProvider i18n={i18n}>
+          <App />
+        </I18nextProvider>
+      </TooltipProvider>
+    </ErrorBoundary>
   </StrictMode>
 );
 
