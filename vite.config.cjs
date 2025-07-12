@@ -14,7 +14,37 @@ module.exports = {
     outDir: "dist",
     emptyOutDir: true,
     rollupOptions: {
-      external: []
+      external: [],
+      output: {
+        manualChunks: {
+          // UI library - only existing modules
+          'radix-ui': [
+            '@radix-ui/react-dialog',
+            '@radix-ui/react-dropdown-menu',
+            '@radix-ui/react-toast',
+            '@radix-ui/react-tooltip',
+            '@radix-ui/react-tabs',
+            '@radix-ui/react-select',
+            '@radix-ui/react-switch',
+            '@radix-ui/react-progress',
+            '@radix-ui/react-avatar'
+          ],
+          // Data fetching
+          'tanstack': ['@tanstack/react-query'],
+          // Router
+          'wouter': ['wouter'],
+          // Charts and data viz
+          'charts': ['recharts'],
+          // Icons
+          'icons': ['lucide-react'],
+          // i18n
+          'i18n': ['react-i18next', 'i18next'],
+          // Animation
+          'animation': ['framer-motion'],
+          // Utils
+          'utils': ['date-fns', 'zod']
+        }
+      }
     }
   }
 };
