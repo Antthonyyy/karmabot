@@ -44,7 +44,7 @@ if ('serviceWorker' in navigator && import.meta.env.PROD) {
 }
 
 // Handle install prompt for PWA
-let deferredPrompt: any;
+let deferredPrompt: Event | null = null;
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   deferredPrompt = e;

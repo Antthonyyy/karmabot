@@ -14,7 +14,7 @@ export default function GoogleLoginButton({ onAuthSuccess }: GoogleLoginButtonPr
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
 
-  const handleGoogleSuccess = async (credentialResponse: any) => {
+  const handleGoogleSuccess = async (credentialResponse: { credential: string }) => {
     try {
       console.log('Google login successful:', credentialResponse);
       

@@ -81,7 +81,7 @@ export default function ModalEntryForm({ isOpen, onClose }: ModalEntryFormProps)
       form.reset();
       setSelectedCategory('');
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
         title: 'Помилка',
         description: error.message || 'Не вдалося додати запис',
