@@ -1,8 +1,9 @@
+import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TrendingUp, Activity } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 
-export default function ProgressChart() {
+const ProgressChart = React.memo(function ProgressChart() {
   const { data: user } = useQuery({ queryKey: ['/api/user/me'] });
   const stats = user?.stats;
 
@@ -46,4 +47,6 @@ export default function ProgressChart() {
       </CardContent>
     </Card>
   );
-}
+});
+
+export default ProgressChart;

@@ -1,7 +1,8 @@
+import React from 'react';
 import { Flame, Calendar } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 
-export default function StreakCard() {
+const StreakCard = React.memo(function StreakCard() {
   const { data: user } = useQuery({ queryKey: ['/api/user/me'] });
   const { data: stats } = useQuery({ queryKey: ['/api/user/stats'] });
 
@@ -38,4 +39,6 @@ export default function StreakCard() {
       </div>
     </div>
   );
-}
+});
+
+export default StreakCard;
