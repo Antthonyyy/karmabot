@@ -1,74 +1,35 @@
-import express, { type Express } from "express";
-import fs from "fs";
-import path from "path";
-import { createServer as createViteServer, createLogger } from "vite";
-import { type Server } from "http";
-import viteConfig from "../vite.config";
-import { nanoid } from "nanoid";
+import express from 'express';
+import path from 'path';
+import { createServer as createViteServer } from 'vite';
+import type { ViteDevServer } from 'vite';
 
-const viteLogger = createLogger();
+export async function setupVite(app: express.Application) {
+  try {
+    // Create Vite server in middleware mode
+    const vite: ViteDevServer = await createViteServer({
+      server: { middlewareMode: true },
+      appType: 'spa',
+      root: './client',
+    });
 
-export function log(message: string, source = "express") {
-  const formattedTime = new Date().toLocaleTimeString("en-US", {
-    hour: "numeric",
-    minute: "2-digit",
-    second: "2-digit",
-    hour12: true,
-  });
-
-  console.log(`${formattedTime} [${source}] ${message}`);
+    // Use vite's connect instance as middleware
+    app.use(vite.ssrFixStacktrace);
+    app.use('/src', vite.middlewares);
+    app.use('/node_modules', vite.middlewares);
+    app.use('/@vite', vite.middlewares);
+    app.use('/@fs', vite.middlewares);
+    
+    console.log('✅ Vite middleware configured');
+    
+    return vite;
+  } catch (error) {
+    console.error('❌ Failed to setup Vite middleware:', error);
+    return null;
+  }
 }
 
-export async function setupVite(app: Express, server: Server) {
-  const serverOptions = {
-    middlewareMode: true,
-    hmr: { server },
-    allowedHosts: true,
-  };
-
-  const vite = await createViteServer({
-    ...viteConfig,
-    configFile: false,
-    customLogger: {
-      ...viteLogger,
-      error: (msg, options) => {
-        viteLogger.error(msg, options);
-        process.exit(1);
-      },
-    },
-    server: serverOptions,
-    appType: "custom",
-  });
-
-  app.use(vite.middlewares);
-  app.use("*", async (req, res, next) => {
-    const url = req.originalUrl;
-
-    try {
-      const clientTemplate = path.resolve(
-        import.meta.dirname,
-        "..",
-        "client",
-        "index.html",
-      );
-
-      // always reload the index.html file from disk incase it changes
-      let template = await fs.promises.readFile(clientTemplate, "utf-8");
-      template = template.replace(
-        `src="/src/main.tsx"`,
-        `src="/src/main.tsx?v=${nanoid()}"`,
-      );
-      const page = await vite.transformIndexHtml(url, template);
-      res.status(200).set({ "Content-Type": "text/html" }).end(page);
-    } catch (e) {
-      vite.ssrFixStacktrace(e as Error);
-      next(e);
-    }
-  });
-}
-
-export function serveStatic(app: Express) {
-  const root = path.resolve(process.cwd(), 'dist/public');
+export function serveStatic(app: express.Application) {
+  const root = './dist/public';
   app.use(express.static(root));
   app.get('*', (_req, res) => {
     res.sendFile(path.join(root, 'index.html'));

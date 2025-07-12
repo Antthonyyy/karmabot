@@ -45,7 +45,12 @@ export default function GoogleLoginButton({ onAuthSuccess }: GoogleLoginButtonPr
       if (onAuthSuccess) {
         onAuthSuccess();
       } else {
-        setLocation('/dashboard');
+        // Redirect based on subscription status
+        if (data.needsSubscription) {
+          setLocation('/subscriptions');
+        } else {
+          setLocation('/dashboard');
+        }
       }
     } catch (error) {
       console.error('Google authentication error:', error);

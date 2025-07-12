@@ -3,7 +3,7 @@ import cookieParser from "cookie-parser";
 import path from "path";
 import fs from "fs";
 import { registerRoutes } from "./routes";
-// import { setupVite, serveStatic, log } from "./vite"; // Vite import disabled temporarily
+import { setupVite } from "./vite";
 function log(message: string, source = "express") {
   const formattedTime = new Date().toLocaleTimeString("en-US", {
     hour: "numeric",
@@ -88,64 +88,37 @@ app.use((req, res, next) => {
     throw err;
   });
 
-  // Define custom routes BEFORE static middleware
-  app.get('/', (req, res) => {
-    // Read the HTML file and inject the real GOOGLE_CLIENT_ID
-    const htmlPath = path.join(process.cwd(), 'client', 'public', 'simple-login.html');
-    let html = fs.readFileSync(htmlPath, 'utf8');
-    
-    // Replace placeholder with real GOOGLE_CLIENT_ID
-    const googleClientId = process.env.GOOGLE_CLIENT_ID || '';
-    html = html.replace(/YOUR_GOOGLE_CLIENT_ID/g, googleClientId);
-    
-    res.send(html);
-  });
+  // Setup Vite middleware for React SPA
+  const vite = await setupVite(app);
+  
+  // Serve static files from client/public
+  app.use(express.static(path.join(process.cwd(), 'client', 'public')));
 
-  app.get('/login', (req, res) => {
-    // Same logic for /login route
-    const htmlPath = path.join(process.cwd(), 'client', 'public', 'simple-login.html');
-    let html = fs.readFileSync(htmlPath, 'utf8');
-    
-    const googleClientId = process.env.GOOGLE_CLIENT_ID || '';
-    html = html.replace(/YOUR_GOOGLE_CLIENT_ID/g, googleClientId);
-    
-    res.send(html);
-  });
-
-  app.get('/dashboard', (req, res) => {
-    res.send(`
-      <html>
-        <head><title>Dashboard</title></head>
-        <body>
-          <h1>Dashboard</h1>
-          <p>Google OAuth успішно працює!</p>
-          <script>
-            const token = localStorage.getItem('token');
-            const user = localStorage.getItem('user');
-            if (token && user) {
-              document.body.innerHTML += '<p>Токен: ' + token.substring(0, 20) + '...</p>';
-              document.body.innerHTML += '<p>Користувач: ' + user + '</p>';
-            } else {
-              window.location.href = '/';
-            }
-          </script>
-        </body>
-      </html>
-    `);
-  });
-
-  // Catch-all handler  
-  app.get('*', (req, res) => {
+  // Catch-all handler - serve React SPA for all non-API routes
+  app.get('*', async (req, res) => {
     if (req.path.startsWith('/api')) {
       return res.status(404).json({ message: 'API endpoint not found' });
     }
     
-    // Only serve the login page for non-API routes
-    const htmlPath = path.join(process.cwd(), 'client', 'public', 'simple-login.html');
-    let html = fs.readFileSync(htmlPath, 'utf8');
-    const googleClientId = process.env.GOOGLE_CLIENT_ID || '';
-    html = html.replace(/YOUR_GOOGLE_CLIENT_ID/g, googleClientId);
-    res.send(html);
+    try {
+      // Serve the main React app for all routes
+      const htmlPath = path.join(process.cwd(), 'client', 'index.html');
+      let html = fs.readFileSync(htmlPath, 'utf8');
+      
+      // Inject the Google Client ID if needed
+      const googleClientId = process.env.GOOGLE_CLIENT_ID || '';
+      html = html.replace(/YOUR_GOOGLE_CLIENT_ID/g, googleClientId);
+      
+      // Transform HTML through Vite if available
+      if (vite) {
+        html = await vite.transformIndexHtml(req.originalUrl, html);
+      }
+      
+      res.send(html);
+    } catch (error) {
+      console.error('Error serving SPA:', error);
+      res.status(500).send('Server error');
+    }
   });
 
   
