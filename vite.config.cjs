@@ -7,7 +7,7 @@ module.exports = {
   plugins: [react()],
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "client/src")
+      "@": path.resolve(__dirname, "client", "src")
     }
   }
 };
