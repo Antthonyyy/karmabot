@@ -95,7 +95,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const authResult = await handleGoogleAuth(idToken);
       
-      res.redirect(`${process.env.FRONTEND_URL}/subscriptions`);
+      // Return JSON response instead of redirect
+      res.json({
+        token: authResult.token,
+        user: authResult.user,
+        isNewUser: authResult.isNewUser,
+        needsSubscription: authResult.needsSubscription
+      });
     } catch (error) {
       console.error("[GOOGLE AUTH ERROR]", error);
       console.error("Google auth error:", error);

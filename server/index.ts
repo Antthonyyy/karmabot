@@ -139,7 +139,13 @@ app.use((req, res, next) => {
     if (req.path.startsWith('/api')) {
       return res.status(404).json({ message: 'API endpoint not found' });
     }
-    res.sendFile(path.join(process.cwd(), 'client', 'public', 'simple-login.html'));
+    
+    // Only serve the login page for non-API routes
+    const htmlPath = path.join(process.cwd(), 'client', 'public', 'simple-login.html');
+    let html = fs.readFileSync(htmlPath, 'utf8');
+    const googleClientId = process.env.GOOGLE_CLIENT_ID || '';
+    html = html.replace(/YOUR_GOOGLE_CLIENT_ID/g, googleClientId);
+    res.send(html);
   });
 
   

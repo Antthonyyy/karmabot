@@ -36,11 +36,34 @@ export async function apiRequest(
   };
 
   const res = await fetch(url, requestOptions);
-  if (!res.ok) throw new Error(await res.text());
-
-  return res.headers.get('content-type')?.includes('json')
-    ? res.json()
-    : {};
+  
+  // First try to get the response as text
+  const responseText = await res.text();
+  
+  // If not ok, throw error with response text
+  if (!res.ok) {
+    // Try to parse as JSON first
+    try {
+      const errorJson = JSON.parse(responseText);
+      throw new Error(errorJson.message || errorJson.error || 'Request failed');
+    } catch (e) {
+      // If can't parse as JSON, throw the raw text
+      throw new Error(responseText || res.statusText);
+    }
+  }
+  
+  // For successful responses, try to parse as JSON if content-type is json
+  if (res.headers.get('content-type')?.includes('json')) {
+    try {
+      return JSON.parse(responseText);
+    } catch (e) {
+      console.error('Failed to parse JSON response:', e);
+      throw new Error('Invalid JSON response from server');
+    }
+  }
+  
+  // Return empty object for non-JSON responses
+  return {};
 }
 
 type UnauthorizedBehavior = "returnNull" | "throw";

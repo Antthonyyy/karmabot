@@ -18,7 +18,7 @@ export default function GoogleLoginButton({ onAuthSuccess }: GoogleLoginButtonPr
     try {
       console.log('Google login successful:', credentialResponse);
       
-      const response = await apiRequest('/api/auth/google', {
+      const data = await apiRequest('/api/auth/google', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -27,13 +27,6 @@ export default function GoogleLoginButton({ onAuthSuccess }: GoogleLoginButtonPr
           idToken: credentialResponse.credential
         }),
       });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Authentication failed');
-      }
-
-      const data = await response.json();
       
       // Save auth data
       setToken(data.token);
