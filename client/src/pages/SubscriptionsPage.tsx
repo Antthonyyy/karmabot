@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,6 +11,7 @@ import { authUtils } from '@/utils/auth';
 import { useToast } from '@/hooks/use-toast';
 import { BackButton } from '@/components/BackButton';
 import { ScaleTransition, FadeTransition } from '@/components/PageTransition';
+import { useLocation } from 'wouter';
 
 interface Plan {
   id: string;
@@ -32,7 +33,11 @@ export default function SubscriptionsPage() {
   const { t } = useTranslation('subscriptions');
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [, setLocation] = useLocation();
   const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'yearly'>('monthly');
+  const [isCheckingPayment, setIsCheckingPayment] = useState(false);
+  const [paymentWindowHandle, setPaymentWindowHandle] = useState<Window | null>(null);
+  const [previousSubscription, setPreviousSubscription] = useState<Subscription | null>(null);
 
   const { data: plans, isLoading: plansLoading } = useQuery({
     queryKey: ['subscription-plans'],
@@ -43,7 +48,7 @@ export default function SubscriptionsPage() {
     }
   });
 
-  const { data: currentSubscription } = useQuery({
+  const { data: currentSubscription, refetch: refetchSubscription } = useQuery({
     queryKey: ['current-subscription'],
     queryFn: async () => {
       const response = await fetch('/api/subscriptions/current', {
@@ -53,6 +58,57 @@ export default function SubscriptionsPage() {
       return response.json() as Promise<Subscription>;
     }
   });
+
+  // Track subscription changes and redirect only after successful payment
+  useEffect(() => {
+    if (!currentSubscription) return;
+
+    // If this is the first load, just set the previous subscription
+    if (!previousSubscription) {
+      setPreviousSubscription(currentSubscription);
+      return;
+    }
+
+    // Check if subscription changed from 'none' to active plan (successful payment)
+    const wasNoSubscription = previousSubscription.plan === 'none';
+    const nowHasSubscription = currentSubscription.plan !== 'none';
+    
+    if (wasNoSubscription && nowHasSubscription && isCheckingPayment) {
+      const timer = setTimeout(() => {
+        toast({
+          title: "🎉 Підписку активовано!",
+          description: `Вітаємо! Переходимо на головну сторінку...`,
+        });
+        setLocation('/dashboard');
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+
+    // Update previous subscription
+    setPreviousSubscription(currentSubscription);
+  }, [currentSubscription, previousSubscription, isCheckingPayment, setLocation, toast]);
+
+  // Payment window monitoring
+  useEffect(() => {
+    if (!paymentWindowHandle || !isCheckingPayment) return;
+
+    const checkPaymentWindow = setInterval(() => {
+      if (paymentWindowHandle.closed) {
+        console.log('Payment window closed, checking subscription status...');
+        setIsCheckingPayment(false);
+        setPaymentWindowHandle(null);
+        
+        // Check subscription status after payment window closes
+        setTimeout(() => {
+          refetchSubscription();
+        }, 2000);
+        
+        clearInterval(checkPaymentWindow);
+      }
+    }, 1000);
+
+    return () => clearInterval(checkPaymentWindow);
+  }, [paymentWindowHandle, isCheckingPayment, refetchSubscription]);
 
   const subscribeMutation = useMutation({
     mutationFn: async ({ planId, billingPeriod }: { planId: string; billingPeriod: string }) => {
@@ -65,11 +121,14 @@ export default function SubscriptionsPage() {
       return response.json();
     },
     onSuccess: (data) => {
-      // Redirect to payment
-      window.open(data.paymentUrl, '_blank');
+      // Open payment window and start monitoring
+      const paymentWindow = window.open(data.paymentUrl, '_blank', 'width=800,height=600');
+      setPaymentWindowHandle(paymentWindow);
+      setIsCheckingPayment(true);
+      
       toast({
         title: "Переходимо до оплати",
-        description: "Відкрито сторінку для оплати підписки"
+        description: "Після оплати автоматично перенаправимо вас на головну сторінку",
       });
     },
     onError: (error) => {

@@ -224,35 +224,55 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUserByEmail(email: string): Promise<User | undefined> {
-    const [user] = await db.select({
-      id: users.id,
-      email: users.email,
-      telegramId: users.telegramId,
-      telegramChatId: users.telegramChatId,
-      firstName: users.firstName,
-      lastName: users.lastName,
-      username: users.username,
-      profilePicture: users.profilePicture,
-      currentPrinciple: users.currentPrinciple,
-      timezoneOffset: users.timezoneOffset,
-      notificationType: users.notificationType,
-      customTimes: users.customTimes,
-      language: users.language,
-      isActive: users.isActive,
-      reminderMode: users.reminderMode,
-      dailyPrinciplesCount: users.dailyPrinciplesCount,
-      timezone: users.timezone,
-      remindersEnabled: users.remindersEnabled,
-      lastReminderSent: users.lastReminderSent,
-      hasCompletedOnboarding: users.hasCompletedOnboarding,
-      subscription: users.subscription,
-      subscriptionStartDate: users.subscriptionStartDate,
-      subscriptionEndDate: users.subscriptionEndDate,
-      preferredLanguage: users.preferredLanguage,
-      createdAt: users.createdAt,
-      updatedAt: users.updatedAt
-    }).from(users).where(eq(users.email, email));
-    return user || undefined;
+    console.log('🔍 getUserByEmail called with:', {
+      email: email,
+      emailLength: email ? email.length : 0,
+      emailHasAt: email ? email.includes('@') : false,
+      emailType: typeof email,
+      emailValue: JSON.stringify(email)
+    });
+    
+    const maxRetries = 3;
+    let attempts = 0;
+    while (attempts < maxRetries) {
+      try {
+        const [user] = await db.select({
+          id: users.id,
+          email: users.email,
+          telegramId: users.telegramId,
+          telegramChatId: users.telegramChatId,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          username: users.username,
+          profilePicture: users.profilePicture,
+          avatarUrl: users.avatarUrl,
+          currentPrinciple: users.currentPrinciple,
+          timezoneOffset: users.timezoneOffset,
+          notificationType: users.notificationType,
+          customTimes: users.customTimes,
+          language: users.language,
+          isActive: users.isActive,
+          reminderMode: users.reminderMode,
+          dailyPrinciplesCount: users.dailyPrinciplesCount,
+          timezone: users.timezone,
+          remindersEnabled: users.remindersEnabled,
+          lastReminderSent: users.lastReminderSent,
+          hasCompletedOnboarding: users.hasCompletedOnboarding,
+          subscription: users.subscription,
+          subscriptionStartDate: users.subscriptionStartDate,
+          subscriptionEndDate: users.subscriptionEndDate,
+          preferredLanguage: users.preferredLanguage,
+          createdAt: users.createdAt,
+          updatedAt: users.updatedAt
+        }).from(users).where(eq(users.email, email));
+        return user || undefined;
+      } catch (error) {
+        attempts++;
+        if (attempts >= maxRetries) throw error;
+        console.warn(`Retry ${attempts}/${maxRetries} for getUserByEmail:`, error.message);
+        await new Promise(resolve => setTimeout(resolve, 1000 * attempts)); // Backoff
+      }
+    }
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {

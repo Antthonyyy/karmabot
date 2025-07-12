@@ -93,6 +93,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Google ID token is required" });
       }
 
+      console.log('🎫 Received idToken:', {
+        length: idToken.length,
+        preview: idToken.substring(0, 100) + '...',
+        type: typeof idToken
+      });
+
       const authResult = await handleGoogleAuth(idToken);
       
       // Return JSON response instead of redirect
@@ -1417,6 +1423,33 @@ app.get('/api/user/profile', authenticateToken, async (req: AuthRequest, res: Re
       }
     }
   );
+
+  // Test endpoint for debugging email processing
+  app.post("/api/test/email", async (req, res) => {
+    console.log("🧪 Test email endpoint hit");
+    console.log("📧 Request body:", req.body);
+    console.log("📧 Email from body:", req.body.email);
+    console.log("📧 Email details:", {
+      email: req.body.email,
+      type: typeof req.body.email,
+      length: req.body.email ? req.body.email.length : 0,
+      hasAt: req.body.email ? req.body.email.includes('@') : false,
+      charCodes: req.body.email ? [...req.body.email].map(c => c.charCodeAt(0)) : []
+    });
+    
+    try {
+      if (req.body.email) {
+        const user = await storage.getUserByEmail(req.body.email);
+        console.log("👤 User found:", user ? "Yes" : "No");
+        res.json({ success: true, userFound: !!user, email: req.body.email });
+      } else {
+        res.json({ success: false, error: "No email provided" });
+      }
+    } catch (error) {
+      console.error("❌ Test email error:", error);
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
 
   const httpServer = createServer(app);
   return httpServer;

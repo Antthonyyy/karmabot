@@ -52,6 +52,16 @@ export class GoogleService {
         throw new Error('Invalid token payload');
       }
 
+      console.log('🔍 Google token payload:', {
+        sub: payload.sub,
+        email: payload.email,
+        emailLength: payload.email ? payload.email.length : 0,
+        emailHasAt: payload.email ? payload.email.includes('@') : false,
+        name: payload.name,
+        given_name: payload.given_name,
+        family_name: payload.family_name
+      });
+
       return {
         id: payload.sub,
         email: payload.email!,

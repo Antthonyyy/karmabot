@@ -129,6 +129,14 @@ export async function handleGoogleAuth(googleIdToken: string): Promise<{ user: a
     throw new Error('Invalid Google token');
   }
 
+  console.log('🔍 Google user data:', {
+    email: googleUser.email,
+    emailLength: googleUser.email ? googleUser.email.length : 0,
+    emailHasAt: googleUser.email ? googleUser.email.includes('@') : false,
+    given_name: googleUser.given_name,
+    family_name: googleUser.family_name
+  });
+
   let user = await storage.getUserByEmail(googleUser.email);
   let isNewUser = false;
 
@@ -163,8 +171,18 @@ export async function handleGoogleAuth(googleIdToken: string): Promise<{ user: a
   // Generate JWT token
   const token = generateToken(user);
   
-  // Проверяем нужна ли подписка
-  const needsSubscription = !user.subscription || user.subscription === 'none';
+  // Check if user needs subscription - only for new users or users with 'none' subscription
+  let needsSubscription = false;
+  if (isNewUser || !user.subscription || user.subscription === 'none') {
+    // Check if user has any active subscriptions from database
+    const userSubscriptions = await storage.getUserSubscriptions(user.id);
+    const hasActiveSubscription = userSubscriptions.some(sub => 
+      sub.status === 'active' && sub.expiresAt && new Date(sub.expiresAt) > new Date()
+    );
+    
+    // Only redirect to subscriptions if no active subscription found
+    needsSubscription = !hasActiveSubscription;
+  }
 
   return { user, token, isNewUser, needsSubscription };
 }
