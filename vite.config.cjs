@@ -7,7 +7,12 @@ module.exports = {
   plugins: [react()],
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "client", "src")
+      "@": "./src"
+    }
+  },
+  build: {
+    rollupOptions: {
+      external: []
     }
   }
 };
