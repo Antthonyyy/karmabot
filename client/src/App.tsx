@@ -75,7 +75,8 @@ export default function App() {
                     <ProtectedRoute><ChatPage /></ProtectedRoute>
                   </UserFlowManager>
                 </Route>
-                <Route>
+                {/* Catch-all route for truly unknown paths */}
+                <Route path="*">
                   <NotFoundPage />
                 </Route>
               </PageTransition>

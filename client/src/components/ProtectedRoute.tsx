@@ -25,18 +25,20 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
     }
   }, [nextStep, setLocation, location]);
   
-  if (!authUtils.isAuthenticated()) {
-    return null;
+  // Show loading spinner during initial authentication check
+  if (isLoading) {
+    return <LoadingSpinner size="lg" className="min-h-screen" />;
   }
   
-  if (isLoading) {
+  // Redirect to login if not authenticated
+  if (!authUtils.isAuthenticated()) {
     return <LoadingSpinner size="lg" className="min-h-screen" />;
   }
   
   // Allow rendering if user is on the correct page for their flow step
   const currentPath = location.substring(1) || 'dashboard';
   if (nextStep !== 'dashboard' && currentPath !== nextStep) {
-    return null; // Will redirect via useEffect
+    return <LoadingSpinner size="lg" className="min-h-screen" />; // Show spinner while redirecting
   }
 
   return <>{children}</>;
