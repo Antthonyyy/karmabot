@@ -7,7 +7,6 @@ import { storage } from "./storage.js";
 import {
   authenticateToken,
   optionalAuth,
-  handleTelegramAuth,
   handleGoogleAuth,
   type AuthRequest,
   generateToken,
