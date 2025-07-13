@@ -14,6 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 import UsageLimitsDisplay from "@/components/UsageLimitsDisplay";
 import { useUserState } from '@/hooks/useUserState';
 import LoadingSpinner from '@/components/LoadingSpinner';
+import { apiRequest } from '@/lib/apiRequest';
 
 export default function DashboardPage() {
   const [, setLocation] = useLocation();

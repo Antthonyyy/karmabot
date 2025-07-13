@@ -7,27 +7,39 @@ import PageTransition from "@/components/PageTransition";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import UserFlowManager from "@/components/UserFlowManager";
 import { AuthErrorBoundary } from "@/components/AuthErrorBoundary";
+import { Suspense, lazy } from "react";
+import LoadingSpinner from "@/components/LoadingSpinner";
 
-// Pages
+// Pages - Critical pages loaded immediately
 import LoginPage from "@/pages/LoginPage";
 import DashboardPage from "@/pages/DashboardPage";
-import AnalyticsPage from "@/pages/AnalyticsPage";
 import ProfilePage from "@/pages/ProfilePage";
 import SettingsPage from "@/pages/SettingsPage";
 import OnboardingPage from "@/pages/OnboardingPage";
 import SubscriptionsPage from "@/pages/SubscriptionsPage";
-import ChatPage from "@/pages/ChatPage";
-import AchievementsPage from "@/pages/AchievementsPage";
 import NotFoundPage from "@/pages/not-found";
+
+// Heavy pages - Lazy loaded
+const AnalyticsPage = lazy(() => import("@/pages/AnalyticsPage"));
+const ChatPage = lazy(() => import("@/pages/ChatPage"));
+const AchievementsPage = lazy(() => import("@/pages/AchievementsPage"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 5 * 60 * 1000, // 5 minutes
       retry: 1,
+      refetchOnWindowFocus: false, // Prevent unnecessary refetches
     },
   },
 });
+
+// Wrapper for lazy loaded routes
+const LazyRoute = ({ children }: { children: React.ReactNode }) => (
+  <Suspense fallback={<LoadingSpinner size="lg" className="min-h-screen" />}>
+    {children}
+  </Suspense>
+);
 
 export default function App() {
   return (
@@ -48,9 +60,11 @@ export default function App() {
                   </UserFlowManager>
                 </Route>
                 <Route path="/analytics">
-                  <UserFlowManager>
-                    <ProtectedRoute><AnalyticsPage /></ProtectedRoute>
-                  </UserFlowManager>
+                  <LazyRoute>
+                    <UserFlowManager>
+                      <ProtectedRoute><AnalyticsPage /></ProtectedRoute>
+                    </UserFlowManager>
+                  </LazyRoute>
                 </Route>
                 <Route path="/profile">
                   <UserFlowManager>
@@ -66,14 +80,18 @@ export default function App() {
                   <ProtectedRoute><SubscriptionsPage /></ProtectedRoute>
                 </Route>
                 <Route path="/achievements">
-                  <UserFlowManager>
-                    <ProtectedRoute><AchievementsPage /></ProtectedRoute>
-                  </UserFlowManager>
+                  <LazyRoute>
+                    <UserFlowManager>
+                      <ProtectedRoute><AchievementsPage /></ProtectedRoute>
+                    </UserFlowManager>
+                  </LazyRoute>
                 </Route>
                 <Route path="/chat">
-                  <UserFlowManager>
-                    <ProtectedRoute><ChatPage /></ProtectedRoute>
-                  </UserFlowManager>
+                  <LazyRoute>
+                    <UserFlowManager>
+                      <ProtectedRoute><ChatPage /></ProtectedRoute>
+                    </UserFlowManager>
+                  </LazyRoute>
                 </Route>
                 {/* Catch-all route for truly unknown paths */}
                 <Route path="*">

@@ -1,7 +1,7 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { AlertTriangle, RefreshCw, Home, Bug } from 'lucide-react';
+import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
 
 interface Props {
   children: ReactNode;
@@ -10,124 +10,153 @@ interface Props {
 
 interface State {
   hasError: boolean;
-  error: Error | null;
-  errorInfo: ErrorInfo | null;
+  error?: Error;
+  errorInfo?: ErrorInfo;
+  errorId?: string;
 }
 
 export class ErrorBoundary extends Component<Props, State> {
-  public state: State = {
-    hasError: false,
-    error: null,
-    errorInfo: null,
-  };
-
-  public static getDerivedStateFromError(error: Error): State {
-    return { hasError: true, error, errorInfo: null };
+  constructor(props: Props) {
+    super(props);
+    this.state = { hasError: false };
   }
 
-  public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('🚨 ErrorBoundary caught an error:', error, errorInfo);
+  static getDerivedStateFromError(error: Error): State {
+    return {
+      hasError: true,
+      error,
+      errorId: `error_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    };
+  }
+
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    console.error('ErrorBoundary caught an error:', error, errorInfo);
     
     this.setState({
       error,
       errorInfo,
+      errorId: `error_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
     });
 
-    // Log to external service in production
-    if (process.env.NODE_ENV === 'production') {
-      // Here you would send to error tracking service like Sentry
-      console.log('Error would be sent to error tracking service');
-    }
+    // Enhanced error reporting
+    this.reportError(error, errorInfo);
   }
 
-  private handleReload = () => {
+  reportError = (error: Error, errorInfo: ErrorInfo) => {
+    try {
+      // Log to console with structured data
+      console.group('🚨 Application Error');
+      console.error('Error:', error.message);
+      console.error('Stack:', error.stack);
+      console.error('Component Stack:', errorInfo.componentStack);
+      console.error('Props:', this.props);
+      console.error('User Agent:', navigator.userAgent);
+      console.error('URL:', window.location.href);
+      console.error('Timestamp:', new Date().toISOString());
+      console.groupEnd();
+
+      // In production, you could send this to an error reporting service
+      if (import.meta.env.PROD) {
+        // Example: Sentry.captureException(error, { contexts: { react: errorInfo } });
+        // Or send to your own error reporting endpoint
+        fetch('/api/errors', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            error: error.message,
+            stack: error.stack,
+            componentStack: errorInfo.componentStack,
+            url: window.location.href,
+            userAgent: navigator.userAgent,
+            timestamp: new Date().toISOString(),
+            errorId: this.state.errorId
+          })
+        }).catch(() => {
+          // Ignore network errors when reporting errors
+        });
+      }
+    } catch (reportingError) {
+      console.error('Failed to report error:', reportingError);
+    }
+  };
+
+  handleReload = () => {
     window.location.reload();
   };
 
-  private handleGoHome = () => {
+  handleGoHome = () => {
     window.location.href = '/dashboard';
   };
 
-  private handleReportError = () => {
-    const errorReport = {
-      error: this.state.error?.toString(),
-      stack: this.state.error?.stack,
-      componentStack: this.state.errorInfo?.componentStack,
-      userAgent: navigator.userAgent,
-      url: window.location.href,
-      timestamp: new Date().toISOString(),
-    };
-    
-    console.log('Error report:', errorReport);
-    // In production, this would send to your error reporting service
-    alert('Звіт про помилку створено. Команда розробки буде повідомлена.');
-  };
-
-  public render() {
+  render() {
     if (this.state.hasError) {
       if (this.props.fallback) {
         return this.props.fallback;
       }
 
       return (
-        <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-violet-50 to-purple-50 dark:from-slate-900 dark:to-slate-800">
-          <Card className="w-full max-w-lg">
+        <div className="min-h-screen bg-gradient-to-br from-red-50 to-orange-50 flex items-center justify-center p-4">
+          <Card className="max-w-lg w-full">
             <CardHeader className="text-center">
-              <div className="mx-auto mb-4 p-3 rounded-full bg-red-100 dark:bg-red-900/20 w-fit">
-                <AlertTriangle className="w-8 h-8 text-red-600 dark:text-red-400" />
+              <div className="flex justify-center mb-4">
+                <div className="p-3 bg-red-100 rounded-full">
+                  <AlertTriangle className="h-8 w-8 text-red-600" />
+                </div>
               </div>
-              <CardTitle className="text-xl font-semibold">
+              <CardTitle className="text-xl text-red-800">
                 Щось пішло не так
               </CardTitle>
               <CardDescription>
-                Сталася неочікувана помилка. Не хвилюйтеся - ваші дані в безпеці.
+                Виникла неочікувана помилка. Ми вже працюємо над її виправленням.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <Button 
-                  onClick={this.handleReload} 
-                  className="w-full"
-                  variant="default"
-                >
-                  <RefreshCw className="w-4 h-4 mr-2" />
-                  Перезавантажити
-                </Button>
-                <Button 
-                  onClick={this.handleGoHome} 
-                  className="w-full"
-                  variant="outline"
-                >
-                  <Home className="w-4 h-4 mr-2" />
-                  На головну
-                </Button>
-              </div>
-              
-              {process.env.NODE_ENV === 'development' && (
-                <details className="mt-4">
-                  <summary className="cursor-pointer text-sm text-muted-foreground hover:text-foreground">
-                    Деталі помилки (розробка)
+              {import.meta.env.DEV && this.state.error && (
+                <details className="bg-gray-100 p-3 rounded-lg text-sm">
+                  <summary className="cursor-pointer font-medium text-gray-700 mb-2">
+                    Технічні деталі
                   </summary>
-                  <div className="mt-2 p-3 bg-muted rounded text-xs overflow-auto max-h-40">
-                    <div className="font-medium text-destructive mb-2">
-                      {this.state.error?.toString()}
+                  <div className="space-y-2 text-gray-600">
+                    <div>
+                      <strong>Помилка:</strong> {this.state.error.message}
                     </div>
-                    <pre className="whitespace-pre-wrap text-muted-foreground">
-                      {this.state.error?.stack}
-                    </pre>
+                    <div>
+                      <strong>ID:</strong> {this.state.errorId}
+                    </div>
+                    {this.state.error.stack && (
+                      <div>
+                        <strong>Stack:</strong>
+                        <pre className="mt-1 text-xs overflow-x-auto">
+                          {this.state.error.stack}
+                        </pre>
+                      </div>
+                    )}
                   </div>
                 </details>
               )}
               
-              <Button 
-                onClick={this.handleReportError} 
-                variant="ghost" 
-                size="sm"
-                className="w-full text-muted-foreground"
-              >
-                <Bug className="w-4 h-4 mr-2" />
-                Повідомити про помилку
-              </Button>
+              <div className="flex gap-3">
+                <Button 
+                  onClick={this.handleReload}
+                  className="flex-1"
+                  variant="default"
+                >
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Перезавантажити
+                </Button>
+                <Button 
+                  onClick={this.handleGoHome}
+                  className="flex-1"
+                  variant="outline"
+                >
+                  <Home className="h-4 w-4 mr-2" />
+                  На головну
+                </Button>
+              </div>
+              
+              <p className="text-xs text-gray-500 text-center">
+                Якщо проблема повторюється, спробуйте очистити кеш браузера
+              </p>
             </CardContent>
           </Card>
         </div>
