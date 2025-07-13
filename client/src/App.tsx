@@ -5,6 +5,8 @@ import GoogleOAuthProvider from "@/components/GoogleOAuthProvider";
 import PWAInstallPrompt from "@/components/PWAInstallPrompt";
 import PageTransition from "@/components/PageTransition";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import UserFlowManager from "@/components/UserFlowManager";
+import { AuthErrorBoundary } from "@/components/AuthErrorBoundary";
 
 // Pages
 import LoginPage from "@/pages/LoginPage";
@@ -31,43 +33,57 @@ export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <GoogleOAuthProvider>
-        <Router>
-          <div className="min-h-screen bg-background">
-            <PageTransition>
-              <Route path="/" component={LoginPage} />
-              <Route path="/login" component={LoginPage} />
-              <Route path="/onboarding">
-                <ProtectedRoute><OnboardingPage /></ProtectedRoute>
-              </Route>
-              <Route path="/dashboard">
-                <ProtectedRoute><DashboardPage /></ProtectedRoute>
-              </Route>
-              <Route path="/analytics">
-                <ProtectedRoute><AnalyticsPage /></ProtectedRoute>
-              </Route>
-              <Route path="/profile">
-                <ProtectedRoute><ProfilePage /></ProtectedRoute>
-              </Route>
-              <Route path="/settings">
-                <ProtectedRoute><SettingsPage /></ProtectedRoute>
-              </Route>
-              <Route path="/subscriptions">
-                <ProtectedRoute><SubscriptionsPage /></ProtectedRoute>
-              </Route>
-              <Route path="/achievements">
-                <ProtectedRoute><AchievementsPage /></ProtectedRoute>
-              </Route>
-              <Route path="/chat">
-                <ProtectedRoute><ChatPage /></ProtectedRoute>
-              </Route>
-              <Route>
-                <NotFoundPage />
-              </Route>
-            </PageTransition>
-          </div>
-          <Toaster />
-          <PWAInstallPrompt />
-        </Router>
+        <AuthErrorBoundary>
+          <Router>
+            <div className="min-h-screen bg-background">
+              <PageTransition>
+                <Route path="/" component={LoginPage} />
+                <Route path="/login" component={LoginPage} />
+                <Route path="/onboarding">
+                  <ProtectedRoute><OnboardingPage /></ProtectedRoute>
+                </Route>
+                <Route path="/dashboard">
+                  <UserFlowManager>
+                    <ProtectedRoute><DashboardPage /></ProtectedRoute>
+                  </UserFlowManager>
+                </Route>
+                <Route path="/analytics">
+                  <UserFlowManager>
+                    <ProtectedRoute><AnalyticsPage /></ProtectedRoute>
+                  </UserFlowManager>
+                </Route>
+                <Route path="/profile">
+                  <UserFlowManager>
+                    <ProtectedRoute><ProfilePage /></ProtectedRoute>
+                  </UserFlowManager>
+                </Route>
+                <Route path="/settings">
+                  <UserFlowManager>
+                    <ProtectedRoute><SettingsPage /></ProtectedRoute>
+                  </UserFlowManager>
+                </Route>
+                <Route path="/subscriptions">
+                  <ProtectedRoute><SubscriptionsPage /></ProtectedRoute>
+                </Route>
+                <Route path="/achievements">
+                  <UserFlowManager>
+                    <ProtectedRoute><AchievementsPage /></ProtectedRoute>
+                  </UserFlowManager>
+                </Route>
+                <Route path="/chat">
+                  <UserFlowManager>
+                    <ProtectedRoute><ChatPage /></ProtectedRoute>
+                  </UserFlowManager>
+                </Route>
+                <Route>
+                  <NotFoundPage />
+                </Route>
+              </PageTransition>
+            </div>
+            <Toaster />
+            <PWAInstallPrompt />
+          </Router>
+        </AuthErrorBoundary>
       </GoogleOAuthProvider>
     </QueryClientProvider>
   );

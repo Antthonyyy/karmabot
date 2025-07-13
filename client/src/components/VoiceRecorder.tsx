@@ -4,6 +4,7 @@ import { Mic, Square, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { authUtils } from '@/utils/auth';
 import { useTranslation } from 'react-i18next';
+import { apiRequest } from '@/lib/queryClient';
 
 interface VoiceRecorderProps {
   onTranscript: (text: string) => void;
@@ -107,11 +108,7 @@ export function VoiceRecorder({ onTranscript, disabled }: VoiceRecorderProps) {
       fd.append('language', i18n.language.slice(0, 2));
 
       const token = authUtils.getToken();
-      const res = await fetch('/api/audio/transcribe', {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-        body: fd
-      });
+      const res = await apiRequest('/api/audio/transcribe', { method: 'POST' });
 
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'TRANSCRIBE_ERROR');

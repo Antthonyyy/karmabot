@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 import { authUtils } from '@/utils/auth';
+import { apiRequest } from '@/utils/api';
 
 interface TelegramLoginButtonProps {
   onAuthSuccess: () => void;
@@ -17,32 +18,21 @@ export default function TelegramLoginButton({ onAuthSuccess }: TelegramLoginButt
   const handleTelegramLogin = async () => {
     try {
       // Create session
-      const response = await fetch("/api/auth/telegram/start-session", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+      const response = await apiRequest('/api/auth/telegram/start-session', { method: 'POST' });
       
-      if (!response.ok) {
+      if (!response.sessionId) {
         throw new Error("Failed to create session");
       }
       
-      const data = await response.json();
-      
-      if (!data.sessionId) {
-        throw new Error("Failed to create session");
-      }
-      
-      setSessionId(data.sessionId);
+      setSessionId(response.sessionId);
       
       // Open Telegram
-      const telegramUrl = `https://t.me/${BOT_USERNAME}?start=auth_${data.sessionId}`;
+      const telegramUrl = `https://t.me/${BOT_USERNAME}?start=auth_${response.sessionId}`;
       window.open(telegramUrl, '_blank');
       
       // Start checking status
       setIsChecking(true);
-      checkAuthStatus(data.sessionId);
+      checkAuthStatus(response.sessionId);
       
     } catch (error) {
       console.error("Error starting session:", error);
@@ -65,15 +55,9 @@ export default function TelegramLoginButton({ onAuthSuccess }: TelegramLoginButt
       attempts++;
       
       try {
-        const response = await fetch(`/api/auth/check-session/${currentSessionId}`);
+        const response = await apiRequest(`/api/auth/check-session/${currentSessionId}`, { method: 'GET' });
         
-        if (!response.ok) {
-          throw new Error('Failed to check session');
-        }
-        
-        const data = await response.json();
-        
-        if (data.authorized && data.token && data.user) {
+        if (response.authorized && response.token && response.user) {
           // Successful authorization
           authSuccess = true;
           clearInterval(checkInterval);
@@ -81,12 +65,12 @@ export default function TelegramLoginButton({ onAuthSuccess }: TelegramLoginButt
           setSessionId(null);
           
           // Save data using authUtils
-          authUtils.setToken(data.token);
-          authUtils.setUser(data.user);
+          authUtils.setToken(response.token);
+          authUtils.setUser(response.user);
           
           toast({
             title: "Успішна авторизація!",
-            description: `Ласкаво просимо, ${data.user.firstName}!`,
+            description: `Ласкаво просимо, ${response.user.firstName}!`,
           });
           
           // Call callback

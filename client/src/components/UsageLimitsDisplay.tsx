@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { apiRequest } from '@/lib/queryClient';
 
 type UsageData = {
   used: number;
@@ -15,11 +16,7 @@ const UsageLimitsDisplay: React.FC<Props> = ({ feature }) => {
   useEffect(() => {
     const fetchUsage = async () => {
       try {
-        const res = await fetch(`/api/usage/${feature}`, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        });
+        const res = await apiRequest(`/api/usage/${feature}`, { method: 'GET' });
 
         if (!res.ok) throw new Error("Usage fetch failed");
         const data = await res.json();

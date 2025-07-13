@@ -2,6 +2,7 @@ import { useState, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Camera } from 'lucide-react';
 import { authUtils } from '@/utils/auth';
+import { apiRequest } from '@/lib/queryClient';
 
 interface AvatarUploadProps {
   user: any;
@@ -56,11 +57,7 @@ export default function AvatarUpload({ user, size = 'md' }: AvatarUploadProps) {
       const formData = new FormData();
       formData.append('avatar', file);
 
-      const response = await fetch('/api/user/avatar', {
-        method: 'POST',
-        headers: authUtils.getAuthHeaders(),
-        body: formData,
-      });
+      const response = await apiRequest('/api/user/avatar', { method: 'POST' });
 
       if (!response.ok) {
         throw new Error('Ошибка загрузки');
@@ -71,7 +68,7 @@ export default function AvatarUpload({ user, size = 'md' }: AvatarUploadProps) {
       // Обновляем кеш пользователя
       queryClient.setQueryData(['/api/user/me'], (oldData: any) => ({
         ...oldData,
-        avatarUrl: data.avatarUrl + '?v=' + Date.now()
+        profilePicture: data.profilePicture + '?v=' + Date.now()
       }));
 
     } catch (error) {
@@ -93,11 +90,14 @@ export default function AvatarUpload({ user, size = 'md' }: AvatarUploadProps) {
       onMouseLeave={() => setIsHovered(false)}
       onClick={() => fileInputRef.current?.click()}
     >
-      {user.avatarUrl ? (
-        <img 
-          src={user.avatarUrl} 
-          alt="Аватар" 
+      {user.profilePicture ? (
+        <img
+          src={user.profilePicture}
+          alt="Avatar"
           className="w-full h-full object-cover"
+          onError={(e) => {
+            e.currentTarget.style.display = 'none';
+          }}
         />
       ) : (
         <div className="w-full h-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-white font-semibold">

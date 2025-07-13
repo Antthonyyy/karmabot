@@ -3,16 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="google-client-id" content="YOUR_GOOGLE_CLIENT_ID">
-    <title>Кармічний Щоденник - Увійти</title>
-    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <title>Кармічний Щоденник - Вхід</title>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
         body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             margin: 0;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            padding: 20px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             display: flex;
@@ -21,152 +18,100 @@
         }
         .container {
             background: white;
-            padding: 2rem;
+            padding: 40px;
             border-radius: 12px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
             text-align: center;
             max-width: 400px;
-            width: 90%;
+            width: 100%;
         }
         .logo {
-            width: 80px;
-            height: 80px;
-            margin: 0 auto 1rem;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 2rem;
-        }
-        h1 {
+            font-size: 24px;
+            font-weight: bold;
             color: #333;
-            margin-bottom: 0.5rem;
+            margin-bottom: 30px;
         }
-        p {
+        .description {
             color: #666;
-            margin-bottom: 2rem;
+            margin-bottom: 30px;
+            line-height: 1.5;
         }
         .google-btn {
-            background: #4285f4;
-            color: white;
-            border: none;
-            padding: 12px 24px;
+            margin: 20px 0;
+        }
+        .error {
+            color: #e53e3e;
+            background: #fed7d7;
+            padding: 10px;
             border-radius: 6px;
-            font-size: 16px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            width: 100%;
-            margin: 1rem 0;
+            margin: 10px 0;
+            display: none;
         }
-        .google-btn:hover {
-            background: #3367d6;
-        }
-        .features {
-            margin-top: 2rem;
-            text-align: left;
-            background: #f8f9fa;
-            padding: 1rem;
-            border-radius: 8px;
-        }
-        .feature {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 8px;
-            font-size: 14px;
-            color: #555;
-        }
-        .check {
-            color: #28a745;
-            font-weight: bold;
+        .success {
+            color: #38a169;
+            background: #c6f6d5;
+            padding: 10px;
+            border-radius: 6px;
+            margin: 10px 0;
+            display: none;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="logo">🪷</div>
-        <h1>Ласкаво просимо</h1>
-        <p>Увійдіть через Google, щоб розпочати свою духовну подорож</p>
-
-        <div id="google-signin"></div>
-
-        <div class="features">
-            <h3>Що вас чекає:</h3>
-            <div class="feature">
-                <span class="check">✓</span>
-                <span>10 кармічних принципів для щоденної практики</span>
+        <div class="logo">🧘‍♂️ Кармічний Щоденник</div>
+        <div class="description">
+            Відстежуйте свої добрі справи та розвивайте карму
+        </div>
+        
+        <div id="error" class="error"></div>
+        <div id="success" class="success"></div>
+        
+        <div id="g_id_onload"
+             data-client_id="YOUR_GOOGLE_CLIENT_ID"
+             data-callback="handleCredentialResponse"
+             data-auto_prompt="false">
+        </div>
+        
+        <div class="google-btn">
+            <div id="g_id_signin"
+                 class="g_id_signin"
+                 data-type="standard"
+                 data-size="large"
+                 data-theme="outline"
+                 data-text="signin_with"
+                 data-shape="rectangular"
+                 data-logo_alignment="left">
             </div>
-            <div class="feature">
-                <span class="check">✓</span>
-                <span>Персоналізовані нагадування</span>
-            </div>
-            <div class="feature">
-                <span class="check">✓</span>
-                <span>Відстеження прогресу та статистика</span>
-            </div>
-            <div class="feature">
-                <span class="check">✓</span>
-                <span>Щоденник для рефлексії та зростання</span>
-            </div>
+        </div>
+        
+        <div style="margin-top: 20px; font-size: 12px; color: #666;">
+            Авторизуючись, ви погоджуєтесь з нашими умовами використання
         </div>
     </div>
 
     <script>
-        // Initialize Google Sign-In
-        function initializeGoogleSignIn() {
-            const clientId = 'YOUR_GOOGLE_CLIENT_ID';
-            console.log('🔑 Frontend GOOGLE_CLIENT_ID:', clientId.substring(0, 20) + '...');
-
-            google.accounts.id.initialize({
-                client_id: clientId,
-                callback: handleGoogleSignIn
-            });
-
-            google.accounts.id.renderButton(
-                document.getElementById('google-signin'),
-                { 
-                    theme: 'outline', 
-                    size: 'large',
-                    width: '100%',
-                    text: 'signin_with'
-                }
-            );
-        }
-
-        function handleGoogleSignIn(credentialResponse) {
-            console.log('Google response received:', credentialResponse);
-
-            // Send to backend
+        function handleCredentialResponse(response) {
+            console.log('Google login successful:', response);
+            
             fetch('/api/auth/google', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    idToken: credentialResponse.credential
+                    idToken: response.credential
                 })
             })
-            .then(async res => {
-                console.log('Server response status:', res.status);
-                const data = await res.json();
-                console.log('Server response data:', data);
-
-                if (!res.ok) {
-                    throw new Error(`HTTP error! status: ${res.status}, message: ${data.error || data.message}`);
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                 }
-                return data;
+                return response.json();
             })
             .then(data => {
                 if (data.token) {
-                    localStorage.setItem('token', data.token);
-                    localStorage.setItem('user', JSON.stringify(data.user));
-                    
-                    // Добавляем сохранение с префиксом karma_
+                    // Используем унифицированные ключи
                     localStorage.setItem('karma_token', data.token);
                     localStorage.setItem('karma_user', JSON.stringify(data.user));
                     
@@ -176,6 +121,9 @@
                     if (data.needsSubscription) {
                         console.log('User needs subscription, redirecting to subscriptions');
                         window.location.href = '/subscriptions';
+                    } else if (data.isNewUser || !data.user.hasCompletedOnboarding) {
+                        console.log('New user or incomplete onboarding, redirecting to onboarding');
+                        window.location.href = '/onboarding';
                     } else {
                         console.log('User has subscription, redirecting to dashboard');
                         window.location.href = '/dashboard';
@@ -187,7 +135,8 @@
             })
             .catch(error => {
                 console.error('Auth error:', error);
-                alert('Ошибка авторизации: ' + error.message);
+                document.getElementById('error').textContent = 'Ошибка авторизации: ' + error.message;
+                document.getElementById('error').style.display = 'block';
             });
         }
 

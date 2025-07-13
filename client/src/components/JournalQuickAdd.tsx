@@ -10,6 +10,7 @@ import { Heart, Sparkles, HandHeart, Loader2, Plus, Shield } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast';
 import { authUtils } from '@/utils/auth';
 import { VoiceRecorder } from './VoiceRecorder';
+import { apiRequest } from '@/utils/apiRequest';
 
 interface JournalQuickAddProps {
   onSuccess?: () => void;
@@ -25,14 +26,7 @@ export function JournalQuickAdd({ onSuccess }: JournalQuickAddProps) {
   const addEntryMutation = useMutation({
     mutationFn: async (data: { category: string; description: string }) => {
       try {
-        const res = await fetch('/api/journal/entries', {
-          method: 'POST',
-          headers: {
-            ...authUtils.getAuthHeaders(),
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(data)
-        });
+        const res = await apiRequest('/api/journal/entries', { method: 'POST' });
         
         // Check if response is JSON
         const contentType = res.headers.get('content-type');

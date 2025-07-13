@@ -1,9 +1,9 @@
-import { GoogleLogin } from '@react-oauth/google';
 import { useToast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
-import { setToken, setUser } from '@/utils/auth';
-import { apiRequest } from '@/lib/queryClient';
 import { useLocation } from 'wouter';
+import { GoogleLogin, CredentialResponse } from '@react-oauth/google';
+import { authUtils } from '@/utils/auth';
+import { apiRequest } from '@/lib/queryClient';
 
 interface GoogleLoginButtonProps {
   onAuthSuccess?: () => void;
@@ -14,23 +14,24 @@ export default function GoogleLoginButton({ onAuthSuccess }: GoogleLoginButtonPr
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
 
-  const handleGoogleSuccess = async (credentialResponse: { credential: string }) => {
+  const handleGoogleSuccess = async (credentialResponse: CredentialResponse) => {
     try {
       console.log('Google login successful:', credentialResponse);
       
+      if (!credentialResponse.credential) {
+        throw new Error('No credential received from Google');
+      }
+      
       const data = await apiRequest('/api/auth/google', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify({
           idToken: credentialResponse.credential
         }),
       });
       
       // Save auth data
-      setToken(data.token);
-      setUser(data.user);
+      authUtils.setToken(data.token);
+      authUtils.setUser(data.user);
       
       // Clear any cached data
       queryClient.clear();
@@ -45,8 +46,10 @@ export default function GoogleLoginButton({ onAuthSuccess }: GoogleLoginButtonPr
       if (onAuthSuccess) {
         onAuthSuccess();
       } else {
-        // Redirect based on subscription status
-        if (data.needsSubscription) {
+        // Определить следующий шаг в потоке пользователя
+        if (data.isNewUser || !data.user.hasCompletedOnboarding) {
+          setLocation('/onboarding');
+        } else if (data.needsSubscription) {
           setLocation('/subscriptions');
         } else {
           setLocation('/dashboard');
@@ -76,11 +79,12 @@ export default function GoogleLoginButton({ onAuthSuccess }: GoogleLoginButtonPr
       <GoogleLogin
         onSuccess={handleGoogleSuccess}
         onError={handleGoogleError}
-        theme="outline"
+        useOneTap
+        theme="filled_blue"
         size="large"
-        width="100%"
-        text="signin_with"
-        logo_alignment="left"
+        text="continue_with"
+        shape="rectangular"
+        locale="uk"
       />
     </div>
   );

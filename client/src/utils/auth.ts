@@ -1,18 +1,22 @@
+// Token and user storage keys
+const TOKEN_KEY = 'karma_token';
+const USER_KEY = 'karma_user';
+
 // Export individual functions for use in components
 export const setToken = (token: string) => {
   console.log('Setting new auth token');
-  localStorage.setItem('token', token);
+  localStorage.setItem(TOKEN_KEY, token);
 };
 
 export const setUser = (user: any) => {
   console.log('Updating user data');
-  localStorage.setItem('user', JSON.stringify(user));
+  localStorage.setItem(USER_KEY, JSON.stringify(user));
 };
 
-export const getToken = () => localStorage.getItem('token');
+export const getToken = () => localStorage.getItem(TOKEN_KEY);
 
 export const getUser = () => {
-  const user = localStorage.getItem('user');
+  const user = localStorage.getItem(USER_KEY);
   return user ? JSON.parse(user) : null;
 };
 
@@ -49,6 +53,9 @@ export const authUtils = {
 
   clearAuth: () => {
     console.log('Clearing auth data');
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(USER_KEY);
+    // Also remove old keys for backward compatibility
     localStorage.removeItem('token');
     localStorage.removeItem('user');
   },

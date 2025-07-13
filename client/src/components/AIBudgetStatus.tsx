@@ -3,14 +3,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { AlertTriangle, DollarSign, Zap } from 'lucide-react';
 import { authUtils } from '@/utils/auth';
+import { apiRequest } from '@/utils/api';
 
 export function AIBudgetStatus() {
   const { data: budgetData, isLoading } = useQuery({
     queryKey: ['ai-budget'],
     queryFn: async () => {
-      const response = await fetch('/api/ai/budget', {
-        headers: authUtils.getAuthHeaders()
-      });
+      const response = await apiRequest('/api/ai/budget', { method: 'GET' });
       if (!response.ok) throw new Error('Failed to fetch budget');
       return response.json();
     },

@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Bell, Clock, Settings, Save, Plus, Trash2, ArrowRight, Play, Palette, Sun, Moon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest } from '@/lib/queryClient';
 import ReminderModeSelector from "@/components/ReminderModeSelector";
 import CustomScheduleEditor from "@/components/CustomScheduleEditor";
 import { BackButton } from "@/components/BackButton";
@@ -59,7 +59,10 @@ export default function SettingsPage() {
   }, [reminderSettings]);
   
   const setupRemindersMutation = useMutation({
-    mutationFn: (data: any) => apiRequest("POST", "/api/user/setup-reminders", data),
+    mutationFn: (data: any) => apiRequest("/api/user/setup-reminders", {
+      method: "POST", 
+      body: JSON.stringify(data)
+    }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/user/me"] });
       queryClient.invalidateQueries({ queryKey: ["/api/user/reminder-settings"] });
@@ -80,7 +83,7 @@ export default function SettingsPage() {
   });
   
   const testReminderMutation = useMutation({
-    mutationFn: () => apiRequest("POST", "/api/reminders/test"),
+    mutationFn: () => apiRequest("/api/reminders/test", { method: "POST" }),
     onSuccess: () => {
       toast({
         title: "Тестове нагадування відправлено",
@@ -110,7 +113,7 @@ export default function SettingsPage() {
   const handleContinue = async () => {
     console.log('Starting onboarding completion...');
     try {
-      await apiRequest("PATCH", "/api/user/onboarding/complete");
+      await apiRequest("/api/user/onboarding/complete", { method: "PATCH" });
       console.log('Onboarding completion successful');
       
       // Update user cache immediately

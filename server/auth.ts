@@ -6,6 +6,13 @@ import { storage } from "./storage.js";
 
 const JWT_SECRET = process.env.JWT_SECRET || "karma-diary-secret-key";
 
+// Validate JWT_SECRET configuration
+if (!process.env.JWT_SECRET) {
+  console.warn('⚠️  JWT_SECRET not set in environment variables, using default (not secure for production)');
+} else if (process.env.JWT_SECRET.length < 32) {
+  console.warn('⚠️  JWT_SECRET is too short (should be at least 32 characters)');
+}
+
 console.log('🔑 JWT_SECRET configured:', JWT_SECRET ? 'Yes' : 'No');
 console.log('🔑 JWT_SECRET length:', JWT_SECRET?.length);
 console.log('🔑 JWT_SECRET preview:', JWT_SECRET.substring(0, 20) + '...');
@@ -17,7 +24,6 @@ export interface AuthRequest extends Request {
 // Generate JWT token
 export function generateToken(user: any): string {
   console.log('🎫 Generating token for user:', user.id);
-  console.log('🔑 Using JWT_SECRET for generation:', JWT_SECRET.substring(0, 20) + '...');
   
   const token = jwt.sign(
     { 
@@ -34,7 +40,7 @@ export function generateToken(user: any): string {
 }
 
 // Verify JWT token middleware
-export function authenticateToken(req: AuthRequest, res: Response, next: NextFunction) {
+export async function authenticateToken(req: AuthRequest, res: Response, next: NextFunction) {
   try {
     const authHeader = req.headers['authorization'];
     console.log('🔐 Auth header:', authHeader ? 'Present' : 'Missing');
@@ -47,25 +53,20 @@ export function authenticateToken(req: AuthRequest, res: Response, next: NextFun
     const token = authHeader.substring(7);
     console.log('🎫 Token extracted, length:', token.length);
     console.log('🎫 Token preview:', token.substring(0, 20) + '...');
-    console.log('🔑 Using JWT_SECRET:', JWT_SECRET.substring(0, 10) + '...');
     
     try {
       const decoded = jwt.verify(token, JWT_SECRET) as any;
       console.log('✅ Token verified, user ID:', decoded.id);
 
-      // Get fresh user data  
-      storage.getUser(decoded.id).then(user => {
-        if (!user) {
-          console.error('❌ User not found in database for ID:', decoded.id);
-          return res.status(404).json({ message: 'User not found' });
-        }
+      // Get fresh user data
+      const user = await storage.getUser(decoded.id);
+      if (!user) {
+        console.error('❌ User not found in database for ID:', decoded.id);
+        return res.status(404).json({ message: 'User not found' });
+      }
 
-        req.user = user;
-        next();
-      }).catch((error: any) => {
-        console.error('❌ Error fetching user:', error);
-        res.status(500).json({ message: 'Internal server error', details: error?.message });
-      });
+      req.user = user;
+      next();
     } catch (error: any) {
       console.error("❌ JWT verification error:", error.message);
       
@@ -86,9 +87,9 @@ export function authenticateToken(req: AuthRequest, res: Response, next: NextFun
         details: error.message 
       });
     }
-  } catch (error: any) {
-    console.error("❌ Authentication error:", error?.message);
-    return res.status(500).json({ message: 'Authentication failed', details: error?.message });
+  } catch (error) {
+    console.error('❌ Auth middleware error:', error);
+    return res.status(500).json({ message: 'Internal server error' });
   }
 }
 

@@ -8,7 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest } from '@/lib/queryClient';
 import { User } from "@/lib/types";
 import { 
   MessageSquare, 
@@ -42,7 +42,10 @@ export default function SettingsPanel({ user }: SettingsPanelProps) {
   // Update settings mutation
   const updateSettingsMutation = useMutation({
     mutationFn: async (data: any) => {
-      const response = await apiRequest("PATCH", "/api/user/settings", data);
+      const response = await apiRequest("/api/user/settings", {
+        method: "PATCH",
+        body: JSON.stringify(data)
+      });
       return response.json();
     },
     onSuccess: () => {

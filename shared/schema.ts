@@ -24,7 +24,7 @@ export const users = pgTable("users", {
   lastName: text("last_name"),
   username: text(),
   profilePicture: text("profile_picture"),
-  avatarUrl: text("avatar_url"),
+  // avatarUrl: text("avatar_url"), // TODO: Добавить эту колонку в БД или удалить из кода
   currentPrinciple: integer("current_principle"),
   timezoneOffset: integer("timezone_offset"),
   notificationType: varchar("notification_type"),

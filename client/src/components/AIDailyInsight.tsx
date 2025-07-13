@@ -3,14 +3,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Sparkles, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { authUtils } from '@/utils/auth';
+import { apiRequest } from '@/lib/queryClient';
 
 async function fetchDailyInsight(principleId: number, regenerate = false) {
-  const response = await fetch(
-    `/api/insights/daily/${principleId}${regenerate ? '?regenerate=true' : ''}`,
-    {
-      headers: authUtils.getAuthHeaders()
-    }
-  );
+  const response = await apiRequest('/api/ai/daily-insight', { method: 'GET' });
   if (!response.ok) throw new Error('Failed to fetch insight');
   return response.json();
 }

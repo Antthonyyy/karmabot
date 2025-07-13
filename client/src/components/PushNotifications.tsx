@@ -5,6 +5,8 @@ import { Switch } from '@/components/ui/switch';
 import { Bell, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from 'react-i18next';
+import { authUtils } from '@/utils/auth';
+import { apiRequest } from '@/utils/api';
 
 interface PushNotificationsProps {
   onPermissionChange?: (permission: NotificationPermission) => void;
@@ -100,14 +102,7 @@ export function PushNotifications({ onPermissionChange, onSubscriptionChange }: 
       });
 
       // Відправляємо підписку на сервер
-      const response = await fetch('/api/push/subscribe', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify(subscription)
-      });
+      const response = await apiRequest('/api/push/subscribe', { method: 'POST' });
 
       if (response.ok) {
         setIsSubscribed(true);
@@ -141,14 +136,7 @@ export function PushNotifications({ onPermissionChange, onSubscriptionChange }: 
         await subscription.unsubscribe();
         
         // Видаляємо підписку з сервера
-        await fetch('/api/push/unsubscribe', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          },
-          body: JSON.stringify({ endpoint: subscription.endpoint })
-        });
+        await apiRequest('/api/push/unsubscribe', { method: 'POST' });
       }
 
       setIsSubscribed(false);

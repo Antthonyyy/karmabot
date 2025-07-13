@@ -24,6 +24,7 @@ import {
   Shield
 } from "lucide-react";
 import { authUtils } from "@/utils/auth";
+import { apiRequest } from "@/utils/api";
 
 export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
@@ -41,14 +42,7 @@ export default function ProfilePage() {
 
   const updateProfileMutation = useMutation({
     mutationFn: async (data: any) => {
-      const response = await fetch("/api/user/profile", {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          ...authUtils.getAuthHeaders()
-        },
-        body: JSON.stringify(data)
-      });
+      const response = await apiRequest('/api/user/profile', { method: 'PATCH', body: JSON.stringify(data) });
       if (!response.ok) throw new Error("Failed to update profile");
       return response.json();
     },

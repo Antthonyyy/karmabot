@@ -1,48 +1,81 @@
 export interface User {
   id: number;
+  telegramId?: string;
+  telegramChatId?: string;
   firstName: string;
   lastName?: string;
   username?: string;
   currentPrinciple: number;
-  notificationType: string;
+  timezoneOffset: number;
+  notificationType: 'daily' | 'custom';
   customTimes?: any;
   language: string;
-  telegramConnected: boolean;
-  telegramId?: string;
-  timezoneOffset?: number;
-  reminderMode?: string;
-  dailyPrinciplesCount?: number;
-  timezone?: string;
-  remindersEnabled?: boolean;
-  hasCompletedOnboarding?: boolean;
-  stats?: UserStats;
+  isActive: boolean;
+  reminderMode: string;
+  dailyPrinciplesCount: number;
+  timezone: string;
+  remindersEnabled: boolean;
+  lastReminderSent?: string;
+  hasCompletedOnboarding: boolean;
+  subscription: 'none' | 'light' | 'plus' | 'pro';
+  subscriptionStartDate?: string;
+  subscriptionEndDate?: string;
+  preferredLanguage: string;
+  createdAt: string;
+  updatedAt: string;
+  avatarUrl?: string;
+  stats?: {
+    streakDays: number;
+    totalKarma: number;
+    entriesCount: number;
+  };
 }
 
-export interface UserStats {
-  streakDays: number;
-  totalEntries: number;
-  currentCycle: number;
-  principleProgress?: Record<string, number>;
+export interface UserFlowState {
+  isAuthenticated: boolean;
+  hasCompletedOnboarding: boolean;
+  hasActiveSubscription: boolean;
+  nextStep: 'login' | 'onboarding' | 'subscription' | 'dashboard';
 }
 
-export interface Principle {
-  id: number;
-  number: number;
-  title: string;
-  description: string;
-  url?: string;
-  reflections?: string[];
-  practicalSteps?: string[];
+export interface AuthResponse {
+  token: string;
+  user: User;
+  isNewUser: boolean;
+  needsSubscription: boolean;
+}
+
+export interface Subscription {
+  plan: string;
+  startDate: string | null;
+  endDate: string | null;
+  features: any;
 }
 
 export interface JournalEntry {
   id: number;
   userId: number;
-  principleId: number;
   content: string;
-  mood?: string;
-  energyLevel?: number;
+  principleId: number;
+  karmaPoints: number;
   createdAt: string;
   updatedAt: string;
-  principle?: Principle;
+}
+
+export interface Principle {
+  id: number;
+  title: string;
+  description: string;
+  order: number;
+  isActive: boolean;
+}
+
+export interface Achievement {
+  id: number;
+  title: string;
+  description: string;
+  icon: string;
+  condition: string;
+  isUnlocked: boolean;
+  unlockedAt?: string;
 }

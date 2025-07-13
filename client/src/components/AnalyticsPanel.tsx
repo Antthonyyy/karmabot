@@ -6,6 +6,7 @@ import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from "recharts";
 import { TrendingUp, TrendingDown, Calendar, Target, Flame, Heart, Zap, BookOpen } from "lucide-react";
+import { apiRequest } from "@/lib/api";
 
 export default function AnalyticsPanel() {
   const [selectedPeriod, setSelectedPeriod] = useState(30);
@@ -17,13 +18,13 @@ export default function AnalyticsPanel() {
 
   const { data: moodTrends } = useQuery({
     queryKey: ['/api/analytics/mood-trends', selectedPeriod],
-    queryFn: () => fetch(`/api/analytics/mood-trends?days=${selectedPeriod}`).then(res => res.json()),
+    queryFn: () => apiRequest(`/api/analytics/mood-trends?days=${selectedPeriod}`, { method: 'GET' }).then(res => res.json()),
     enabled: true,
   });
 
   const { data: energyTrends } = useQuery({
     queryKey: ['/api/analytics/energy-trends', selectedPeriod],
-    queryFn: () => fetch(`/api/analytics/energy-trends?days=${selectedPeriod}`).then(res => res.json()),
+    queryFn: () => apiRequest(`/api/analytics/energy-trends?days=${selectedPeriod}`, { method: 'GET' }).then(res => res.json()),
     enabled: true,
   });
 

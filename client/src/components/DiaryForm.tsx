@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest } from '@/lib/queryClient';
 import { Feather } from "lucide-react";
 
 interface DiaryFormProps {
@@ -31,8 +31,11 @@ export default function DiaryForm({ currentPrinciple, onSuccess }: DiaryFormProp
   // Create entry mutation
   const createEntryMutation = useMutation({
     mutationFn: async (data: any) => {
-      const response = await apiRequest("POST", "/api/journal/entries", data);
-      return response.json();
+      const response = await apiRequest("/api/journal/entries", {
+        method: "POST",
+        body: JSON.stringify(data)
+      });
+      return response;
     },
     onSuccess: () => {
       toast({

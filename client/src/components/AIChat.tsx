@@ -8,6 +8,7 @@ import { MessageCircle, Send, Bot, User, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { authUtils } from '@/utils/auth';
 import { SubscriptionRequired } from './SubscriptionRequired';
+import { apiRequest } from '@/utils/apiRequest';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -25,9 +26,7 @@ export function AIChat() {
   const { data: features } = useQuery({
     queryKey: ['subscription-features'],
     queryFn: async () => {
-      const response = await fetch('/api/subscriptions/features', {
-        headers: authUtils.getAuthHeaders()
-      });
+      const response = await apiRequest('/api/subscriptions/features', { method: 'GET' });
       if (!response.ok) throw new Error('Failed to fetch features');
       return response.json();
     }
@@ -35,9 +34,8 @@ export function AIChat() {
 
   const chatMutation = useMutation({
     mutationFn: async (messages: { role: string; content: string }[]) => {
-      const response = await fetch('/api/ai/chat', {
+      const response = await apiRequest('/api/ai/chat', {
         method: 'POST',
-        headers: authUtils.getAuthHeaders(),
         body: JSON.stringify({ messages, language: 'uk' })
       });
       

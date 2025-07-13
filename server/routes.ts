@@ -294,10 +294,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         firstName: user.firstName,
         lastName: user.lastName,
         username: user.username,
+        email: user.email,
         currentPrinciple: user.currentPrinciple,
         notificationType: user.notificationType,
         customTimes: user.customTimes,
         language: user.language,
+        subscription: user.subscription || 'none',
+        subscriptionStartDate: user.subscriptionStartDate,
+        subscriptionEndDate: user.subscriptionEndDate,
+        hasCompletedOnboarding: user.hasCompletedOnboarding,
+        profilePicture: user.profilePicture,
         telegramConnected: !!user.telegramChatId,
         stats: stats || {
           streakDays: 0,
@@ -399,16 +405,9 @@ app.get('/api/user/profile', authenticateToken, async (req: AuthRequest, res: Re
   */
 
   // Get current user endpoint
-  app.get("/api/user/me", authenticateToken, async (req: AuthRequest, res) => {
-    try {
-      const user = req.user!;
-      res.json(user);
-    } catch (error) {
-      console.error("Error fetching user:", error);
-      res.status(500).json({ message: "Failed to fetch user" });
-    }
-  });
-
+  // REMOVED DUPLICATE: app.get("/api/user/me", authenticateToken, async (req: AuthRequest, res) => {
+  // This was causing conflicts with the proper endpoint above
+  
   // User stats endpoint
   app.get("/api/user/stats", authenticateToken, async (req: AuthRequest, res) => {
     try {
@@ -418,10 +417,40 @@ app.get('/api/user/profile', authenticateToken, async (req: AuthRequest, res: Re
       if (!stats) {
         // Initialize stats if they don't exist
         const newStats = await storage.initializeUserStats(user.id);
-        return res.json(newStats);
+        return res.json({
+          streakDays: newStats.streakDays || 0,
+          totalEntries: newStats.totalEntries || 0,
+          currentStreak: newStats.streakDays || 0,
+          bestStreak: newStats.bestStreak || 0,
+          longestStreak: newStats.bestStreak || 0,
+          currentCycle: newStats.currentCycle || 1,
+          totalDaysWithEntries: newStats.totalEntries || 0,
+          principleProgress: newStats.principleProgress || {},
+          principleCompletions: newStats.principleCompletions || [],
+          averageMood: newStats.averageMood || null,
+          averageEnergy: newStats.averageEnergy || null,
+          lastEntryDate: newStats.lastEntryDate || null,
+          weeklyGoal: 7,
+          monthlyGoal: 30,
+        });
       }
 
-      res.json(stats);
+      res.json({
+        streakDays: stats.streakDays || 0,
+        totalEntries: stats.totalEntries || 0,
+        currentStreak: stats.streakDays || 0,
+        bestStreak: stats.bestStreak || 0,
+        longestStreak: stats.bestStreak || 0,
+        currentCycle: stats.currentCycle || 1,
+        totalDaysWithEntries: stats.totalEntries || 0,
+        principleProgress: stats.principleProgress || {},
+        principleCompletions: stats.principleCompletions || [],
+        averageMood: stats.averageMood || null,
+        averageEnergy: stats.averageEnergy || null,
+        lastEntryDate: stats.lastEntryDate || null,
+        weeklyGoal: 7,
+        monthlyGoal: 30,
+      });
     } catch (error) {
       console.error("Error fetching user stats:", error);
       res.status(500).json({ message: "Failed to fetch user stats" });
@@ -1450,6 +1479,31 @@ app.get('/api/user/profile', authenticateToken, async (req: AuthRequest, res: Re
       res.status(500).json({ success: false, error: error.message });
     }
   });
+
+  // User flow state endpoint
+  app.get('/api/user/flow-state', authenticateToken, async (req: AuthRequest, res: Response) => {
+    try {
+      const user = req.user;
+      
+      const state = {
+        isAuthenticated: true,
+        hasCompletedOnboarding: user.hasCompletedOnboarding,
+        hasActiveSubscription: user.subscription !== 'none',
+        nextStep: determineNextStep(user)
+      };
+      
+      res.json(state);
+    } catch (error) {
+      console.error('❌ Flow state error:', error);
+      res.status(500).json({ error: 'Failed to get flow state' });
+    }
+  });
+
+  function determineNextStep(user: any): string {
+    if (!user.hasCompletedOnboarding) return 'onboarding';
+    if (user.subscription === 'none') return 'subscription';
+    return 'dashboard';
+  }
 
   const httpServer = createServer(app);
   return httpServer;

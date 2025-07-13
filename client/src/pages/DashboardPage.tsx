@@ -10,38 +10,21 @@ import LatestEntries from "@/components/LatestEntries";
 import OnboardingModal from "@/components/OnboardingModal";
 import WelcomeHero from "@/components/WelcomeHero";
 import { useOnboarding } from "@/hooks/useOnboarding";
-import { authUtils } from '@/utils/auth';
 import { useToast } from '@/hooks/use-toast';
 import UsageLimitsDisplay from "@/components/UsageLimitsDisplay";
+import { useUserState } from '@/hooks/useUserState';
+import LoadingSpinner from '@/components/LoadingSpinner';
 
 export default function DashboardPage() {
   const [, setLocation] = useLocation();
   const { showOnboarding, completeOnboarding } = useOnboarding();
   const { toast } = useToast();
-
-  const token = authUtils.getToken();
-  if (!token) {
-    setLocation("/");
-    return null;
-  }
-
-  const { data: user, isLoading: userLoading } = useQuery({
-    queryKey: ["/api/user/me"],
-    queryFn: async () => {
-      const res = await fetch("/api/user/me", {
-        headers: authUtils.getAuthHeaders(),
-      });
-      if (!res.ok) throw new Error('Failed to fetch user');
-      return res.json();
-    },
-  });
+  const { user, isLoading: userLoading } = useUserState();
 
   const { data: subscription } = useQuery({
     queryKey: ['current-subscription'],
     queryFn: async () => {
-      const response = await fetch('/api/subscriptions/current', {
-        headers: authUtils.getAuthHeaders()
-      });
+      const response = await apiRequest('/api/subscriptions/current', { method: 'GET' });
       if (!response.ok) throw new Error('Failed to fetch subscription');
       return response.json();
     }
@@ -65,11 +48,7 @@ export default function DashboardPage() {
   }, [subscription, toast]);
 
   if (userLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-violet-500"></div>
-      </div>
-    );
+    return <LoadingSpinner size="lg" className="min-h-screen" />;
   }
 
   if (!user) return null;

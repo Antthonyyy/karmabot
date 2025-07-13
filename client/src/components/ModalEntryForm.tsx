@@ -25,7 +25,7 @@ import { Slider } from '@/components/ui/slider';
 import { Heart, Zap, HelpCircle, Gift } from 'lucide-react';
 import { VoiceRecorder } from './VoiceRecorder';
 import { useToast } from '@/hooks/use-toast';
-import { apiRequest } from '@/lib/apiRequest';
+import { apiRequest } from '@/lib/queryClient';
 
 const formSchema = z.object({
   content: z.string().min(10, 'Запис повинен містити принаймні 10 символів'),

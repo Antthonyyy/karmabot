@@ -245,7 +245,6 @@ export class DatabaseStorage implements IStorage {
           lastName: users.lastName,
           username: users.username,
           profilePicture: users.profilePicture,
-          avatarUrl: users.avatarUrl,
           currentPrinciple: users.currentPrinciple,
           timezoneOffset: users.timezoneOffset,
           notificationType: users.notificationType,

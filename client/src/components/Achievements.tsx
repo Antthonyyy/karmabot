@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Trophy, Star, Flame, Heart, Target, Calendar, Zap } from 'lucide-react';
 import { authUtils } from '@/utils/auth';
+import { apiRequest } from '@/utils/apiRequest';
 
 export function Achievements() {
   const { t } = useTranslation(['achievements', 'common']);
@@ -12,9 +13,7 @@ export function Achievements() {
   const { data: user, isLoading } = useQuery({
     queryKey: ['user'],
     queryFn: async () => {
-      const res = await fetch('/api/user/me', {
-        headers: authUtils.getAuthHeaders()
-      });
+      const res = await apiRequest('/api/user/me', { method: 'GET' });
       if (!res.ok) throw new Error('Failed to fetch user data');
       return res.json();
     }

@@ -3,7 +3,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useLocation } from "wouter";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest } from '@/lib/queryClient';
 import { useToast } from "@/hooks/use-toast";
 import VideoInstructionModal from "./VideoInstructionModal";
 
@@ -21,7 +21,9 @@ export default function OnboardingModal({ isOpen, onComplete }: OnboardingModalP
 
   const completeOnboardingMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest("PATCH", "/api/user/onboarding/complete", {});
+      const response = await apiRequest("/api/user/onboarding/complete", { 
+        method: "PATCH" 
+      });
       return response.json();
     },
     onSuccess: () => {

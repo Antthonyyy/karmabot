@@ -12,6 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import { BackButton } from '@/components/BackButton';
 import { ScaleTransition, FadeTransition } from '@/components/PageTransition';
 import { useLocation } from 'wouter';
+import { apiRequest } from '@/utils/apiRequest';
 
 interface Plan {
   id: string;
@@ -42,7 +43,7 @@ export default function SubscriptionsPage() {
   const { data: plans, isLoading: plansLoading } = useQuery({
     queryKey: ['subscription-plans'],
     queryFn: async () => {
-      const response = await fetch('/api/subscriptions/plans');
+      const response = await apiRequest('/api/subscriptions/plans', { method: 'GET' });
       if (!response.ok) throw new Error('Failed to fetch plans');
       return response.json() as Promise<Plan[]>;
     }
@@ -51,9 +52,7 @@ export default function SubscriptionsPage() {
   const { data: currentSubscription, refetch: refetchSubscription } = useQuery({
     queryKey: ['current-subscription'],
     queryFn: async () => {
-      const response = await fetch('/api/subscriptions/current', {
-        headers: authUtils.getAuthHeaders()
-      });
+      const response = await apiRequest('/api/subscriptions/current', { method: 'GET' });
       if (!response.ok) throw new Error('Failed to fetch subscription');
       return response.json() as Promise<Subscription>;
     }
@@ -112,9 +111,8 @@ export default function SubscriptionsPage() {
 
   const subscribeMutation = useMutation({
     mutationFn: async ({ planId, billingPeriod }: { planId: string; billingPeriod: string }) => {
-      const response = await fetch('/api/subscriptions/subscribe', {
+      const response = await apiRequest('/api/subscriptions/subscribe', {
         method: 'POST',
-        headers: authUtils.getAuthHeaders(),
         body: JSON.stringify({ planId, billingPeriod })
       });
       if (!response.ok) throw new Error('Failed to create subscription');
@@ -142,10 +140,7 @@ export default function SubscriptionsPage() {
 
   const cancelMutation = useMutation({
     mutationFn: async () => {
-      const response = await fetch('/api/subscriptions/cancel', {
-        method: 'POST',
-        headers: authUtils.getAuthHeaders()
-      });
+      const response = await apiRequest('/api/subscriptions/cancel', { method: 'POST' });
       if (!response.ok) throw new Error('Failed to cancel subscription');
       return response.json();
     },
