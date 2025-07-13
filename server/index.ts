@@ -88,40 +88,50 @@ app.use((req, res, next) => {
     throw err;
   });
 
-  // Setup Vite middleware for React SPA
-  const vite = await setupVite(app);
-  
-  // Serve static files from client/public
-  app.use(express.static(path.join(process.cwd(), 'client', 'public')));
+  // Conditionally setup Vite or serve static files
+  if (process.env.NODE_ENV === 'production') {
+    // In production, serve static files from the 'dist/public' directory
+    const publicPath = path.join(process.cwd(), 'dist', 'public');
+    app.use(express.static(publicPath));
+    console.log(`✅ Serving static files from: ${publicPath}`);
 
-  // Catch-all handler - serve React SPA for all non-API routes
-  app.get('*', async (req, res) => {
-    if (req.path.startsWith('/api')) {
-      return res.status(404).json({ message: 'API endpoint not found' });
-    }
+    // And serve the index.html for all non-API GET routes
+    app.get('*', (req, res, next) => {
+      if (req.path.startsWith('/api/') || req.method !== 'GET') {
+        return next();
+      }
+      res.sendFile(path.join(publicPath, 'index.html'));
+    });
+  } else {
+    // In development, setup Vite middleware for React SPA
+    const vite = await setupVite(app);
     
-    try {
-      // Serve the main React app for all routes
-      const htmlPath = path.join(process.cwd(), 'client', 'index.html');
-      let html = fs.readFileSync(htmlPath, 'utf8');
-      
-      // Inject the Google Client ID if needed
-      const googleClientId = process.env.GOOGLE_CLIENT_ID || '';
-      html = html.replace(/YOUR_GOOGLE_CLIENT_ID/g, googleClientId);
-      
-      // Transform HTML through Vite if available
-      if (vite) {
-        html = await vite.transformIndexHtml(req.originalUrl, html);
+    // In dev, Vite handles serving index.html via a catch-all handler
+    app.get('*', async (req, res) => {
+      if (req.path.startsWith('/api/')) {
+        return res.status(404).json({ message: 'API endpoint not found' });
       }
       
-      res.send(html);
-    } catch (error) {
-      console.error('Error serving SPA:', error);
-      res.status(500).send('Server error');
-    }
-  });
-
-  
+      try {
+        const htmlPath = path.join(process.cwd(), 'client', 'index.html');
+        let html = fs.readFileSync(htmlPath, 'utf8');
+        
+        const googleClientId = process.env.GOOGLE_CLIENT_ID || '';
+        html = html.replace(/YOUR_GOOGLE_CLIENT_ID/g, googleClientId);
+        
+        if (vite) {
+          html = await vite.transformIndexHtml(req.originalUrl, html);
+        }
+        
+        res.send(html);
+      } catch (error) {
+        console.error('Error serving SPA via Vite:', error);
+        vite?.ssrFixStacktrace(error as Error);
+        res.status(500).send('Server error');
+      }
+    });
+    console.log('✅ Vite middleware configured for development');
+  }
 
   // ALWAYS serve the app on port 5000
   // this serves both the API and the client.
