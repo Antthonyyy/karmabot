@@ -1,9 +1,9 @@
-import { useToast } from '@/hooks/use-toast';
-import { useQueryClient } from '@tanstack/react-query';
-import { useLocation } from 'wouter';
 import { GoogleLogin, CredentialResponse } from '@react-oauth/google';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useLocation } from 'wouter';
 import { authUtils } from '@/utils/auth';
-import { apiRequest } from '@/lib/queryClient';
+import { apiRequest } from '@/lib/apiRequest';
+import { useToast } from '@/hooks/use-toast';
 
 interface GoogleLoginButtonProps {
   onAuthSuccess?: () => void;
@@ -13,6 +13,10 @@ export default function GoogleLoginButton({ onAuthSuccess }: GoogleLoginButtonPr
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
+
+  // Check if Google OAuth is configured
+  const hasGoogleOAuth = import.meta.env.VITE_GOOGLE_CLIENT_ID && 
+                        import.meta.env.VITE_GOOGLE_CLIENT_ID.length > 20;
 
   const handleGoogleSuccess = async (credentialResponse: CredentialResponse) => {
     try {
@@ -74,16 +78,25 @@ export default function GoogleLoginButton({ onAuthSuccess }: GoogleLoginButtonPr
     });
   };
 
+  // Show fallback if Google OAuth is not configured
+  if (!hasGoogleOAuth) {
+    return (
+      <div className="w-full p-3 border border-gray-300 rounded-md text-center text-gray-500">
+        Google OAuth не налаштовано
+      </div>
+    );
+  }
+
   return (
     <div className="w-full">
       <GoogleLogin
         onSuccess={handleGoogleSuccess}
         onError={handleGoogleError}
-        useOneTap
-        theme="filled_blue"
+        useOneTap={false}
+        auto_select={false}
+        theme="outline"
         size="large"
-        text="continue_with"
-        shape="rectangular"
+        width="100%"
         locale="uk"
       />
     </div>
