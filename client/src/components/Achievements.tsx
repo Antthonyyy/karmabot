@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Trophy, Star, Flame, Heart, Target, Calendar, Zap } from 'lucide-react';
 import { authUtils } from '@/utils/auth';
-import { apiRequest } from '@/utils/apiRequest';
+import { apiRequest } from '@/lib/apiRequest';
 
 export function Achievements() {
   const { t } = useTranslation(['achievements', 'common']);

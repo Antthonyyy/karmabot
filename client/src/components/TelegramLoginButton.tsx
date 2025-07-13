@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 import { authUtils } from '@/utils/auth';
-import { apiRequest } from '@/utils/api';
+import { apiRequest } from '@/lib/apiRequest';
 
 interface TelegramLoginButtonProps {
   onAuthSuccess: () => void;

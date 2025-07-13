@@ -12,7 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import { BackButton } from '@/components/BackButton';
 import { ScaleTransition, FadeTransition } from '@/components/PageTransition';
 import { useLocation } from 'wouter';
-import { apiRequest } from '@/utils/apiRequest';
+import { apiRequest } from '@/lib/apiRequest';
 
 interface Plan {
   id: string;

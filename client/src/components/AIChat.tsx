@@ -8,7 +8,7 @@ import { MessageCircle, Send, Bot, User, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { authUtils } from '@/utils/auth';
 import { SubscriptionRequired } from './SubscriptionRequired';
-import { apiRequest } from '@/utils/apiRequest';
+import { apiRequest } from '@/lib/apiRequest';
 
 interface Message {
   role: 'user' | 'assistant';

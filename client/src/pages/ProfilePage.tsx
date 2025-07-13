@@ -24,7 +24,7 @@ import {
   Shield
 } from "lucide-react";
 import { authUtils } from "@/utils/auth";
-import { apiRequest } from "@/utils/api";
+import { apiRequest } from "@/lib/apiRequest";
 
 export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false);

@@ -6,7 +6,7 @@ import { Bell, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from 'react-i18next';
 import { authUtils } from '@/utils/auth';
-import { apiRequest } from '@/utils/api';
+import { apiRequest } from '@/lib/apiRequest';
 
 interface PushNotificationsProps {
   onPermissionChange?: (permission: NotificationPermission) => void;

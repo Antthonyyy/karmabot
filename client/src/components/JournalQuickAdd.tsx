@@ -10,7 +10,7 @@ import { Heart, Sparkles, HandHeart, Loader2, Plus, Shield } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast';
 import { authUtils } from '@/utils/auth';
 import { VoiceRecorder } from './VoiceRecorder';
-import { apiRequest } from '@/utils/apiRequest';
+import { apiRequest } from '@/lib/apiRequest';
 
 interface JournalQuickAddProps {
   onSuccess?: () => void;

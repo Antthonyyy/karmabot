@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Progress } from '@/components/ui/progress';
 import { TrendingUp, Activity, Calendar, Target } from 'lucide-react';
 import { authUtils } from '@/utils/auth';
-import { apiRequest } from '@/utils/api';
+import { apiRequest } from '@/lib/apiRequest';
 
 export function KarmaStats() {
   const { t } = useTranslation(['stats', 'common']);
