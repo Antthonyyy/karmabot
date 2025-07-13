@@ -21,6 +21,7 @@ import aiRoutes from "./routes/ai.js";
 import audioRoutes from "./routes/audio.js";
 import bot from "./telegram-bot.js"; // Import bot instance
 import webhookRoutes from "./routes/webhooks.js";
+import sitemapRoutes from "./routes/sitemap.js";
 import { supabase } from "./supabase.js";
 import { requireSubscription } from "./middleware/subscription.js";
 
@@ -155,6 +156,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use("/api/audio", audioRoutes);
   // NEW: Webhook routes (важно - БЕЗ аутентификации!)
   app.use("/api/webhooks", webhookRoutes);
+  // SEO routes (sitemap, robots.txt, manifest)
+  app.use("/", sitemapRoutes);
 
 
 

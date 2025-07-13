@@ -91,3 +91,177 @@
   backdrop-filter: blur(10px);
   background: rgba(255, 255, 255, 0.9);
 }
+
+/* Shimmer animation for loading states */
+@keyframes shimmer {
+  0% {
+    background-position: -200px 0;
+  }
+  100% {
+    background-position: calc(200px + 100%) 0;
+  }
+}
+
+.animate-shimmer {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.4),
+    transparent
+  );
+  background-size: 200px 100%;
+  animation: shimmer 2s infinite;
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+  /* Touch-friendly spacing */
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Reduce motion for better performance */
+  * {
+    animation-duration: 0.2s !important;
+    transition-duration: 0.15s !important;
+  }
+
+  /* Better tap highlights */
+  button, a, [role="button"] {
+    -webkit-tap-highlight-color: rgba(139, 92, 246, 0.3);
+    tap-highlight-color: rgba(139, 92, 246, 0.3);
+  }
+
+  /* Prevent zoom on inputs */
+  input, textarea, select {
+    font-size: 16px;
+  }
+
+  /* Safe area support */
+  .safe-area-top {
+    padding-top: env(safe-area-inset-top);
+  }
+  
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  
+  .safe-area-left {
+    padding-left: env(safe-area-inset-left);
+  }
+  
+  .safe-area-right {
+    padding-right: env(safe-area-inset-right);
+  }
+}
+
+/* iOS specific optimizations */
+.ios {
+  /* Momentum scrolling */
+  -webkit-overflow-scrolling: touch;
+  
+  /* Prevent overscroll bounce */
+  overscroll-behavior: none;
+  
+  /* Better font rendering */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.ios input, .ios textarea {
+  /* Prevent zoom on focus */
+  transform: translateZ(0);
+}
+
+/* Android specific optimizations */
+.android {
+  /* Better touch feedback */
+  touch-action: manipulation;
+}
+
+/* Tablet optimizations */
+.tablet {
+  /* Optimized for larger touch targets */
+  .touch-target {
+    min-height: 48px;
+    min-width: 48px;
+  }
+}
+
+/* Mobile gesture support */
+.swipe-container {
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.swipe-horizontal {
+  touch-action: pan-x;
+}
+
+.swipe-vertical {
+  touch-action: pan-y;
+}
+
+/* Better button styling for mobile */
+@media (max-width: 768px) {
+  .btn-mobile {
+    min-height: 44px;
+    padding: 12px 16px;
+    font-size: 16px;
+    border-radius: 8px;
+    transition: all 0.15s ease;
+  }
+
+  .btn-mobile:active {
+    transform: scale(0.98);
+    opacity: 0.8;
+  }
+}
+
+/* Loading states optimized for mobile */
+.mobile-loading {
+  animation: pulse-mobile 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-mobile {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Mobile-first responsive utilities */
+@media (max-width: 640px) {
+  .mobile-hide {
+    display: none !important;
+  }
+  
+  .mobile-show {
+    display: block !important;
+  }
+  
+  .mobile-full-width {
+    width: 100% !important;
+  }
+  
+  .mobile-center {
+    text-align: center !important;
+  }
+}
+
+/* PWA specific mobile styles */
+@media (display-mode: standalone) {
+  /* Remove address bar compensation when in standalone mode */
+  body {
+    padding-top: env(safe-area-inset-top);
+  }
+  
+  /* Hide elements that don't make sense in standalone mode */
+  .browser-only {
+    display: none !important;
+  }
+}

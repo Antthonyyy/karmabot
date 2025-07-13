@@ -7,6 +7,16 @@ import { I18nextProvider } from 'react-i18next';
 import i18n from './i18n/config';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import initSentry from './utils/sentry';
+import initWebVitals from './utils/webVitals';
+import { initMobileOptimizations } from './utils/mobile';
+
+// Initialize monitoring and analytics
+initSentry();
+initWebVitals();
+
+// Initialize mobile optimizations
+initMobileOptimizations();
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

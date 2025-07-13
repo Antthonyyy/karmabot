@@ -48,6 +48,20 @@
     }
   ],
   "categories": ["lifestyle", "productivity", "health"],
+  "edge_side_panel": {
+    "preferred_width": 400
+  },
+  "handle_links": "preferred",
+  "launch_handler": {
+    "route_to": "focused-existing-client"
+  },
+  "display_override": ["window-controls-overlay", "minimal-ui"],
+  "protocol_handlers": [
+    {
+      "protocol": "web+karma",
+      "url": "/?action=%s"
+    }
+  ],
   "shortcuts": [
     {
       "name": "Новий запис",
@@ -74,6 +88,38 @@
           "type": "image/svg+xml"
         }
       ]
+    },
+    {
+      "name": "Нагадування",
+      "short_name": "Нагадування",
+      "description": "Налаштувати нагадування",
+      "url": "/settings?tab=notifications",
+      "icons": [
+        {
+          "src": "/favicon.svg",
+          "sizes": "any",
+          "type": "image/svg+xml"
+        }
+      ]
+    }
+  ],
+  "share_target": {
+    "action": "/dashboard?action=share",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  },
+  "file_handlers": [
+    {
+      "action": "/dashboard?action=import",
+      "accept": {
+        "text/plain": [".txt", ".md"],
+        "application/json": [".json"]
+      }
     }
   ]
 }

@@ -4,6 +4,8 @@ import path from "path";
 import fs from "fs";
 import { registerRoutes } from "./routes";
 import { setupVite } from "./vite";
+import { setupSecurity, rateLimitErrorHandler } from "./middleware/security";
+import initSentry, { sentryRequestHandler, sentryErrorHandler } from "./utils/sentry";
 function log(message: string, source = "express") {
   const formattedTime = new Date().toLocaleTimeString("en-US", {
     hour: "numeric",
@@ -39,10 +41,20 @@ if (!checkEnvVariables()) {
 // Показываем статус всех переменных окружения
 logEnvStatus();
 
+// Initialize Sentry for error tracking
+initSentry();
+
 const app = express();
+
+// Sentry request handler must be first
+app.use(sentryRequestHandler());
+
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+
+// Setup security middleware
+setupSecurity(app);
 
 app.use((req, res, next) => {
   const start = Date.now();
@@ -79,6 +91,12 @@ app.use((req, res, next) => {
   
   // Initialize trial expiration cron job
   initTrialExpirationCron();
+
+  // Rate limit error handler
+  app.use(rateLimitErrorHandler);
+
+  // Sentry error handler must be before other error handlers
+  app.use(sentryErrorHandler());
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;

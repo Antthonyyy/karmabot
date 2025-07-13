@@ -21,7 +21,9 @@ export function PWAInstallPrompt() {
 
   useEffect(() => {
     // Check if already installed
-    if (window.matchMedia('(display-mode: standalone)').matches) {
+    if (window.matchMedia('(display-mode: standalone)').matches || 
+        window.matchMedia('(display-mode: fullscreen)').matches ||
+        (window.navigator as any).standalone === true) {
       setIsInstalled(true);
       return;
     }
@@ -30,11 +32,26 @@ export function PWAInstallPrompt() {
     const iOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
     setIsIOS(iOS);
 
+    // Don't show prompt too early or too often
+    const installPromptShown = localStorage.getItem('pwa-prompt-shown');
+    const lastShown = installPromptShown ? new Date(installPromptShown) : null;
+    const daysSinceLastShown = lastShown ? 
+      (Date.now() - lastShown.getTime()) / (1000 * 60 * 60 * 24) : 999;
+
+    if (daysSinceLastShown < 7) {
+      return; // Don't show if shown in last 7 days
+    }
+
     // Handle beforeinstallprompt event
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
-      setShowPrompt(true);
+      
+      // Delay showing the prompt
+      setTimeout(() => {
+        setShowPrompt(true);
+        localStorage.setItem('pwa-prompt-shown', new Date().toISOString());
+      }, 3000); // Show after 3 seconds
     };
 
     // Handle app installed event
@@ -42,6 +59,7 @@ export function PWAInstallPrompt() {
       setIsInstalled(true);
       setShowPrompt(false);
       setDeferredPrompt(null);
+      localStorage.setItem('pwa-installed', 'true');
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
