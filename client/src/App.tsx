@@ -40,7 +40,9 @@ export default function App() {
                 <Route path="/" component={LoginPage} />
                 <Route path="/login" component={LoginPage} />
                 <Route path="/onboarding">
-                  <ProtectedRoute><OnboardingPage /></ProtectedRoute>
+                  <UserFlowManager>
+                    <ProtectedRoute><OnboardingPage /></ProtectedRoute>
+                  </UserFlowManager>
                 </Route>
                 <Route path="/dashboard">
                   <UserFlowManager>
