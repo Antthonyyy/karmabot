@@ -9,7 +9,7 @@ interface ProtectedRouteProps {
 }
 
 export default function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const [, setLocation] = useLocation();
+  const [location, setLocation] = useLocation();
   const { user, nextStep, isLoading } = useUserState();
   
   useEffect(() => {
@@ -18,13 +18,14 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
       return;
     }
     
-    // Redirect to appropriate step in user flow
-    if (nextStep !== 'dashboard') {
+    // Only redirect if user is not already on the correct page
+    const currentPath = location.substring(1) || 'dashboard'; // Remove leading slash
+    if (nextStep !== 'dashboard' && currentPath !== nextStep) {
       setLocation(`/${nextStep}`);
     }
-  }, [nextStep, setLocation]);
+  }, [nextStep, setLocation, location]);
   
-  if (!authUtils.isAuthenticated() || nextStep !== 'dashboard') {
+  if (!authUtils.isAuthenticated()) {
     return null;
   }
   
@@ -32,5 +33,11 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
     return <LoadingSpinner size="lg" className="min-h-screen" />;
   }
   
+  // Allow rendering if user is on the correct page for their flow step
+  const currentPath = location.substring(1) || 'dashboard';
+  if (nextStep !== 'dashboard' && currentPath !== nextStep) {
+    return null; // Will redirect via useEffect
+  }
+
   return <>{children}</>;
 }
