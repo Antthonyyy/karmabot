@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, ArrowLeft } from "lucide-react";
 import ReminderModeSelector from "@/components/ReminderModeSelector";
 import CustomScheduleEditor, { type ScheduleItem } from "@/components/CustomScheduleEditor";
-import { apiRequest } from '@/lib/queryClient';
+import { apiRequest } from '@/lib/apiRequest';
 import { useToast } from "@/hooks/use-toast";
 import { BackButton } from "@/components/BackButton";
 
