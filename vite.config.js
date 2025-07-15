@@ -1,15 +1,16 @@
-const react = require("@vitejs/plugin-react");
-const path = require("path");
+import react from "@vitejs/plugin-react";
+import path from "path";
+import { defineConfig } from "vite";
 
 /** @type {import('vite').UserConfig} */
-module.exports = {
+export default defineConfig({
   root: "client",
   base: "/",
   plugins: [react()],
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "./client/src"),
-      "@shared": path.resolve(__dirname, "./shared")
+      "@": path.resolve(process.cwd(), "./client/src"),
+      "@shared": path.resolve(process.cwd(), "./shared")
     }
   },
   build: {
@@ -46,4 +47,4 @@ module.exports = {
   optimizeDeps: {
     include: ['react', 'react-dom', 'wouter', '@tanstack/react-query']
   }
-};
+});
