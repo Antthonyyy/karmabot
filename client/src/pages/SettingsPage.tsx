@@ -23,6 +23,13 @@ interface Schedule {
   enabled: boolean;
 }
 
+interface ReminderSettings {
+  remindersEnabled?: boolean;
+  reminderMode?: string;
+  dailyPrinciplesCount?: number;
+  schedule?: Schedule[];
+}
+
 export default function SettingsPage() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
@@ -31,6 +38,7 @@ export default function SettingsPage() {
   const [remindersEnabled, setRemindersEnabled] = useState(true);
   const [reminderMode, setReminderMode] = useState('balanced');
   const [customSchedule, setCustomSchedule] = useState<Schedule[]>([]);
+  const [dailyPrinciplesCount, setDailyPrinciplesCount] = useState(2);
   const [showModeSelector, setShowModeSelector] = useState(false);
   const [showContinueButton, setShowContinueButton] = useState(false);
   const [showVideoModal, setShowVideoModal] = useState(false);
@@ -41,7 +49,7 @@ export default function SettingsPage() {
   });
   
   // Загружаем настройки напоминаний
-  const { data: reminderSettings, isLoading } = useQuery({
+  const { data: reminderSettings, isLoading } = useQuery<ReminderSettings>({
     queryKey: ["/api/user/reminder-settings"],
     enabled: !!user,
   });
@@ -51,6 +59,7 @@ export default function SettingsPage() {
     if (reminderSettings) {
       setRemindersEnabled(reminderSettings.remindersEnabled ?? true);
       setReminderMode(reminderSettings.reminderMode || 'balanced');
+      setDailyPrinciplesCount(reminderSettings.dailyPrinciplesCount || 2);
       
       if (reminderSettings.schedule && reminderSettings.schedule.length > 0) {
         setCustomSchedule(reminderSettings.schedule);
@@ -102,6 +111,7 @@ export default function SettingsPage() {
   const handleSave = async () => {
     setupRemindersMutation.mutate({
       reminderMode,
+      dailyPrinciplesCount,
       customSchedule: reminderMode === 'custom' ? customSchedule : undefined,
     });
   };
@@ -134,7 +144,7 @@ export default function SettingsPage() {
   
   // Отображение текущего режима
   const getModeDisplay = () => {
-    const modes = {
+    const modes: Record<string, { name: string; principles: number; color: string; description: string }> = {
       intensive: { name: 'Інтенсивний', principles: 4, color: 'bg-red-100 text-red-700', description: '4 принципи + вечірня рефлексія' },
       balanced: { name: 'Збалансований', principles: 3, color: 'bg-green-100 text-green-700', description: '3 принципи + вечірня рефлексія' },
       light: { name: 'Легкий', principles: 2, color: 'bg-blue-100 text-blue-700', description: '2 принципи + вечірня рефлексія' },
@@ -243,6 +253,7 @@ export default function SettingsPage() {
                 <ReminderModeSelector
                   selectedMode={reminderMode}
                   onModeSelect={setReminderMode}
+                  onPrinciplesCountChange={setDailyPrinciplesCount}
                 />
                 
                 {/* Кастомный редактор (если выбран custom режим) */}
@@ -263,6 +274,7 @@ export default function SettingsPage() {
                       // Восстанавливаем исходные настройки
                       if (reminderSettings) {
                         setReminderMode(reminderSettings.reminderMode || 'balanced');
+                        setDailyPrinciplesCount(reminderSettings.dailyPrinciplesCount || 2);
                         if (reminderSettings.schedule) {
                           setCustomSchedule(reminderSettings.schedule);
                         }

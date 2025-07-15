@@ -923,7 +923,7 @@ app.get('/api/user/profile', authenticateToken, async (req: AuthRequest, res: Re
     async (req: AuthRequest, res) => {
       try {
         const user = req.user!;
-        const { reminderMode, customSchedule } = req.body;
+        const { reminderMode, customSchedule, dailyPrinciplesCount } = req.body;
 
         // Validate reminder mode
         const validModes = ["intensive", "balanced", "light", "custom"];
@@ -931,9 +931,22 @@ app.get('/api/user/profile', authenticateToken, async (req: AuthRequest, res: Re
           return res.status(400).json({ error: "Invalid reminder mode" });
         }
 
+        // Get default principles count based on mode if not provided
+        let principlesCount = dailyPrinciplesCount;
+        if (!principlesCount) {
+          const defaultCounts = {
+            intensive: 4,
+            balanced: 3,
+            light: 2,
+            custom: 2
+          };
+          principlesCount = defaultCounts[reminderMode as keyof typeof defaultCounts] || 2;
+        }
+
         // Setup reminders in transaction
         const result = await storage.setupUserReminders(user.id, {
           reminderMode,
+          dailyPrinciplesCount: principlesCount,
           customSchedule:
             reminderMode === "custom" ? customSchedule : undefined,
         });

@@ -17,6 +17,7 @@ interface ReminderMode {
 interface ReminderModeSelectorProps {
   selectedMode: string;
   onModeSelect: (mode: string) => void;
+  onPrinciplesCountChange?: (count: number) => void;
 }
 
 const iconMap = {
@@ -33,7 +34,7 @@ const colorMap = {
   purple: 'bg-purple-100 text-purple-700 border-purple-200',
 };
 
-export default function ReminderModeSelector({ selectedMode, onModeSelect }: ReminderModeSelectorProps) {
+export default function ReminderModeSelector({ selectedMode, onModeSelect, onPrinciplesCountChange }: ReminderModeSelectorProps) {
   const { data: modes, isLoading, isError } = useQuery({
     queryKey: ['/api/reminders/modes'],
     queryFn: getQueryFn<ReminderMode[]>({ on401: "throw" }),
@@ -82,7 +83,12 @@ export default function ReminderModeSelector({ selectedMode, onModeSelect }: Rem
             className={`cursor-pointer transition-all hover:shadow-lg ${
               selectedMode === mode.id ? 'ring-2 ring-purple-600' : ''
             }`}
-            onClick={() => onModeSelect(mode.id)}
+            onClick={() => {
+              onModeSelect(mode.id);
+              if (onPrinciplesCountChange && mode.id !== 'custom') {
+                onPrinciplesCountChange(mode.principlesPerDay);
+              }
+            }}
           >
             <CardContent className="p-6">
               <div className="flex items-start justify-between mb-3">

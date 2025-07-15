@@ -39,7 +39,7 @@ export const helmetConfig = helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://accounts.google.com"],
       fontSrc: ["'self'", "https://fonts.gstatic.com", "data:"],
       scriptSrc: ["'self'", "'unsafe-inline'", "https://accounts.google.com", "https://apis.google.com"],
       imgSrc: ["'self'", "data:", "https:", "blob:"],
