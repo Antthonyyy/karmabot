@@ -4,6 +4,7 @@ const path = require("path");
 /** @type {import('vite').UserConfig} */
 module.exports = {
   root: "client",
+  base: "/",
   plugins: [react()],
   resolve: {
     alias: {

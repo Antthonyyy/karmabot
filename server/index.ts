@@ -108,17 +108,21 @@ app.use((req, res, next) => {
 
   // Conditionally setup Vite or serve static files
   if (process.env.NODE_ENV === 'production') {
-    // In production, serve static files from the 'dist/public' directory
-    const publicPath = path.join(process.cwd(), 'dist', 'public');
+    // In production, serve static files from the 'dist' directory
+    const distPath = path.join(process.cwd(), 'dist');
+    const publicPath = path.join(distPath, 'public');
+    
+    // Serve static files from dist root and public folder
+    app.use(express.static(distPath));
     app.use(express.static(publicPath));
-    console.log(`✅ Serving static files from: ${publicPath}`);
+    console.log(`✅ Serving static files from: ${distPath} and ${publicPath}`);
 
     // And serve the index.html for all non-API GET routes
     app.get('*', (req, res, next) => {
       if (req.path.startsWith('/api/') || req.method !== 'GET') {
         return next();
       }
-      res.sendFile(path.join(publicPath, 'index.html'));
+      res.sendFile(path.join(distPath, 'index.html'));
     });
   } else {
     // In development, setup Vite middleware for React SPA
