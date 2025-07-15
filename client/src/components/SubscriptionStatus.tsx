@@ -3,7 +3,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Crown, Zap, Star } from 'lucide-react';
 import { authUtils } from '@/utils/auth';
-import { apiRequest } from '@/lib/queryClient';
+import { apiRequest } from '@/lib/apiRequest';
 
 interface SubscriptionStatusProps {
   className?: string;

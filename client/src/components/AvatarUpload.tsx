@@ -2,7 +2,7 @@ import { useState, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Camera } from 'lucide-react';
 import { authUtils } from '@/utils/auth';
-import { apiRequest } from '@/lib/queryClient';
+import { apiRequest } from '@/lib/apiRequest';
 
 interface AvatarUploadProps {
   user: any;

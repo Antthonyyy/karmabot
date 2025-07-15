@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Bell, Clock, Settings, Save, Plus, Trash2, ArrowRight, Play, Palette, Sun, Moon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiRequest } from '@/lib/queryClient';
+import { apiRequest } from '@/lib/apiRequest';
 import ReminderModeSelector from "@/components/ReminderModeSelector";
 import CustomScheduleEditor from "@/components/CustomScheduleEditor";
 import { BackButton } from "@/components/BackButton";

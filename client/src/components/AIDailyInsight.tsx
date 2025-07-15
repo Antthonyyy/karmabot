@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Sparkles, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { authUtils } from '@/utils/auth';
-import { apiRequest } from '@/lib/queryClient';
+import { apiRequest } from '@/lib/apiRequest';
 
 async function fetchDailyInsight(principleId: number, regenerate = false) {
   const response = await apiRequest('/api/ai/daily-insight', { method: 'GET' });

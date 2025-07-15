@@ -44,6 +44,7 @@ export const users = pgTable("users", {
   preferredLanguage: text("preferred_language"),
   createdAt: timestamp("created_at", { mode: "string" }),
   updatedAt: timestamp("updated_at", { mode: "string" }),
+  avatarUrl: text("avatar_url"),
 });
 
 // Principles table - matching actual database structure

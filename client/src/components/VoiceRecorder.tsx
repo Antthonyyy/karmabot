@@ -4,7 +4,7 @@ import { Mic, Square, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { authUtils } from '@/utils/auth';
 import { useTranslation } from 'react-i18next';
-import { apiRequest } from '@/lib/queryClient';
+import { apiRequest } from '@/lib/apiRequest';
 
 interface VoiceRecorderProps {
   onTranscript: (text: string) => void;

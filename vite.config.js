@@ -4,13 +4,14 @@ import { defineConfig } from "vite";
 
 /** @type {import('vite').UserConfig} */
 export default defineConfig({
-  root: "client",
+  root: ".",
   base: "/",
   plugins: [react()],
+  publicDir: "public",
   resolve: {
     alias: {
-      "@": path.resolve(process.cwd(), "./client/src"),
-      "@shared": path.resolve(process.cwd(), "./shared")
+      "@": path.resolve(process.cwd(), "./src"),
+      "@shared": path.resolve(process.cwd(), "../shared")
     }
   },
   build: {

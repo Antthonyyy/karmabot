@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Clock, Zap, Battery, Feather, Settings, Loader } from "lucide-react";
-import { getQueryFn } from "@/lib/queryClient";
+import { getQueryFn } from "@/lib/apiRequest";
 
 interface ReminderMode {
   id: string;

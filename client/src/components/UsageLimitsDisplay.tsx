@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { apiRequest } from '@/lib/queryClient';
+import { apiRequest } from '@/lib/apiRequest';
 
 type UsageData = {
   used: number;
