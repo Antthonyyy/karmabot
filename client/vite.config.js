@@ -10,8 +10,8 @@ export default defineConfig({
   publicDir: "public",
   resolve: {
     alias: {
-      "@": path.resolve(process.cwd(), "./src"),
-      "@shared": path.resolve(process.cwd(), "../shared")
+      "@": path.resolve(__dirname, "./src"),
+      "@shared": path.resolve(__dirname, "../shared")
     }
   },
   build: {
