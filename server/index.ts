@@ -119,10 +119,15 @@ app.use((req, res, next) => {
 
     // And serve the index.html for all non-API GET routes
     app.get('*', (req, res, next) => {
+      console.log(`🔍 Catch-all route: ${req.method} ${req.path}`);
+      
       if (req.path.startsWith('/api/') || req.method !== 'GET') {
+        console.log(`⏭️  Skipping catch-all for: ${req.path}`);
         return next();
       }
-      res.sendFile(path.join(distPath, 'index.html'));
+      
+      console.log(`📄 Serving index.html for: ${req.path}`);
+      res.sendFile(path.join(publicPath, 'index.html'));
     });
   } else {
     // In development, setup Vite middleware for React SPA
