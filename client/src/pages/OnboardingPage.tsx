@@ -51,14 +51,14 @@ export default function OnboardingPage() {
           description: "Ваша система нагадувань налаштована успішно!",
         });
         
-        // Small delay to ensure UI updates, then go to subscriptions
+        // Small delay to ensure UI updates, then go to dashboard
         setTimeout(() => {
-          setLocation('/subscriptions');
+          setLocation('/dashboard');
         }, 100);
       } catch (error) {
         console.error("Error completing onboarding:", error);
-        // Navigate to subscriptions even if onboarding completion fails
-        setLocation('/subscriptions');
+        // Navigate to dashboard even if onboarding completion fails
+        setLocation('/dashboard');
       }
     },
     onError: (error) => {

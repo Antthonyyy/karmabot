@@ -13,11 +13,10 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
-// Use Supabase URL with port 5432 for direct connection
-const supabaseUrl = 'postgresql://postgres.babyubgvqronpuezmmrb:Uybkjcbhfynjy1997@aws-0-eu-north-1.pooler.supabase.com:5432/postgres';
-const databaseUrl = supabaseUrl;
+// Use DATABASE_URL from environment variables
+const databaseUrl = process.env.DATABASE_URL;
 
-console.log('📝 Using Supabase database with pg:', databaseUrl.substring(0, 50) + '...');
+console.log('📝 Using database with pg:', databaseUrl.substring(0, 50) + '...');
 
 // Create connection pool with proper configuration for production
 export const pool = new Pool({

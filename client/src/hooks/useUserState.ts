@@ -17,9 +17,10 @@ export function useUserState() {
   
   const determineUserFlow = () => {
     if (!user) return 'login';
+    // First check subscription for new users
+    if (!user.subscription || user.subscription === 'none') return 'subscription';
+    // Then check onboarding (reminder setup)
     if (!user.hasCompletedOnboarding) return 'onboarding';
-    // Check if user has active subscription
-    if (!user.subscription || user.subscription === 'none') return 'subscriptions';
     return 'dashboard';
   };
   

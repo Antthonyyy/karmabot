@@ -51,10 +51,10 @@ export default function GoogleLoginButton({ onAuthSuccess }: GoogleLoginButtonPr
         onAuthSuccess();
       } else {
         // Определить следующий шаг в потоке пользователя
-        if (data.isNewUser || !data.user.hasCompletedOnboarding) {
-          setLocation('/onboarding');
-        } else if (data.needsSubscription) {
+        if (data.needsSubscription || data.isNewUser) {
           setLocation('/subscriptions');
+        } else if (!data.user.hasCompletedOnboarding) {
+          setLocation('/onboarding');
         } else {
           setLocation('/dashboard');
         }

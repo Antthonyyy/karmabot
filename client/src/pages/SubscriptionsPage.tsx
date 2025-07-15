@@ -76,9 +76,9 @@ export default function SubscriptionsPage() {
       const timer = setTimeout(() => {
         toast({
           title: "🎉 Підписку активовано!",
-          description: `Вітаємо! Переходимо на головну сторінку...`,
+          description: `Тепер налаштуємо нагадування...`,
         });
-        setLocation('/dashboard');
+        setLocation('/onboarding');
       }, 2000);
       return () => clearTimeout(timer);
     }
