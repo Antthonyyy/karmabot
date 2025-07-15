@@ -2,8 +2,8 @@ import * as Sentry from "@sentry/node";
 
 // Sentry configuration for server
 const initSentry = () => {
-  // Only initialize Sentry in production
-  if (process.env.NODE_ENV === "production") {
+  // Only initialize Sentry in production and if DSN is provided
+  if (process.env.NODE_ENV === "production" && process.env.SENTRY_DSN) {
     Sentry.init({
       dsn: process.env.SENTRY_DSN, // You'll need to add this to your env vars
       environment: process.env.NODE_ENV || "development",
@@ -23,12 +23,14 @@ const initSentry = () => {
     });
 
     console.log("📊 Sentry initialized for server error tracking");
+  } else {
+    console.log("📊 Sentry skipped (production mode with SENTRY_DSN required)");
   }
 };
 
 // Helper function to capture server exceptions
 export const captureServerException = (error: Error, context?: any) => {
-  if (process.env.NODE_ENV === "production") {
+  if (process.env.NODE_ENV === "production" && process.env.SENTRY_DSN) {
     Sentry.withScope((scope) => {
       if (context) {
         scope.setContext("server_context", context);
@@ -42,7 +44,7 @@ export const captureServerException = (error: Error, context?: any) => {
 
 // Helper function to capture server messages
 export const captureServerMessage = (message: string, level: 'error' | 'warning' | 'info' = 'info') => {
-  if (process.env.NODE_ENV === "production") {
+  if (process.env.NODE_ENV === "production" && process.env.SENTRY_DSN) {
     Sentry.captureMessage(message, level);
   }
   console.log(`[${level.toUpperCase()}] ${message}`);
@@ -50,13 +52,20 @@ export const captureServerMessage = (message: string, level: 'error' | 'warning'
 
 // Helper function to set server context
 export const setServerContext = (context: Record<string, any>) => {
-  if (process.env.NODE_ENV === "production") {
+  if (process.env.NODE_ENV === "production" && process.env.SENTRY_DSN) {
     Sentry.setContext("server_info", context);
   }
 };
 
 // Sentry error handler middleware for Express
 export const sentryErrorHandler = () => {
+  // Return no-op middleware if Sentry is not initialized
+  if (process.env.NODE_ENV !== "production" || !process.env.SENTRY_DSN) {
+    return (error: any, req: any, res: any, next: any) => {
+      next(error);
+    };
+  }
+  
   return Sentry.Handlers.errorHandler({
     shouldHandleError(error) {
       // Capture all errors in production
@@ -67,6 +76,13 @@ export const sentryErrorHandler = () => {
 
 // Sentry request handler middleware for Express
 export const sentryRequestHandler = () => {
+  // Return no-op middleware if Sentry is not initialized
+  if (process.env.NODE_ENV !== "production" || !process.env.SENTRY_DSN) {
+    return (req: any, res: any, next: any) => {
+      next();
+    };
+  }
+  
   return Sentry.Handlers.requestHandler({
     // Include user information in the scope
     user: ['id', 'email', 'username'],

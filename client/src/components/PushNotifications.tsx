@@ -93,7 +93,7 @@ export function PushNotifications({ onPermissionChange, onSubscriptionChange }: 
     setIsLoading(true);
     try {
       // VAPID ключі для push уведомлень
-      const vapidPublicKey = import.meta.env.VITE_VAPID_PUBLIC_KEY || 'BEl62iUYgUivxIkv69yViEuiBIa40HI80YatOtMnQ3A-dSMF2s_ZOw8Z8gUQ8P7Lv8F7c9I-V4zCYhKRzP1XA7Q';
+      const vapidPublicKey = import.meta.env.VITE_VAPID_PUBLIC_KEY || 'BA5FBUT6BNopuJ-9SqaX6ySnacK2a9e3SHPtdzc0HCfiIBzuoT5cKTkSasHGeI3MukF4zPq69Po6zPpEBKMefZ0';
       const applicationServerKey = urlBase64ToUint8Array(vapidPublicKey);
 
       const subscription = await registration.pushManager.subscribe({
