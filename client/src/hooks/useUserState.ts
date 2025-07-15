@@ -18,7 +18,7 @@ export function useUserState() {
   const determineUserFlow = () => {
     if (!user) return 'login';
     if (!user.hasCompletedOnboarding) return 'onboarding';
-    if (user.subscription === 'none') return 'subscription';
+    // Allow users to access dashboard even without subscription (free tier)
     return 'dashboard';
   };
   

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, ArrowLeft } from "lucide-react";
@@ -15,27 +15,57 @@ export default function OnboardingPage() {
   const [reminderMode, setReminderMode] = useState('balanced');
   const [customSchedule, setCustomSchedule] = useState<ScheduleItem[]>([]);
   const [, setLocation] = useLocation();
+  const queryClient = useQueryClient();
 
   const { toast } = useToast();
 
   const setupRemindersMutation = useMutation({
-    mutationFn: (data: any) => apiRequest("/api/user/setup-reminders", {
-      method: "POST",
-      body: JSON.stringify(data)
-    }),
-    onSuccess: () => {
-      toast({
-        title: "Налаштування збережено",
-        description: "Ваша система нагадувань налаштована успішно!",
+    mutationFn: async (data: any) => {
+      const response = await apiRequest("/api/user/setup-reminders", {
+        method: "POST",
+        body: JSON.stringify(data)
       });
-      // Redirect to dashboard using wouter
-      setLocation('/dashboard');
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      return response.json();
+    },
+    onSuccess: async () => {
+      try {
+        // Mark onboarding as complete
+        await apiRequest("/api/user/onboarding/complete", { 
+          method: "PATCH" 
+        });
+        
+        // Update user cache to reflect onboarding completion
+        queryClient.setQueryData(['user', 'state'], (oldData: any) => ({
+          ...oldData,
+          hasCompletedOnboarding: true
+        }));
+        
+        // Also invalidate to fetch fresh data
+        queryClient.invalidateQueries({ queryKey: ['user', 'state'] });
+        
+        toast({
+          title: "Налаштування збережено",
+          description: "Ваша система нагадувань налаштована успішно!",
+        });
+        
+        // Small delay to ensure UI updates
+        setTimeout(() => {
+          setLocation('/dashboard');
+        }, 100);
+      } catch (error) {
+        console.error("Error completing onboarding:", error);
+        // Navigate anyway to not block the user
+        setLocation('/dashboard');
+      }
     },
     onError: (error) => {
       console.error("Setup reminders error:", error);
       toast({
         title: "Помилка",
-        description: "Не вдалося зберегти налаштування. Спробуйте ще раз.",
+        description: `Не вдалося зберегти налаштування: ${error.message}`,
         variant: "destructive",
       });
     },
