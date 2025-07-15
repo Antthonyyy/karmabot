@@ -8,11 +8,13 @@ import CustomScheduleEditor, { type ScheduleItem } from "@/components/CustomSche
 import { apiRequest } from '@/lib/apiRequest';
 import { useToast } from "@/hooks/use-toast";
 import { BackButton } from "@/components/BackButton";
+import { useLocation } from "wouter";
 
 export default function OnboardingPage() {
   const [step, setStep] = useState(1);
   const [reminderMode, setReminderMode] = useState('balanced');
   const [customSchedule, setCustomSchedule] = useState<ScheduleItem[]>([]);
+  const [, setLocation] = useLocation();
 
   const { toast } = useToast();
 
@@ -26,13 +28,14 @@ export default function OnboardingPage() {
         title: "Налаштування збережено",
         description: "Ваша система нагадувань налаштована успішно!",
       });
-      // Redirect to dashboard or next step
-      window.location.href = '/dashboard';
+      // Redirect to dashboard using wouter
+      setLocation('/dashboard');
     },
-    onError: () => {
+    onError: (error) => {
+      console.error("Setup reminders error:", error);
       toast({
         title: "Помилка",
-        description: "Не вдалося зберегти налаштування",
+        description: "Не вдалося зберегти налаштування. Спробуйте ще раз.",
         variant: "destructive",
       });
     },
