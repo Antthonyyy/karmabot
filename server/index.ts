@@ -112,21 +112,32 @@ app.use((req, res, next) => {
     const distPath = path.join(process.cwd(), 'dist');
     const publicPath = path.join(distPath, 'public');
     
-    // Serve static files from dist root and public folder
-    app.use(express.static(distPath));
-    app.use(express.static(publicPath));
-    console.log(`✅ Serving static files from: ${distPath} and ${publicPath}`);
+    // Serve static files from public folder with proper headers
+    app.use(express.static(publicPath, {
+      maxAge: '1d',
+      setHeaders: (res, path) => {
+        if (path.endsWith('.js')) {
+          res.setHeader('Content-Type', 'application/javascript');
+        } else if (path.endsWith('.css')) {
+          res.setHeader('Content-Type', 'text/css');
+        }
+      }
+    }));
+    console.log(`✅ Serving static files from: ${publicPath}`);
 
-    // And serve the index.html for all non-API GET routes
+    // Catch-all handler for SPA routing - ONLY for non-file requests
     app.get('*', (req, res, next) => {
-      console.log(`🔍 Catch-all route: ${req.method} ${req.path}`);
-      
-      if (req.path.startsWith('/api/') || req.method !== 'GET') {
-        console.log(`⏭️  Skipping catch-all for: ${req.path}`);
+      // Skip API routes
+      if (req.path.startsWith('/api/')) {
         return next();
       }
       
-      console.log(`📄 Serving index.html for: ${req.path}`);
+      // Skip file requests (with extensions)
+      if (req.path.includes('.') && !req.path.endsWith('.html')) {
+        return next();
+      }
+      
+      console.log(`📄 SPA fallback for: ${req.path}`);
       res.sendFile(path.join(publicPath, 'index.html'));
     });
   } else {
@@ -160,12 +171,10 @@ app.use((req, res, next) => {
     console.log('✅ Vite middleware configured for development');
   }
 
-  // ALWAYS serve the app on port 5000
-  // this serves both the API and the client.
-  // It is the only port that is not firewalled.
-  const port = 5000;
+  // Use PORT from environment (for Render) or default to 5000
+  const port = process.env.PORT || 5000;
   server.listen({
-    port,
+    port: Number(port),
     host: "0.0.0.0",
     reusePort: true,
   }, () => {
