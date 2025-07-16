@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import rateLimit from 'express-rate-limit';
 import { authenticateToken } from '../auth.js';
 import { requireSubscription } from '../middleware/subscription.js';
 import { AIAssistant } from '../services/ai-assistant.js';
@@ -9,37 +10,29 @@ console.log('AI routes file loaded');
 
 const router = Router();
 
+// ИСПРАВЛЕНИЕ: Добавляем rate limiting для AI endpoints
+const aiRateLimit = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 20, // максимум 20 AI запросов за 15 минут
+  message: {
+    error: 'Too many AI requests, please try again later',
+    retryAfter: '15 minutes'
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 // Add debugging middleware
 router.use((req, res, next) => {
   console.log('AI route accessed:', req.method, req.path);
   next();
 });
 
-// Test endpoint to create Pro subscription
-router.get('/create-test-subscription', authenticateToken, async (req: AuthRequest, res) => {
-  try {
-    console.log('Creating test subscription for user:', req.user?.id);
-    
-    const subscription = await storage.createSubscription({
-      userId: req.user.id,
-      plan: 'pro',
-      status: 'active',
-      startDate: new Date(),
-      endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // +30 days
-      paymentMethod: 'test',
-      amount: 20.00,
-      currency: 'EUR'
-    });
-    
-    console.log('Test Pro subscription created:', subscription);
-    res.json({ message: 'Test Pro subscription created', subscription });
-  } catch (error) {
-    console.error('Error creating test subscription:', error);
-    res.status(500).json({ error: error.message });
-  }
-});
+// Apply rate limiting to all AI routes
+router.use(aiRateLimit);
 
-
+// УДАЛЁН НЕБЕЗОПАСНЫЙ TEST ENDPOINT
+// Endpoint /create-test-subscription удален как критическая уязвимость безопасности
 
 router.get('/insight/:principleId', authenticateToken, requireSubscription('plus'), async (req: AuthRequest, res) => {
   try {
@@ -74,12 +67,36 @@ router.post('/chat', authenticateToken, requireSubscription('pro'), async (req: 
       return res.status(400).json({ error: 'Messages array is required' });
     }
 
+    // Защита от Prompt Injection - санитизация сообщений
+    const sanitizedMessages = messages.map(msg => {
+      if (typeof msg.content !== 'string') {
+        throw new Error('Invalid message content');
+      }
+      
+      return {
+        role: 'user' as const, // Принудительно устанавливаем role как user для безопасности
+        content: msg.content
+          .replace(/system\s*:/gi, '')
+          .replace(/assistant\s*:/gi, '')
+          .replace(/user\s*:/gi, '')
+          .replace(/<[^>]*>/g, '') // Удаляем HTML теги
+          .trim()
+      };
+    });
+
+    // Дополнительная валидация длины сообщений
+    for (const msg of sanitizedMessages) {
+      if (msg.content.length > 1000) {
+        return res.status(400).json({ error: 'Message too long (max 1000 characters)' });
+      }
+    }
+
     const aiAssistant = new AIAssistant();
     
-    // Add system context for chat
-    const chatMessages = [
+    // Add system context for chat - правильная типизация для OpenAI API
+    const chatMessages: Array<{role: 'system' | 'user'; content: string}> = [
       {
-        role: 'system',
+        role: 'system' as const,
         content: language === 'uk' 
           ? `Ти досвідчений психолог-консультант з глибоким розумінням кармічних практик. 
             Відповідай українською мовою.
@@ -97,7 +114,7 @@ router.post('/chat', authenticateToken, requireSubscription('pro'), async (req: 
             - Consider individual context
             Avoid generic phrases, give personalized recommendations.`
       },
-      ...messages
+      ...sanitizedMessages
     ];
 
     const response = await aiAssistant.openai.chat.completions.create({

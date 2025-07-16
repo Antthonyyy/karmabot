@@ -3,6 +3,7 @@ import type { Express, Response } from "express";
 import { createServer, type Server } from "http";
 import express from "express";
 import multer from "multer";
+import crypto from "crypto";
 import { storage } from "./storage.js";
 import {
   authenticateToken,
@@ -26,13 +27,24 @@ import { supabase } from "./supabase.js";
 import { requireSubscription } from "./middleware/subscription.js";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Add Telegram webhook handler BEFORE other routes
+  // Add Telegram webhook handler BEFORE other routes - ИСПРАВЛЕНА БЕЗОПАСНОСТЬ
   app.post('/api/telegram/webhook', express.json(), (req, res) => {
-    console.log('🔗 Webhook received:', req.body);
-    if (req.query.secret !== process.env.WEBHOOK_SECRET) {
-      console.log('❌ Unauthorized webhook access, wrong secret');
+    console.log('🔗 Webhook received');
+    
+    // ИСПРАВЛЕНИЕ: Используем header-based signature verification вместо query parameter
+    const signature = req.headers['x-telegram-bot-api-secret-token'] as string;
+    const expectedSignature = process.env.WEBHOOK_SECRET;
+    
+    if (!expectedSignature) {
+      console.log('❌ WEBHOOK_SECRET not configured');
+      return res.status(500).send('Server configuration error');
+    }
+    
+    if (signature !== expectedSignature) {
+      console.log('❌ Unauthorized webhook access - invalid signature');
       return res.status(401).send('Unauthorized');
     }
+    
     if (bot) {
       console.log('✅ Processing Telegram update via webhook');
       bot.processUpdate(req.body);
@@ -324,13 +336,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch("/api/user/profile", authenticateToken, async (req: AuthRequest, res) => {
     try {
       const user = req.user!;
-      const { firstName, lastName, username } = req.body;
+      
+      // ИСПРАВЛЕНИЕ Mass Assignment: Явно указываем разрешенные поля
+      const allowedFields = ['firstName', 'lastName', 'username'];
+      const updateData: any = {};
+      
+      for (const field of allowedFields) {
+        if (req.body[field] !== undefined) {
+          // Дополнительная валидация
+          if (typeof req.body[field] === 'string' && req.body[field].length <= 100) {
+            updateData[field] = req.body[field].trim();
+          }
+        }
+      }
 
-      const updatedUser = await storage.updateUser(user.id, {
-        firstName,
-        lastName,
-        username
-      });
+      if (Object.keys(updateData).length === 0) {
+        return res.status(400).json({ error: 'No valid fields to update' });
+      }
+
+      const updatedUser = await storage.updateUser(user.id, updateData);
 
       res.json({
         id: updatedUser.id,

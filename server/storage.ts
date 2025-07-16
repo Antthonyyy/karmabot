@@ -468,11 +468,19 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateDailyStats(userId: number, date: string): Promise<DailyStats> {
-    // Get entries for the day
+    // Валидация date формата для предотвращения SQL injection
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      throw new Error('Invalid date format. Expected YYYY-MM-DD');
+    }
+
+    // Get entries for the day - используем безопасный параметризованный запрос
     const entries = await db
       .select()
       .from(journalEntries)
-      .where(sql`${journalEntries.userId} = ${userId} AND DATE(${journalEntries.createdAt}) = ${date}`);
+      .where(and(
+        eq(journalEntries.userId, userId),
+        sql`DATE(${journalEntries.createdAt}) = ${date}`
+      ));
 
     const entriesCount = entries.length;
     const avgMood = entries.length > 0 ? entries.reduce((sum, e) => sum + (Number(e.mood) || 0), 0) / entries.length : null;
@@ -1041,6 +1049,11 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getMonthlyAIRequests(userId: number, month: string): Promise<number> {
+    // Валидация month формата для предотвращения SQL injection
+    if (!/^\d{4}-\d{2}-01$/.test(month)) {
+      throw new Error('Invalid month format. Expected YYYY-MM-01');
+    }
+
     const result = await db
       .select({ count: count() })
       .from(aiRequests)

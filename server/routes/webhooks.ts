@@ -11,10 +11,13 @@ import { eq, and } from "drizzle-orm";
 
 const router = Router();
 
+// ИСПРАВЛЕНИЕ Race Condition: Map для отслеживания обрабатываемых платежей
+const processingPayments = new Map<string, Promise<any>>();
+
 // WayForPay webhook handler
 router.post("/wayforpay", async (req, res) => {
   try {
-    console.log("🔔 WayForPay webhook received:", req.body);
+    console.log("🔔 WayForPay webhook received");
 
     const {
       merchantSignature,
@@ -38,7 +41,8 @@ router.post("/wayforpay", async (req, res) => {
       reasonCode,
     ].join(";");
 
-    const expectedSignature = createHash("md5")
+    // ИСПРАВЛЕНИЕ: Используем SHA-256 вместо слабого MD5
+    const expectedSignature = createHash("sha256")
       .update(signString + ";" + process.env.WAYFORPAY_SECRET)
       .digest("hex");
 
@@ -49,44 +53,25 @@ router.post("/wayforpay", async (req, res) => {
         .json({ status: "error", message: "Invalid signature" });
     }
 
+    // ИСПРАВЛЕНИЕ Race Condition: Проверяем, не обрабатывается ли уже этот платеж
+    if (processingPayments.has(orderReference)) {
+      console.log("⏳ Payment already being processed:", orderReference);
+      return res.json({
+        orderReference,
+        status: "processing",
+        time: Math.floor(Date.now() / 1000),
+      });
+    }
+
     // Handle successful payment
     if (transactionStatus === "Approved") {
+      // Создаем Promise для обработки платежа
+      const processingPromise = processPayment(orderReference, amount, currency);
+      processingPayments.set(orderReference, processingPromise);
+
       try {
-        // Parse order reference to extract user ID and plan
-        const [userId, plan] = orderReference.split('-');
+        const result = await processingPromise;
         
-        // Mark existing subscriptions as replaced
-        await db.update(subscriptions)
-          .set({ status: 'replaced' })
-          .where(and(
-            eq(subscriptions.userId, parseInt(userId)),
-            eq(subscriptions.status, 'active')
-          ));
-        
-        // Create new paid subscription
-        const expiresAt = new Date();
-        expiresAt.setMonth(expiresAt.getMonth() + 1); // 30 days from now
-        
-        const subscription = await storage.createSubscription({
-          userId: parseInt(userId),
-          plan: plan as 'light' | 'plus' | 'pro',
-          status: 'active',
-          startedAt: new Date(),
-          expiresAt: expiresAt,
-          paymentOrderId: orderReference,
-          amount: amount,
-          currency: currency
-        });
-        
-        console.log("✅ Paid subscription activated:", subscription);
-
-        // Get user for Telegram notification
-        const user = await storage.getUser(subscription.userId);
-
-        if (user && user.telegramId) {
-          await sendPaymentSuccessNotification(user, subscription);
-        }
-
         // Respond to WayForPay
         res.json({
           orderReference,
@@ -94,11 +79,14 @@ router.post("/wayforpay", async (req, res) => {
           time: Math.floor(Date.now() / 1000),
         });
       } catch (error) {
-        console.error("❌ Error activating subscription:", error);
+        console.error("❌ Error processing payment:", error);
         res.status(500).json({
           status: "error",
-          message: "Failed to activate subscription",
+          message: "Failed to process payment",
         });
+      } finally {
+        // Убираем из processing map
+        processingPayments.delete(orderReference);
       }
     } else {
       console.log("❌ Payment not approved:", transactionStatus, reasonCode);
@@ -113,6 +101,50 @@ router.post("/wayforpay", async (req, res) => {
     res.status(500).json({ status: "error", message: "Internal server error" });
   }
 });
+
+// Extracted payment processing function для лучшей структуры кода
+async function processPayment(orderReference: string, amount: string, currency: string) {
+  // Parse order reference to extract user ID and plan
+  const [userId, plan] = orderReference.split('-');
+  
+  if (!userId || !plan) {
+    throw new Error('Invalid order reference format');
+  }
+  
+  // Mark existing subscriptions as replaced
+  await db.update(subscriptions)
+    .set({ status: 'replaced' })
+    .where(and(
+      eq(subscriptions.userId, parseInt(userId)),
+      eq(subscriptions.status, 'active')
+    ));
+  
+  // Create new paid subscription
+  const expiresAt = new Date();
+  expiresAt.setMonth(expiresAt.getMonth() + 1); // 30 days from now
+  
+  const subscription = await storage.createSubscription({
+    userId: parseInt(userId),
+    plan: plan as 'light' | 'plus' | 'pro',
+    status: 'active',
+    startedAt: new Date(),
+    expiresAt: expiresAt,
+    paymentOrderId: orderReference,
+    amount: amount,
+    currency: currency
+  });
+  
+  console.log("✅ Paid subscription activated:", subscription);
+
+  // Get user for Telegram notification
+  const user = await storage.getUser(subscription.userId);
+
+  if (user && user.telegramId) {
+    await sendPaymentSuccessNotification(user, subscription);
+  }
+
+  return subscription;
+}
 
 // Send payment success notification to Telegram
 async function sendPaymentSuccessNotification(user: any, subscription: any) {
@@ -186,8 +218,10 @@ async function sendPaymentSuccessNotification(user: any, subscription: any) {
     }
   } catch (error) {
     console.error("❌ Error sending Telegram notification:", error);
+    // НЕ кидаем ошибку наружу, чтобы не сломать основной flow
   }
 }
+
 console.log(
   "🔧 Webhooks router created with routes:",
   router.stack?.length || "unknown",

@@ -1,0 +1,50 @@
+# Security Policy for Karma Tracker
+
+Contact: mailto:security@karma-tracker.app
+Contact: https://github.com/karma-tracker/karmabot/security/advisories
+Expires: 2025-12-31T23:59:59.000Z
+Encryption: https://karma-tracker.app/.well-known/pgp-key.txt
+Preferred-Languages: uk, en, ru
+Canonical: https://karma-tracker.app/.well-known/security.txt
+
+# Responsible Disclosure Policy
+
+We take security vulnerabilities seriously. If you discover a security issue, 
+please report it responsibly by following these guidelines:
+
+1. Do NOT publicly disclose the vulnerability until we have had a chance to address it
+2. Provide detailed information about the vulnerability
+3. Include steps to reproduce the issue
+4. Allow reasonable time for us to respond and fix the issue
+
+# Scope
+
+In scope:
+- Authentication and authorization bypasses
+- SQL injection and other injection attacks  
+- Cross-site scripting (XSS)
+- Cross-site request forgery (CSRF)
+- Server-side request forgery (SSRF)
+- Remote code execution
+- Data exposure and privacy violations
+
+Out of scope:
+- Denial of service attacks
+- Physical attacks
+- Social engineering
+- Issues requiring physical access
+
+# Bug Bounty
+
+Currently we do not offer monetary rewards, but we will:
+- Acknowledge your contribution in our security acknowledgments
+- Provide updates on the fix timeline
+- Credit you in our release notes (if desired)
+
+# Response Timeline
+
+- Initial response: Within 48 hours
+- Status update: Within 7 days
+- Resolution target: Within 30 days (depending on severity)
+
+Thank you for helping us keep Karma Tracker secure! 

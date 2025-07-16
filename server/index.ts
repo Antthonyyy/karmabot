@@ -4,7 +4,7 @@ import path from "path";
 import fs from "fs";
 import { registerRoutes } from "./routes";
 import { setupVite } from "./vite";
-import { setupSecurity, rateLimitErrorHandler } from "./middleware/security";
+import { setupSecurity, rateLimitErrorHandler, standardErrorHandler } from "./middleware/security";
 import initSentry, { sentryRequestHandler, sentryErrorHandler } from "./utils/sentry";
 function log(message: string, source = "express") {
   const formattedTime = new Date().toLocaleTimeString("en-US", {
@@ -98,13 +98,8 @@ app.use((req, res, next) => {
   // Sentry error handler must be before other error handlers
   app.use(sentryErrorHandler());
 
-  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-    const status = err.status || err.statusCode || 500;
-    const message = err.message || "Internal Server Error";
-
-    res.status(status).json({ message });
-    throw err;
-  });
+  // ИСПРАВЛЕНИЕ: Стандартизированный error handler для предотвращения information disclosure
+  app.use(standardErrorHandler);
 
   // Conditionally setup Vite or serve static files
   if (process.env.NODE_ENV === 'production') {

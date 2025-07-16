@@ -37,11 +37,18 @@ export function logEnvStatus() {
     'GOOGLE_CLIENT_ID'
   ];
   
+  // ИСПРАВЛЕНИЕ: Не раскрываем sensitive environment variables
+  const sensitiveVars = ['JWT_SECRET', 'WAYFORPAY_SECRET', 'OPENAI_API_KEY', 'DATABASE_URL', 'TELEGRAM_BOT_TOKEN'];
+  
   console.log('\n🔍 Статус переменных окружения:');
   envVars.forEach(key => {
     const value = process.env[key];
     if (value) {
-      console.log(`✅ ${key}: ${value.length > 20 ? value.substring(0, 20) + '...' : value}`);
+      if (sensitiveVars.includes(key)) {
+        console.log(`✅ ${key}: [CONFIGURED]`);
+      } else {
+        console.log(`✅ ${key}: ${value.length > 20 ? value.substring(0, 20) + '...' : value}`);
+      }
     } else {
       console.log(`❌ ${key}: не задано`);
     }

@@ -4,18 +4,20 @@ import { telegramService } from "./services/telegramService.js";
 import { googleService } from "./services/googleService.js";
 import { storage } from "./storage.js";
 
-const JWT_SECRET = process.env.JWT_SECRET || "karma-diary-secret-key";
-
-// Validate JWT_SECRET configuration
-if (!process.env.JWT_SECRET) {
-  console.warn('⚠️  JWT_SECRET not set in environment variables, using default (not secure for production)');
-} else if (process.env.JWT_SECRET.length < 32) {
-  console.warn('⚠️  JWT_SECRET is too short (should be at least 32 characters)');
+// Валидация JWT_SECRET - критически важно для безопасности
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  throw new Error('JWT_SECRET environment variable is required');
+}
+if (JWT_SECRET.length < 32) {
+  throw new Error('JWT_SECRET must be at least 32 characters');
 }
 
-console.log('🔑 JWT_SECRET configured:', JWT_SECRET ? 'Yes' : 'No');
-console.log('🔑 JWT_SECRET length:', JWT_SECRET?.length);
-console.log('🔑 JWT_SECRET preview:', JWT_SECRET.substring(0, 20) + '...');
+// Только в development режиме показываем статус конфигурации
+if (process.env.NODE_ENV === 'development') {
+  console.log('🔑 JWT_SECRET configured: Yes');
+  console.log('🔑 JWT_SECRET length:', JWT_SECRET.length);
+}
 
 export interface AuthRequest extends Request {
   user?: any;
@@ -23,7 +25,9 @@ export interface AuthRequest extends Request {
 
 // Generate JWT token
 export function generateToken(user: any): string {
-  console.log('🎫 Generating token for user:', user.id);
+  if (process.env.NODE_ENV === 'development') {
+    console.log('🎫 Generating token for user:', user.id);
+  }
   
   const token = jwt.sign(
     { 
@@ -32,10 +36,12 @@ export function generateToken(user: any): string {
       firstName: user.firstName 
     },
     JWT_SECRET,
-    { expiresIn: '30d' }
+    { expiresIn: '24h' } // Сокращено с 30d до 24h для безопасности
   );
   
-  console.log('✅ Token generated successfully, length:', token.length);
+  if (process.env.NODE_ENV === 'development') {
+    console.log('✅ Token generated successfully');
+  }
   return token;
 }
 
@@ -43,7 +49,9 @@ export function generateToken(user: any): string {
 export async function authenticateToken(req: AuthRequest, res: Response, next: NextFunction) {
   try {
     const authHeader = req.headers['authorization'];
-    console.log('🔐 Auth header:', authHeader ? 'Present' : 'Missing');
+    if (process.env.NODE_ENV === 'development') {
+      console.log('🔐 Auth header:', authHeader ? 'Present' : 'Missing');
+    }
     
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       console.error('❌ No authorization header or invalid format');
@@ -51,12 +59,15 @@ export async function authenticateToken(req: AuthRequest, res: Response, next: N
     }
     
     const token = authHeader.substring(7);
-    console.log('🎫 Token extracted, length:', token.length);
-    console.log('🎫 Token preview:', token.substring(0, 20) + '...');
+    if (process.env.NODE_ENV === 'development') {
+      console.log('🎫 Token extracted, length:', token.length);
+    }
     
     try {
       const decoded = jwt.verify(token, JWT_SECRET) as any;
-      console.log('✅ Token verified, user ID:', decoded.id);
+      if (process.env.NODE_ENV === 'development') {
+        console.log('✅ Token verified, user ID:', decoded.id);
+      }
 
       // Get fresh user data
       const user = await storage.getUser(decoded.id);
@@ -77,14 +88,12 @@ export async function authenticateToken(req: AuthRequest, res: Response, next: N
         });
       } else if (error.name === 'JsonWebTokenError') {
         return res.status(403).json({ 
-          message: "Invalid token", 
-          details: error.message 
+          message: "Invalid token" 
         });
       }
       
       return res.status(403).json({ 
-        message: "Invalid or expired token", 
-        details: error.message 
+        message: "Invalid or expired token"
       });
     }
   } catch (error) {

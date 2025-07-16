@@ -76,20 +76,39 @@ const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
     return null
   }
 
+  // ИСПРАВЛЕНИЕ XSS: Валидация и санитизация CSS values
+  const sanitizeColor = (color: string): string => {
+    // Разрешаем только безопасные CSS color values
+    const safeColorRegex = /^(#[0-9a-fA-F]{3,8}|rgb\([0-9,\s]+\)|rgba\([0-9,\s.]+\)|hsl\([0-9,\s%]+\)|hsla\([0-9,\s%.,]+\)|[a-zA-Z]+)$/;
+    
+    if (!safeColorRegex.test(color.trim())) {
+      console.warn(`Unsafe color value detected and sanitized: ${color}`);
+      return '#000000'; // Fallback to black
+    }
+    
+    return color.trim();
+  };
+
+  const sanitizeKey = (key: string): string => {
+    // Разрешаем только alphanumeric characters и дефисы
+    return key.replace(/[^a-zA-Z0-9-_]/g, '');
+  };
+
   return (
     <style
       dangerouslySetInnerHTML={{
         __html: Object.entries(THEMES)
           .map(
             ([theme, prefix]) => `
-${prefix} [data-chart=${id}] {
+${prefix} [data-chart=${sanitizeKey(id)}] {
 ${colorConfig
   .map(([key, itemConfig]) => {
     const color =
       itemConfig.theme?.[theme as keyof typeof itemConfig.theme] ||
       itemConfig.color
-    return color ? `  --color-${key}: ${color};` : null
+    return color ? `  --color-${sanitizeKey(key)}: ${sanitizeColor(color)};` : null
   })
+  .filter(Boolean)
   .join("\n")}
 }
 `
