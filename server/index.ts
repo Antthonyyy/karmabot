@@ -116,6 +116,7 @@ app.use((req, res, next) => {
     app.use(express.static(publicPath, {
       maxAge: '1d',
       setHeaders: (res, path) => {
+        console.log(`📁 Serving static file: ${path}`);
         if (path.endsWith('.js')) {
           res.setHeader('Content-Type', 'application/javascript');
         } else if (path.endsWith('.css')) {
