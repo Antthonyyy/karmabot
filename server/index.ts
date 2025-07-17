@@ -104,22 +104,20 @@ app.use((req, res, next) => {
   // Conditionally setup Vite or serve static files
   if (process.env.NODE_ENV === 'production') {
     // In production, serve static files from the 'dist' directory
-    const distPath = path.join(process.cwd(), 'dist');
-    const publicPath = path.join(distPath, 'public');
-    
-    // Serve static files from public folder with proper headers
-    app.use(express.static(publicPath, {
+    const distPath = path.join(process.cwd(), 'client', 'dist');
+
+    // Serve static files from the client's dist directory
+    app.use(express.static(distPath, {
       maxAge: '1d',
-      setHeaders: (res, path) => {
-        console.log(`📁 Serving static file: ${path}`);
-        if (path.endsWith('.js')) {
+      setHeaders: (res, filePath) => {
+        if (filePath.endsWith('.js')) {
           res.setHeader('Content-Type', 'application/javascript');
-        } else if (path.endsWith('.css')) {
+        } else if (filePath.endsWith('.css')) {
           res.setHeader('Content-Type', 'text/css');
         }
       }
     }));
-    console.log(`✅ Serving static files from: ${publicPath}`);
+    console.log(`✅ Serving static files from: ${distPath}`);
 
     // Catch-all handler for SPA routing - ONLY for non-file requests
     app.get('*', (req, res, next) => {
@@ -128,13 +126,14 @@ app.use((req, res, next) => {
         return next();
       }
       
-      // Skip file requests (with extensions)
-      if (req.path.includes('.') && !req.path.endsWith('.html')) {
+      // If the request is for a file with an extension, let the static middleware handle it.
+      // If not, it's likely a client-side route, so serve index.html.
+      if (path.extname(req.path)) {
         return next();
       }
       
       console.log(`📄 SPA fallback for: ${req.path}`);
-      res.sendFile(path.join(publicPath, 'index.html'));
+      res.sendFile(path.join(distPath, 'index.html'));
     });
   } else {
     // In development, setup Vite middleware for React SPA
