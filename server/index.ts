@@ -109,6 +109,7 @@ app.use((req, res, next) => {
     // Serve static files from the client's dist directory
     app.use(express.static(distPath, {
       maxAge: '1d',
+      index: false, // ИСПРАВЛЕНИЕ: Отключаем автоматическую отдачу index.html
       setHeaders: (res, filePath) => {
         if (filePath.endsWith('.js')) {
           res.setHeader('Content-Type', 'application/javascript');
@@ -139,6 +140,13 @@ app.use((req, res, next) => {
         let html = fs.readFileSync(path.join(distPath, 'index.html'), 'utf8');
         
         const googleClientId = process.env.GOOGLE_CLIENT_ID || '';
+        console.log('🔑 Google Client ID Debug:', {
+          hasEnvVar: !!process.env.GOOGLE_CLIENT_ID,
+          length: googleClientId.length,
+          preview: googleClientId ? googleClientId.substring(0, 20) + '...' : 'EMPTY',
+          htmlContainsPlaceholder: html.includes('YOUR_GOOGLE_CLIENT_ID')
+        });
+        
         html = html.replace(/YOUR_GOOGLE_CLIENT_ID/g, googleClientId);
         
         res.send(html);
