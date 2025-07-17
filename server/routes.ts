@@ -171,6 +171,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // SEO routes (sitemap, robots.txt, manifest)
   app.use("/", sitemapRoutes);
 
+  // Error reporting endpoint
+  app.post("/api/errors", express.json(), (req, res) => {
+    try {
+      const { error, stack, componentStack, url, userAgent, timestamp, errorId } = req.body;
+      
+      console.error("🚨 Client Error Report:", {
+        errorId,
+        error,
+        url,
+        userAgent,
+        timestamp
+      });
+      
+      // В production можно отправлять в Sentry или другую систему мониторинга
+      if (stack) {
+        console.error("Stack trace:", stack);
+      }
+      if (componentStack) {
+        console.error("Component stack:", componentStack);
+      }
+      
+      res.status(200).json({ 
+        success: true, 
+        errorId,
+        message: "Error report received" 
+      });
+    } catch (err) {
+      console.error("Error processing error report:", err);
+      res.status(500).json({ 
+        success: false, 
+        message: "Failed to process error report" 
+      });
+    }
+  });
+
 
 
   
