@@ -113,3 +113,4 @@ FRONTEND_URL=https://karma-traker.onrender.com
 
 ## Summary
 Production-ready stack. Auth via Google or Telegram → pay → onboard → dashboard. Telegram & Web Push reminders working. AI insights active. Hosted on Render, GitHub-based deployment. Everything modular and extensible.
+# Trigger redeploy to load GOOGLE_CLIENT_ID env var
