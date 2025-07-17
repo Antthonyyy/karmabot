@@ -20,6 +20,10 @@ export default defineConfig({
     sourcemap: false,
     rollupOptions: {
       output: {
+        // ИСПРАВЛЕНИЕ: Фиксированные имена для основных файлов в продакшене
+        entryFileNames: 'assets/index.js',
+        chunkFileNames: 'assets/[name].js',
+        assetFileNames: 'assets/[name][extname]',
         manualChunks: {
           // Core vendor chunk
           vendor: ['react', 'react-dom'],
