@@ -172,7 +172,7 @@ export const helmetConfig = helmet({
       styleSrc: ["'self'", "https://fonts.googleapis.com", "https://accounts.google.com", "'unsafe-inline'"],
       fontSrc: ["'self'", "https://fonts.gstatic.com", "data:"],
       // ИСПРАВЛЕНИЕ: Убираем 'unsafe-inline' для scripts
-      scriptSrc: ["'self'", "https://accounts.google.com", "https://apis.google.com"],
+      scriptSrc: ["'self'", "https://accounts.google.com", "https://apis.google.com", "'unsafe-inline'"],
       imgSrc: ["'self'", "data:", "https:", "blob:"],
       connectSrc: ["'self'", "https://api.telegram.org", "https://accounts.google.com", "https://oauth2.googleapis.com"],
       frameSrc: ["'self'", "https://accounts.google.com"],
