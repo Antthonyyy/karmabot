@@ -15,8 +15,9 @@ export default function GoogleLoginButton({ onAuthSuccess }: GoogleLoginButtonPr
   const [, setLocation] = useLocation();
 
   // Check if Google OAuth is configured
-  const hasGoogleOAuth = import.meta.env.VITE_GOOGLE_CLIENT_ID && 
-                        import.meta.env.VITE_GOOGLE_CLIENT_ID.length > 20;
+  const hasGoogleOAuth = ((window as any).GOOGLE_CLIENT_ID || import.meta.env.VITE_GOOGLE_CLIENT_ID) && 
+                        ((window as any).GOOGLE_CLIENT_ID || import.meta.env.VITE_GOOGLE_CLIENT_ID).length > 20 &&
+                        ((window as any).GOOGLE_CLIENT_ID || import.meta.env.VITE_GOOGLE_CLIENT_ID) !== 'YOUR_GOOGLE_CLIENT_ID';
 
   const handleGoogleSuccess = async (credentialResponse: CredentialResponse) => {
     try {
@@ -96,7 +97,7 @@ export default function GoogleLoginButton({ onAuthSuccess }: GoogleLoginButtonPr
         auto_select={false}
         theme="outline"
         size="large"
-        width="100%"
+        width={300}
         locale="uk"
       />
     </div>

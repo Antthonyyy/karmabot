@@ -133,7 +133,19 @@ app.use((req, res, next) => {
       }
       
       console.log(`📄 SPA fallback for: ${req.path}`);
-      res.sendFile(path.join(distPath, 'index.html'));
+      
+      try {
+        // ИСПРАВЛЕНИЕ: Читаем index.html и заменяем Google Client ID в продакшене
+        let html = fs.readFileSync(path.join(distPath, 'index.html'), 'utf8');
+        
+        const googleClientId = process.env.GOOGLE_CLIENT_ID || '';
+        html = html.replace(/YOUR_GOOGLE_CLIENT_ID/g, googleClientId);
+        
+        res.send(html);
+      } catch (error) {
+        console.error('Error serving SPA in production:', error);
+        res.status(500).send('Server error');
+      }
     });
   } else {
     // In development, setup Vite middleware for React SPA

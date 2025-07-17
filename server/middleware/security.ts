@@ -168,8 +168,8 @@ export const helmetConfig = helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      // ИСПРАВЛЕНИЕ: Убираем 'unsafe-inline' для защиты от XSS
-      styleSrc: ["'self'", "https://fonts.googleapis.com", "https://accounts.google.com"],
+      // ИСПРАВЛЕНИЕ: Добавляем 'unsafe-inline' для Google OAuth стилей
+      styleSrc: ["'self'", "https://fonts.googleapis.com", "https://accounts.google.com", "'unsafe-inline'"],
       fontSrc: ["'self'", "https://fonts.gstatic.com", "data:"],
       // ИСПРАВЛЕНИЕ: Убираем 'unsafe-inline' для scripts
       scriptSrc: ["'self'", "https://accounts.google.com", "https://apis.google.com"],

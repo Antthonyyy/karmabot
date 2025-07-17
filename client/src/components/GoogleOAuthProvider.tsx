@@ -7,13 +7,14 @@ interface GoogleOAuthProviderProps {
 
 export default function GoogleOAuthProvider({ children }: GoogleOAuthProviderProps) {
   const [hasClientId, setHasClientId] = useState(false);
-  const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+  // ИСПРАВЛЕНИЕ: Используем window.GOOGLE_CLIENT_ID вместо переменной окружения
+  const clientId = (window as any).GOOGLE_CLIENT_ID || import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
   useEffect(() => {
-    if (clientId && clientId.length > 20) { // Basic validation
+    if (clientId && clientId.length > 20 && clientId !== 'YOUR_GOOGLE_CLIENT_ID') { // Basic validation
       setHasClientId(true);
     } else {
-      console.warn('VITE_GOOGLE_CLIENT_ID not found or invalid, Google OAuth disabled');
+      console.warn('Google Client ID not found or invalid, Google OAuth disabled');
       setHasClientId(false);
     }
   }, [clientId]);
