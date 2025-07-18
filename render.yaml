@@ -10,5 +10,7 @@ services:
         value: production
       - key: PORT
         value: 10000
+      - key: GOOGLE_CLIENT_ID
+        sync: false
     healthCheckPath: /api/health
     autoDeploy: true 

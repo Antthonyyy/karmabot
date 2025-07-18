@@ -1,11 +1,11 @@
 export function checkEnvVariables() {
   const required = [
     'JWT_SECRET',
-    'DATABASE_URL',
-    'GOOGLE_CLIENT_ID'
+    'DATABASE_URL'
   ];
   
   const optional = [
+    'GOOGLE_CLIENT_ID',
     'OPENAI_API_KEY',
     'WAYFORPAY_MERCHANT', 
     'WAYFORPAY_SECRET',
