@@ -104,7 +104,7 @@ app.use((req, res, next) => {
   // Conditionally setup Vite or serve static files
   if (process.env.NODE_ENV === 'production') {
     // In production, serve static files from the 'dist' directory
-    const distPath = path.join(process.cwd(), 'client', 'dist');
+    const distPath = path.join(process.cwd(), 'dist', 'public');
 
     // Serve static files from the client's dist directory
     app.use(express.static(distPath, {
