@@ -144,10 +144,16 @@ app.use((req, res, next) => {
           hasEnvVar: !!process.env.GOOGLE_CLIENT_ID,
           length: googleClientId.length,
           preview: googleClientId ? googleClientId.substring(0, 20) + '...' : 'EMPTY',
-          htmlContainsPlaceholder: html.includes('YOUR_GOOGLE_CLIENT_ID')
+          htmlContainsPlaceholder: html.includes('YOUR_GOOGLE_CLIENT_ID'),
+          willReplace: googleClientId && googleClientId.length > 20
         });
         
-        html = html.replace(/YOUR_GOOGLE_CLIENT_ID/g, googleClientId);
+        if (googleClientId && googleClientId.length > 20) {
+          html = html.replace(/YOUR_GOOGLE_CLIENT_ID/g, googleClientId);
+          console.log('✅ Google Client ID replaced in HTML');
+        } else {
+          console.log('❌ Google Client ID not available, keeping placeholder');
+        }
         
         res.send(html);
       } catch (error) {
@@ -170,7 +176,12 @@ app.use((req, res, next) => {
         let html = fs.readFileSync(htmlPath, 'utf8');
         
         const googleClientId = process.env.GOOGLE_CLIENT_ID || '';
-        html = html.replace(/YOUR_GOOGLE_CLIENT_ID/g, googleClientId);
+        if (googleClientId && googleClientId.length > 20) {
+          html = html.replace(/YOUR_GOOGLE_CLIENT_ID/g, googleClientId);
+          console.log('✅ Google Client ID replaced in dev HTML');
+        } else {
+          console.log('❌ Google Client ID not available in dev, keeping placeholder');
+        }
         
         if (vite) {
           html = await vite.transformIndexHtml(req.originalUrl, html);

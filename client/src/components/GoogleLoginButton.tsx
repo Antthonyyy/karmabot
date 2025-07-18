@@ -82,12 +82,14 @@ export default function GoogleLoginButton({ onAuthSuccess }: GoogleLoginButtonPr
   // Show fallback if Google OAuth is not configured
   if (!hasGoogleOAuth) {
     return (
-      <div className="w-full p-3 border border-gray-300 rounded-md text-center text-gray-500">
-        Google OAuth не налаштовано
+      <div className="w-full p-4 border border-gray-300 rounded-md text-center text-gray-500 bg-gray-50">
+        <p className="mb-2">Google OAuth не налаштовано</p>
+        <p className="text-sm">Зверніться до адміністратора</p>
       </div>
     );
   }
 
+  // Рендерим GoogleLogin только если OAuth настроен
   return (
     <div className="w-full">
       <GoogleLogin

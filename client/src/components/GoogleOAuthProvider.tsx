@@ -7,27 +7,29 @@ interface GoogleOAuthProviderProps {
 
 export default function GoogleOAuthProvider({ children }: GoogleOAuthProviderProps) {
   const [hasClientId, setHasClientId] = useState(false);
-  // ИСПРАВЛЕНИЕ: Используем window.GOOGLE_CLIENT_ID вместо переменной окружения
-  const clientId = (window as any).GOOGLE_CLIENT_ID || import.meta.env.VITE_GOOGLE_CLIENT_ID;
-
+  const [clientId, setClientId] = useState<string>('');
+  
   useEffect(() => {
-    if (clientId && clientId.length > 20 && clientId !== 'YOUR_GOOGLE_CLIENT_ID') { // Basic validation
+    // Получаем client ID из window или env
+    const id = (window as any).GOOGLE_CLIENT_ID || import.meta.env.VITE_GOOGLE_CLIENT_ID;
+    
+    if (id && id.length > 20 && id !== 'YOUR_GOOGLE_CLIENT_ID') {
+      setClientId(id);
       setHasClientId(true);
+      console.log('✅ Google Client ID configured');
     } else {
-      console.warn('Google Client ID not found or invalid, Google OAuth disabled');
+      console.warn('❌ Google Client ID not found or invalid, Google OAuth disabled');
       setHasClientId(false);
     }
-  }, [clientId]);
+  }, []);
 
-  // Render children without Google provider if no client ID
-  if (!hasClientId) {
+  // Если client ID недоступен, рендерим children без провайдера
+  if (!hasClientId || !clientId) {
     return <>{children}</>;
   }
 
   return (
-    <GoogleProvider 
-      clientId={clientId}
-    >
+    <GoogleProvider clientId={clientId}>
       {children}
     </GoogleProvider>
   );
