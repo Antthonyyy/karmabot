@@ -13,6 +13,14 @@ export default function GoogleOAuthProvider({ children }: GoogleOAuthProviderPro
     // Получаем client ID из window или env
     const id = (window as any).GOOGLE_CLIENT_ID || import.meta.env.VITE_GOOGLE_CLIENT_ID;
     
+    console.log('🔍 Google OAuth Debug:', {
+      windowId: (window as any).GOOGLE_CLIENT_ID,
+      envId: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+      finalId: id,
+      isPlaceholder: id === 'YOUR_GOOGLE_CLIENT_ID',
+      length: id ? id.length : 0
+    });
+    
     if (id && id.length > 20 && id !== 'YOUR_GOOGLE_CLIENT_ID') {
       setClientId(id);
       setHasClientId(true);
@@ -24,9 +32,13 @@ export default function GoogleOAuthProvider({ children }: GoogleOAuthProviderPro
   }, []);
 
   // Если client ID недоступен, рендерим children без провайдера
+  // но устанавливаем глобальный флаг для компонентов
   if (!hasClientId || !clientId) {
+    (window as any).GOOGLE_OAUTH_DISABLED = true;
     return <>{children}</>;
   }
+  
+  (window as any).GOOGLE_OAUTH_DISABLED = false;
 
   return (
     <GoogleProvider clientId={clientId}>

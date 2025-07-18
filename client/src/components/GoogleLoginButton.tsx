@@ -14,10 +14,12 @@ export default function GoogleLoginButton({ onAuthSuccess }: GoogleLoginButtonPr
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
 
-  // Check if Google OAuth is configured
-  const hasGoogleOAuth = ((window as any).GOOGLE_CLIENT_ID || import.meta.env.VITE_GOOGLE_CLIENT_ID) && 
-                        ((window as any).GOOGLE_CLIENT_ID || import.meta.env.VITE_GOOGLE_CLIENT_ID).length > 20 &&
-                        ((window as any).GOOGLE_CLIENT_ID || import.meta.env.VITE_GOOGLE_CLIENT_ID) !== 'YOUR_GOOGLE_CLIENT_ID';
+  // Check if Google OAuth is configured and provider is available
+  const clientId = (window as any).GOOGLE_CLIENT_ID || import.meta.env.VITE_GOOGLE_CLIENT_ID;
+  const hasGoogleOAuth = clientId && 
+                        clientId.length > 20 &&
+                        clientId !== 'YOUR_GOOGLE_CLIENT_ID' &&
+                        !(window as any).GOOGLE_OAUTH_DISABLED;
 
   const handleGoogleSuccess = async (credentialResponse: CredentialResponse) => {
     try {
