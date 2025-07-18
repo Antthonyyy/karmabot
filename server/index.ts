@@ -191,7 +191,6 @@ app.use((req, res, next) => {
   server.listen({
     port: Number(port),
     host: "0.0.0.0",
-    reusePort: true,
   }, () => {
     log(`serving on port ${port}`);
     console.log('========== SERVER RESTARTED AT', new Date().toISOString(), '==========');
@@ -200,7 +199,7 @@ app.use((req, res, next) => {
       hasClientId: !!process.env.GOOGLE_CLIENT_ID,
       hasClientSecret: !!process.env.GOOGLE_CLIENT_SECRET,
       clientIdLength: process.env.GOOGLE_CLIENT_ID ? process.env.GOOGLE_CLIENT_ID.length : 0,
-      redirectUri: 'https://karma-traker.onrender.com/auth/callback'
+      redirectUri: process.env.FRONTEND_URL ? `${process.env.FRONTEND_URL}/auth/callback` : 'not configured'
     });
   });
 })();

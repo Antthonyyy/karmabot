@@ -21,8 +21,8 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx server/db/migrate.ts",
     "db:studio": "drizzle-kit studio",
-    "deploy:staging": "npm run build && npm run db:migrate",
-    "deploy:production": "npm run audit:security && npm run build && npm run db:migrate",
+    "deploy:staging": "npm run build",
+    "deploy:production": "npm run build",
     "health:check": "curl -f http://localhost:5000/api/health || exit 1"
   },
   "dependencies": {

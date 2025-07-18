@@ -87,9 +87,7 @@ let bot: TelegramBot | null = null;
         // Ignore errors if polling wasn't started
       }
       
-      const webhookUrl = process.env.WEBHOOK_SECRET 
-        ? `${process.env.TELEGRAM_WEBHOOK_URL}/api/telegram/webhook?secret=${process.env.WEBHOOK_SECRET}`
-        : `${process.env.TELEGRAM_WEBHOOK_URL}/api/telegram/webhook`;
+      const webhookUrl = `${process.env.TELEGRAM_WEBHOOK_URL}/api/telegram/webhook`;
       
       await bot.setWebHook(webhookUrl);
       console.log("Telegram bot started in webhook mode");
@@ -176,7 +174,9 @@ let bot: TelegramBot | null = null;
   }
 
 // Initialize bot
-bot = await initializeBot();
+initializeBot().then(initializedBot => {
+  bot = initializedBot;
+});
 
 // Exports at the end of the file
 export default bot;

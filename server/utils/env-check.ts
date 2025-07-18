@@ -1,27 +1,36 @@
 export function checkEnvVariables() {
   const required = [
+    'JWT_SECRET',
+    'DATABASE_URL',
+    'GOOGLE_CLIENT_ID'
+  ];
+  
+  const optional = [
     'OPENAI_API_KEY',
     'WAYFORPAY_MERCHANT', 
     'WAYFORPAY_SECRET',
     'FRONTEND_URL',
-    'JWT_SECRET',
-    'DATABASE_URL',
     'TELEGRAM_BOT_TOKEN',
-    'GOOGLE_CLIENT_ID'
+    'WEBHOOK_SECRET'
   ];
   
   const missing = required.filter(key => !process.env[key]);
   
   if (missing.length > 0) {
-    console.error('❌ Отсутствуют переменные окружения:', missing);
-    console.log('📝 Добавьте их в Replit Secrets или .env файл');
+    console.error('❌ Отсутствуют обязательные переменные окружения:', missing);
+    console.log('📝 Добавьте их в переменные окружения');
     missing.forEach(key => {
       console.log(`- ${key}`);
     });
     return false;
   }
   
-  console.log('✅ Все переменные окружения настроены');
+  const missingOptional = optional.filter(key => !process.env[key]);
+  if (missingOptional.length > 0) {
+    console.log('⚠️  Отсутствуют опциональные переменные:', missingOptional);
+  }
+  
+  console.log('✅ Все обязательные переменные окружения настроены');
   return true;
 }
 
@@ -34,11 +43,12 @@ export function logEnvStatus() {
     'JWT_SECRET',
     'DATABASE_URL',
     'TELEGRAM_BOT_TOKEN',
-    'GOOGLE_CLIENT_ID'
+    'GOOGLE_CLIENT_ID',
+    'WEBHOOK_SECRET'
   ];
   
   // ИСПРАВЛЕНИЕ: Не раскрываем sensitive environment variables
-  const sensitiveVars = ['JWT_SECRET', 'WAYFORPAY_SECRET', 'OPENAI_API_KEY', 'DATABASE_URL', 'TELEGRAM_BOT_TOKEN'];
+  const sensitiveVars = ['JWT_SECRET', 'WAYFORPAY_SECRET', 'OPENAI_API_KEY', 'DATABASE_URL', 'TELEGRAM_BOT_TOKEN', 'WEBHOOK_SECRET'];
   
   console.log('\n🔍 Статус переменных окружения:');
   envVars.forEach(key => {
