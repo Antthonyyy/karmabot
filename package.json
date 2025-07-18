@@ -3,9 +3,14 @@
   "version": "1.0.0",
   "type": "module",
   "license": "MIT",
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=9.0.0"
+  },
   "scripts": {
     "dev": "cd client && vite",
-    "build": "cd client && vite build && cd .. && rm -rf dist/public && mkdir -p dist/public && cp -r client/dist/* dist/public/ && esbuild server/index.ts --bundle --platform=node --format=esm --packages=external --outdir=dist",
+    "build": "chmod +x build.sh && ./build.sh",
+    "build:fallback": "cd client && vite build && cd .. && rm -rf dist/public && mkdir -p dist/public && cp -r client/dist/* dist/public/ && esbuild server/index.ts --bundle --platform=node --format=esm --packages=external --outdir=dist",
     "build:analyze": "cd client && vite build --mode=analyze",
     "start": "node dist/index.js",
     "check": "tsc",
