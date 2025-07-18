@@ -22,6 +22,7 @@ export default defineConfig({
       output: {
         // ИСПРАВЛЕНИЕ: Фиксированные имена для основных файлов в продакшене
         entryFileNames: 'assets/index.js',
+        
         chunkFileNames: 'assets/[name].js',
         assetFileNames: 'assets/[name][extname]',
         manualChunks: {
